@@ -1,0 +1,37 @@
+<form [formGroup]="ratioForm" novalidate (ngSubmit)="save()" autocomplete="off">
+  <div class="card">
+    <div class="card-header">
+      <strong>Review ratio section</strong>
+      <div class="card-header-actions">
+        <button class="btn btn-primary" type="submit">save</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <app-form-input-text
+          class="col-md-4"
+          [label]="'Title'"
+          [control]="ratioForm.get('title')"
+          [validationMessage]="'Sub heading is required'"
+        >
+        </app-form-input-text>
+
+        <app-form-input-text
+          class="col-md-4"
+          [label]="'Trust online reviews (%)'"
+          [control]="ratioForm.get('trust_online_ratio')"
+          [validationMessage]="'Trust online ratio is required'"
+        >
+        </app-form-input-text>
+
+        <app-form-input-text
+          class="col-md-4"
+          [label]="'Validate advise (%)'"
+          [control]="ratioForm.get('validate_reviews_ratio')"
+          [validationMessage]="'Validate reviews ratio is required'"
+        >
+        </app-form-input-text>
+      </div>
+    </div>
+  </div>
+</form>

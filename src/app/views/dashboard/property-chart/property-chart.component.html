@@ -1,0 +1,107 @@
+<div class="row">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        Property Reviews
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3 mt-3">
+            <ng-select
+              [placeholder]="'-- all company --'"
+              [searchable]="true"
+              [items]="companies"
+              [bindLabel]="'name'"
+              [bindValue]="'id'"
+              [(ngModel)]="companyId"
+              (change)="onSearch()"
+            >
+            </ng-select>
+          </div>
+
+          <div class="col-md-2 mt-3">
+            <ng-select
+              [placeholder]="'-- all projects --'"
+              [searchable]="true"
+              [items]="propertyOptions"
+              [bindLabel]="'label'"
+              [bindValue]="'index'"
+              [(ngModel)]="propertyIndex"
+              (change)="onChangeRange($event)"
+            >
+            </ng-select>
+          </div>
+
+          <div class="col-md-7">
+            <form
+              class="d-flex"
+              [formGroup]="filterForm"
+              novalidate
+              (ngSubmit)="onSearch()"
+              autocomplete="off"
+            >
+              <div class="row">
+                <div class="col-md-4">
+                  <div class="form-group">
+                    <select class="form-control" formControlName="state">
+                      <option value="">-- all states --</option>
+                      <option
+                        *ngFor="let option of states"
+                        value="{{ option.name }}"
+                        >{{ option.name }}</option
+                      >
+                    </select>
+                  </div>
+                </div>
+
+                <!-- <div class="col-md-3">
+                  <app-form-input-text
+                    [class]="'w-5'"
+                    [placeHolder]="'zipcode'"
+                    [control]="filterForm.get('zipcode')"
+                  >
+                  </app-form-input-text>
+                </div> -->
+
+                <div class="col-md-5">
+                  <!-- <app-form-input-text
+                    [class]="'w-5'"
+                    [placeHolder]="'suburb'"
+                    [control]="filterForm.get('suburb')"
+                  >
+                  </app-form-input-text> -->
+                  <ng-select
+                    [placeholder]="'-- all subrubs --'"
+                    [searchable]="true"
+                    [items]="suburbOptions"
+                    [bindLabel]="'text'"
+                    [bindValue]="'text'"
+                    [formControl]="filterForm.get('suburb')"
+                    (search)="onChangeSuburb($event)"
+                  >
+                  </ng-select>
+                </div>
+                <div class="col-md-2 d-flex">
+                  <div class="mr-5">
+                    <button class="btn btn-primary">Search</button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="chart-wrapper">
+          <canvas
+            baseChart
+            height="70"
+            class="chart"
+            [datasets]="datasets"
+            [labels]="labels"
+            [options]="barChartOption"
+            [chartType]="'bar'"
+          ></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

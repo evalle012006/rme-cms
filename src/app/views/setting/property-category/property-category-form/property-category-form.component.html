@@ -1,0 +1,76 @@
+<div class="animated fadeIn">
+  <form
+    class="card"
+    [formGroup]="propertyCategoryForm"
+    novalidate
+    (ngSubmit)="addPropertyCategory()"
+    autocomplete="off"
+  >
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-12">
+          <label>Cat Icon</label>
+          <app-single-dropzone
+            [placeHolderText]="'Click Or Drag Image to upload!'"
+            [onDragText]="'Drop Image to upload!'"
+            [path]="prop_cat ? prop_cat.full_cat_image : null"
+            [control]="propertyCategoryForm.get('image')"
+          >
+          </app-single-dropzone>
+        </div>
+        <app-form-input-textarea
+          class="col-md-6"
+          [label]="'Description'"
+          [control]="propertyCategoryForm.get('description')"
+        >
+        </app-form-input-textarea>
+        <app-form-input-text
+          class="col-md-6"
+          [label]="'Name'"
+          [control]="propertyCategoryForm.get('name')"
+          [validationMessage]="'Name is required'"
+        >
+        </app-form-input-text>
+
+        <app-form-input-text
+          class="col-md-6"
+          [label]="'SEO Title'"
+          [control]="propertyCategoryForm.get('seo_title')"
+        >
+        </app-form-input-text>
+
+        <app-form-input-text
+          class="col-md-6"
+          [label]="'SEO Description'"
+          [control]="propertyCategoryForm.get('seo_description')"
+        >
+        </app-form-input-text>
+
+        <app-form-input-textarea
+          class="col-md-6"
+          [label]="'SEO Keywords'"
+          [control]="propertyCategoryForm.get('seo_keywords')"
+        >
+        </app-form-input-textarea>
+
+        <!--        <div class="col-md-10">-->
+        <!--          <ng-select [multiple]="true"-->
+        <!--                     [searchable]="true"-->
+        <!--                     [items]="ratingItems"-->
+        <!--                     [bindLabel]="'name'"-->
+        <!--                     [bindValue]="'id'"-->
+        <!--                     [(ngModel)]="selectedPropertiesAllowedRatings['property_'+property.id]">-->
+        <!--          </ng-select>-->
+        <!--        </div>-->
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit">
+            {{ id ? "Update" : "Create" }}</button
+          >&nbsp;
+          <button class="btn btn-danger" (click)="cancel()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

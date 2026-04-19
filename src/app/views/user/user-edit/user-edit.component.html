@@ -1,0 +1,8 @@
+<div class="animated fadeIn">
+  <ng-container *ngIf="userType === 'reviewer'">
+    <app-reviewer-form [editMode]="true" [userData]="userDetails"></app-reviewer-form>
+  </ng-container>
+  <ng-container *ngIf="userType === 'builder'">
+    <app-builder-form [editMode]="true" [userData]="userDetails"></app-builder-form>
+  </ng-container>
+</div>

@@ -1,0 +1,119 @@
+<form
+  class="row mb-4"
+  [formGroup]="userForm"
+  novalidate
+  (ngSubmit)="saveUser()"
+  autocomplete="off"
+  enctype="multipart/form-data"
+>
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <span class="h3">{{ editMode ? 'Edit' : 'Add' }} User Detail</span>
+        <div class="card-header-actions">
+          <a
+            class="text-right"
+            href="mailto:{{ userData['email'] }}"
+            *ngIf="userData"
+            ><button class="btn btn-primary" type="button">
+              Email User
+            </button></a
+          >
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <label>Profile Image</label>
+            <app-single-dropzone
+              [placeHolderText]="'Click Or Drag Image to upload!'"
+              [onDragText]="'Drop Image to upload!'"
+              [path]="userData?.full_profile_image"
+              [control]="userForm.get('profile_image')"
+            >
+            </app-single-dropzone>
+          </div>
+          <div class="col-md-9">
+            <div class="row">
+              <app-form-input-text
+                class="col-md-6"
+                [label]="'First Name'"
+                [control]="userForm.get('firstname')"
+                [validationMessage]="'First Name is required'"
+              >
+              </app-form-input-text>
+
+              <app-form-input-text
+                class="col-md-6"
+                [label]="'Last Name'"
+                [control]="userForm.get('lastname')"
+                [validationMessage]="'Last Name is required'"
+              >
+              </app-form-input-text>
+
+              <app-form-input-text
+                class="col-md-6"
+                [label]="'Display Name'"
+                [control]="userForm.get('display_name')"
+                [validationMessage]="'Display name is required'"
+              >
+              </app-form-input-text>
+
+              <app-form-input-select
+                class="col-md-6"
+                [label]="'Status'"
+                [control]="userForm.get('status')"
+                [validationMessage]="'Status is required'"
+                [options]="statusOptions"
+              >
+              </app-form-input-select>
+            </div>
+          </div>
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Email'"
+            [control]="userForm.get('email')"
+            [validationMessage]="'Email is required'"
+            [isReadOnly]="editMode ? true : false"
+          >
+          </app-form-input-text>
+
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Mobile'"
+            [control]="userForm.get('mobile')"
+            [validationMessage]="'Enter valid mobile number.'"
+          >
+          </app-form-input-text>
+
+          <app-form-input-password
+            *ngIf="!editMode"
+            class="col-md-6"
+            [label]="'Password'"
+            [control]="userForm.get('password')"
+            [validationMessage]="'Password is required'"
+          >
+          </app-form-input-password>
+
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Location'"
+            [control]="userForm.get('location')"
+            [validationMessage]="'location is required'"
+          >
+          </app-form-input-text>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div>
+      <button class="btn btn-primary" type="submit">
+        {{ editMode ? 'Update' : 'Create' }}</button
+      >&nbsp;
+      <button class="btn btn-danger" (click)="cancel()">
+        Cancel
+      </button>
+    </div>
+  </div>
+</form>

@@ -1,0 +1,262 @@
+<div class="animated fadeIn">
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body cursor-pointer" routerLink="/users">
+          Users
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body cursor-pointer" routerLink="/property-category">
+          Project Categories
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-2">
+      <div class="card">
+        <button class="btn btn-primary" (click)="exportAllData()">
+          Export All Data
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-6 col-lg-3">
+      <div class="card">
+        <div class="card-body p-0 clearfix">
+          <i
+            class="fa fa-building bg-primary p-4 px-5 font-2xl mr-3 float-left"
+          ></i>
+          <div class="h5 text-primary mb-0 pt-3">{{ counters['company'] }}</div>
+          <div class="text-muted text-uppercase font-weight-bold font-xs">
+            Company
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--/.col-->
+    <div class="col-sm-6 col-lg-3">
+      <div class="card">
+        <div class="card-body p-0 clearfix">
+          <i
+            class="fa fa-industry bg-info p-4 px-5 font-2xl mr-3 float-left"
+          ></i>
+          <div class="h5 text-info mb-0 pt-3">{{ counters['property'] }}</div>
+          <div class="text-muted text-uppercase font-weight-bold font-xs">
+            Project
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--/.col-->
+    <div class="col-sm-6 col-lg-3">
+      <div class="card">
+        <div class="card-body p-0 clearfix">
+          <i
+            class="fa fa-star bg-warning p-4 px-5 font-2xl mr-3 float-left"
+          ></i>
+          <div class="h5 text-warning mb-0 pt-3">{{ counters['review'] }}</div>
+          <div class="text-muted text-uppercase font-weight-bold font-xs">
+            Reviews
+          </div>
+        </div>
+      </div>
+    </div>
+    <!--/.col-->
+    <div class="col-sm-6 col-lg-3">
+      <div class="card">
+        <div class="card-body p-0 clearfix">
+          <i class="fa fa-user bg-danger p-4 px-5 font-2xl mr-3 float-left"></i>
+          <div class="h5 text-danger mb-0 pt-3">{{ counters['reviewer'] }}</div>
+          <div class="text-muted text-uppercase font-weight-bold font-xs">
+            Reviewers
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-property-chart
+    [data]="propertyChartData"
+    [companies]="companies"
+    [states]="stateOptions"
+    [total]="totalProperty"
+  ></app-property-chart>
+
+  <!-- <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          Company wise reviews
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3">
+              <ng-select
+                [placeholder]="'-- select company --'"
+                [searchable]="true"
+                [items]="companies"
+                [bindLabel]="'name'"
+                [bindValue]="'id'"
+                [(ngModel)]="selectedCompany"
+                (change)="onSelectCompany($event)"
+              >
+              </ng-select>
+            </div>
+            <div class="col-md-9">
+              <div class="chart-wrapper" *ngIf="pieChartData.length > 0">
+                <canvas
+                  baseChart
+                  class="chart"
+                  [data]="pieChartData"
+                  [labels]="pieChartLabels"
+                  [chartType]="pieChartType"
+                ></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> -->
+
+  <!-- review counts vs. days chart -->
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          Review Count
+          <div class="card-actions float-right d-flex">
+            <input
+              type="text"
+              name="daterangeInput"
+              daterangepicker
+              [options]="options"
+              (selected)="selectedDate($event, daterange)"
+            />
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrapper">
+            <canvas
+              baseChart
+              height="70"
+              class="chart"
+              [datasets]="chart1Data"
+              [labels]="chart1Label"
+              [options]="chart1Options"
+              [chartType]="'bar'"
+            ></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- end -->
+
+  <!-- stars vs amenities chart -->
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          Rating Attributes
+          <div class="card-actions float-right d-flex">
+            <form
+              class="d-flex"
+              [formGroup]="chartForm"
+              novalidate
+              (ngSubmit)="onSearchItem()"
+              autocomplete="off"
+            >
+              <div class="row">
+                <div class="col-md-3">
+                  <ng-select
+                    [placeholder]="'-- select company --'"
+                    [searchable]="true"
+                    [items]="companies"
+                    [bindLabel]="'name'"
+                    [bindValue]="'id'"
+                    [formControl]="chartForm.get('company_id')"
+                  >
+                  </ng-select>
+                </div>
+
+                <div class="col-md-3">
+                  <div class="form-group">
+                    <select class="form-control" formControlName="state">
+                      <option value="">-- all states --</option>
+                      <option
+                        *ngFor="let option of stateOptions"
+                        value="{{ option.id }}"
+                        >{{ option.name }}</option
+                      >
+                    </select>
+                  </div>
+                  <!-- <app-form-input-text
+                  [class]="'w-5'"
+                  [placeHolder]="'state'"
+                  [control]="chartForm.get('state')"
+                >
+                </app-form-input-text> -->
+                </div>
+                <div class="col-md-3">
+                  <!-- <app-form-input-text
+                    [class]="'w-5'"
+                    [placeHolder]="'suburb'"
+                    [control]="chartForm.get('suburb')"
+                  > -->
+                  <!-- </app-form-input-text> -->
+
+                  <ng-select
+                    [placeholder]="'-- all subrubs --'"
+                    [searchable]="true"
+                    [items]="suburbOptions"
+                    [bindLabel]="'text'"
+                    [bindValue]="'text'"
+                    [formControl]="chartForm.get('suburb')"
+                    (search)="onChangeSuburb($event)"
+                  >
+                  </ng-select>
+                </div>
+                <div class="col-md-3 d-flex">
+                  <div class="form-group mr-2">
+                    <ng-select
+                      [placeholder]="'-- all projects --'"
+                      [searchable]="true"
+                      [items]="properties"
+                      [bindLabel]="'name'"
+                      [bindValue]="'id'"
+                      [formControl]="chartForm.get('project_id')"
+                    >
+                    </ng-select>
+                  </div>
+                  <div class="mr-5">
+                    <button class="btn btn-primary">Search</button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-wrapper">
+            <canvas
+              baseChart
+              height="70"
+              class="chart"
+              [datasets]="chart2Data"
+              [labels]="chart2Label"
+              [options]="chart2Options"
+              [chartType]="barChartType"
+            ></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- end -->
+</div>

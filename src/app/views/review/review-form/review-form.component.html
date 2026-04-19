@@ -1,0 +1,295 @@
+<div class="animated fadeIn">
+  <form
+    class="card"
+    [formGroup]="reviewForm"
+    novalidate
+    (ngSubmit)="addReview()"
+    autocomplete="off"
+  >
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-12 text-right mb-3">
+          <a href="mailto:{{ cmsData['users']['email'] }}" *ngIf="cmsData"
+            ><button class="btn btn-primary" type="button">Email User</button>
+          </a>
+        </div>
+        <app-form-input-select
+          class="col-md-6"
+          [label]="'Status'"
+          [bindLabel]="'label'"
+          [bindValue]="'value'"
+          [control]="reviewForm.get('status')"
+          [validationMessage]="'Status is required'"
+          [options]="statusOptions"
+        >
+        </app-form-input-select>
+        <div class="col-md-6">
+          <label>Category</label>
+          <ng-select
+            [searchable]="true"
+            [items]="categories"
+            [bindLabel]="'name'"
+            [bindValue]="'id'"
+            [formControl]="reviewForm.get('category_id')"
+          >
+          </ng-select>
+          <div class="invalid-feedback">Category is required</div>
+        </div>
+        <app-form-input-text
+          class="col-md-6"
+          [label]="'Title'"
+          [control]="reviewForm.get('title')"
+          [validationMessage]="'Title is required'"
+        >
+        </app-form-input-text>
+
+        <!-- <div class="col-md-6">
+          <label>User</label>
+          <ng-select
+            [searchable]="true"
+            [items]="users"
+            [bindLabel]="'full_name'"
+            [bindValue]="'id'"
+            [formControl]="reviewForm.get('user_id')"
+          >
+          </ng-select>
+          <div class="invalid-feedback">User is required</div>
+        </div> -->
+
+        <div class="col-md-6">
+          <label class=""
+            >User (<span
+              class="{{
+                this.cmsData && this.cmsData['users']['email_verified_at']
+                  ? 'text-success'
+                  : 'text-danger'
+              }}"
+            >
+              {{
+                this.cmsData && this.cmsData['users']['email_verified_at']
+                  ? 'Verified'
+                  : 'Not Verified'
+              }} </span
+            >)</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            formControlName="user_fullname"
+            readonly
+          />
+        </div>
+        <!-- <app-form-input-text
+          class="col-md-6"
+          [label]="'User'"
+          [control]="reviewForm.get('user_fullname')"
+          [isReadOnly]="true"
+        >
+        </app-form-input-text> -->
+
+        <!-- <div class="col-md-6">
+          <label>User</label>
+          <ng-select
+            [searchable]="true"
+            [items]="users"
+            [bindLabel]="'full_name'"
+            [bindValue]="'id'"
+            [formControl]="reviewForm.get('user_id')"
+          >
+          </ng-select>
+          <div class="invalid-feedback">User is required</div>
+        </div> -->
+
+        <div class="col-md-6 mb-2">
+          <label>Property</label>
+          <i
+            class="fa fa-star"
+            aria-hidden="true"
+            *ngIf="cmsData && cmsData.property['is_from'] === 'frontend'"
+          ></i>
+          <ng-select
+            [searchable]="true"
+            [items]="properties"
+            [bindLabel]="'project_name'"
+            [bindValue]="'id'"
+            [formControl]="reviewForm.get('property_id')"
+          >
+          </ng-select>
+          <div class="invalid-feedback">Property is required</div>
+        </div>
+
+        <div class="col-md-6 mb-2">
+          <label>Company</label>
+          <i
+            class="fa fa-star"
+            aria-hidden="true"
+            *ngIf="
+              cmsData &&
+              cmsData.property.company &&
+              cmsData.property.company['is_from'] === 'frontend'
+            "
+          ></i>
+          <input type="text" formControlName="company" class="form-control" />
+        </div>
+
+        <app-form-input-select
+          class="col-md-6"
+          [label]="'Recommendation'"
+          [bindLabel]="'label'"
+          [bindValue]="'value'"
+          [control]="reviewForm.get('recommendation')"
+          [validationMessage]="'Recommendation is required'"
+          [options]="recommendationList"
+        >
+        </app-form-input-select>
+
+        <app-form-input-textarea
+          class="col-md-6"
+          [label]="'Comment'"
+          [control]="reviewForm.get('comment')"
+          [validationMessage]="'Comment is required'"
+        >
+        </app-form-input-textarea>
+        <app-form-input-select
+          class="col-md-6"
+          [label]="'Buyer Type'"
+          [bindLabel]="'value_text'"
+          [bindValue]="'id'"
+          [control]="reviewForm.get('buyer_type')"
+          [validationMessage]="'Buyer Type is required'"
+          [options]="buyerTypes"
+        >
+        </app-form-input-select>
+
+        <app-form-input-text
+          class="col-md-6"
+          [label]="'Year Of Completion'"
+          [control]="reviewForm.get('year_of_completion')"
+          [validationMessage]="'Year is required!'"
+        >
+        </app-form-input-text>
+
+        <div class="col-md-6">
+          <label>Postcode</label>
+          <input
+            type="text"
+            class="form-control {{
+              !reviewForm.get('post_code').valid ? 'is-invalid' : ''
+            }}"
+            formControlName="post_code"
+            (change)="onChangePostcode($event)"
+          />
+          <div class="invalid-feedback">post code is required</div>
+        </div>
+
+        <div class="col-md-6">
+          <label>Suburb</label>
+          <ng-select
+            [searchable]="true"
+            [items]="suburbs"
+            [bindLabel]="'text'"
+            [bindValue]="'text'"
+            [formControl]="reviewForm.get('suburb')"
+          >
+          </ng-select>
+          <div class="invalid-feedback">suburub is required</div>
+        </div>
+
+        <div class="col-md-6 mt-3">
+          <label>State</label>
+          <ng-select
+            [searchable]="true"
+            [items]="states"
+            [bindLabel]="'state_name'"
+            [bindValue]="'id'"
+            [formControl]="reviewForm.get('state')"
+          >
+          </ng-select>
+          <div class="invalid-feedback">state is required</div>
+        </div>
+        <div class="col-md-6 mt-3">
+          <label>Comment Tags</label>
+
+          <ng-select
+            [addTag]="true"
+            (change)="onAddNewItem($event)"
+            [multiple]="true"
+            [searchable]="true"
+            [items]="tags"
+            [bindLabel]="'name'"
+            [bindValue]="'id'"
+            [formControl]="reviewForm.get('review_tags')"
+          >
+          </ng-select>
+        </div>
+        <div class="col-md-6 mt-3" *ngIf="cmsData">
+          <label>Photo proof</label>
+          <div *ngIf="cmsData['review_image']">
+            <a href="{{ imagePath + cmsData['review_image'] }}" target="_blank">
+              <img
+                class="proof"
+                src="{{ imagePath + cmsData['review_image'] }}"
+              />
+            </a>
+          </div>
+        </div>
+        <div class="col-md-6 mt-3" *ngIf="cmsData">
+          <label>Document proof</label>
+          <div>
+            <ng-container *ngIf="isPdf; else showImage">
+              <embed
+                [src]="cmsData['review_docs']"
+                type="application/pdf"
+                width="475px"
+                height="623px"
+              />
+            </ng-container>
+
+            <ng-template #showImage>
+              <ng-container *ngIf="proofIsImage; else showDoc">
+                <a
+                  href="{{ imagePath + cmsData['review_docs'] }}"
+                  target="_blank"
+                >
+                  <img
+                    width="475px"
+                    src="{{ imagePath + cmsData['review_docs'] }}"
+                  />
+                </a>
+              </ng-container>
+            </ng-template>
+
+            <ng-template #showDoc>
+              <iframe
+                [src]="cmsData['review_docs']"
+                width="475px"
+                height="623px"
+                frameborder="0"
+                *ngIf="!isPdf; else showPdf"
+                >This is an embedded
+                <a target="_blank" href="http://office.com">Microsoft Office</a>
+                document, powered by
+                <a target="_blank" href="http://office.com/webapps"
+                  >Office Online</a
+                >.</iframe
+              >
+            </ng-template>
+          </div>
+
+          <!-- <div>
+            <a href="{{ imagePath + cmsData['review_docs'] }}" target="_blank">
+              <img class="proof" src="assets/img/document.png" />
+            </a>
+          </div> -->
+        </div>
+        <div class="col-12 mt-5">
+          <button class="btn btn-primary" type="submit">
+            {{ id ? 'Update' : 'Create' }}
+          </button>
+          &nbsp;
+          <button class="btn btn-danger" (click)="cancel()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

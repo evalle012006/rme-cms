@@ -1,0 +1,175 @@
+<div class="animated fadeIn">
+  <div class="d-flex justify-content-end mb-2">
+    <button class="btn btn-primary" routerLink="/property/add">Add</button>
+    <button
+      class="btn btn-sm btn-primary ml-1"
+      type="button"
+      (click)="importModel(import)"
+    >
+      Import
+    </button>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <table
+        datatable
+        [dtOptions]="dtOptions"
+        [dtTrigger]="dtTrigger"
+        class="table table-hover w-100"
+      >
+        <thead>
+          <tr>
+            <th>Project Name</th>
+            <th>Status</th>
+            <th>Project Category</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody *ngIf="properties?.length != 0">
+          <tr *ngFor="let property of properties">
+            <td>{{ property.project_name }}</td>
+            <td>
+              <button
+                class="btn btn-sm p-1 font-sm"
+                [ngClass]="property.status ? 'btn-success' : 'btn-danger'"
+                (click)="showModal(property, statusModal)"
+              >
+                {{ property.status ? 'Approved' : 'Pending' }}
+              </button>
+            </td>
+            <td>
+              <span
+                *ngFor="let catItem of property.property_allowed_category"
+                class="badge badge-secondary badge-pill p-1 m-1 font-sm"
+              >
+                {{ catItem.name }}
+              </span>
+            </td>
+            <td>
+              <a
+                class="btn btn-sm btn-primary"
+                routerLink="../edit/{{ property.id }}"
+                target="_blank"
+              >
+                Edit
+              </a>
+              <button
+                class="btn btn-sm btn-danger"
+                (click)="showModal(property, deleteModal)"
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        </tbody>
+        <tbody *ngIf="properties?.length == 0">
+          <tr>
+            <td colspan="4" class="no-data-available">No data!</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<ng-template #import>
+  <div class="modal-body-txt">
+    <div class="modal-header">
+      <h4 class="modal-title title-center">Import</h4>
+    </div>
+    <div class="modal-body">
+      <form
+        [formGroup]="importForm"
+        #ngForm="ngForm"
+        novalidate
+        (ngSubmit)="importSubmit()"
+        autocomplete="off"
+      >
+        <div class="form-group mt-3">
+          <input
+            class="form-control"
+            accept=".xlsx, .xls, .csv"
+            [class.is-invalid]="!ngForm.valid && ngForm.submitted"
+            type="file"
+            (change)="onSelect($event)"
+            formControlName="import_file"
+          />
+          <div
+            class="invalid-feedback d-block"
+            *ngIf="ngForm.submitted && !ngForm.valid"
+          >
+            File is required field.
+          </div>
+        </div>
+        <p>
+          <a href="/assets/rme-property-example.csv"
+            >Download Import Template</a
+          >
+        </p>
+        <button class="btn btn-primary" type="submit">Import</button>
+      </form>
+    </div>
+  </div>
+  <div class="modal-footer modal-footer-buttons">
+    <button
+      class="btn modal-cancel-button btn-danger"
+      type="button"
+      (click)="closeModel()"
+    >
+      Cancel
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #statusModal>
+  <div class="modal-body modal-body-txt text-center">
+    <div class="center img-center">
+      <img src="../../../assets/img/avatars/cancel.jpg" class="img-avatar" />
+    </div>
+    <h4 class="modal-title title-center">Change status ?</h4>
+    <p class="caption-txt">Are you sure you want to approve this property ?</p>
+  </div>
+  <div class="modal-footer modal-footer-buttons justify-content-center">
+    <button
+      class="modal-cancel-button btn-danger"
+      type="button"
+      (click)="hideModal()"
+    >
+      Cancel
+    </button>
+    <button
+      class="modal-delete-button btn-success"
+      type="button"
+      (click)="changeStatus()"
+    >
+      Yes
+    </button>
+  </div>
+</ng-template>
+
+<ng-template #deleteModal>
+  <div class="modal-body modal-body-txt text-center">
+    <div class="center img-center">
+      <img src="../../../assets/img/avatars/cancel.jpg" class="img-avatar" />
+    </div>
+    <h4 class="modal-title title-center">Are you sure ?</h4>
+    <p class="caption-txt">
+      All the reviews associated with this property will be deleted.
+    </p>
+  </div>
+  <div class="modal-footer modal-footer-buttons justify-content-center">
+    <button
+      class="modal-cancel-button btn-danger"
+      type="button"
+      (click)="hideModal()"
+    >
+      Cancel
+    </button>
+    <button
+      class="modal-delete-button btn-success"
+      type="button"
+      (click)="deleteProperty()"
+    >
+      Yes
+    </button>
+  </div>
+</ng-template>

@@ -1,0 +1,35 @@
+<div
+  class="alert"
+  [class.alert-success]="fileDragOver"
+  [class.alert-theme]="!fileDragOver"
+>
+  <div class="dropzone border border-primary rounded" *ngIf="!path">
+    <input
+      class="w-100 h-100 py-5"
+      type="file"
+      (change)="onMediaHandle($event.target.files); fileDragOver = false"
+      (dragenter)="fileDragOver = true"
+      (dragstart)="fileDragOver = true"
+      (dragover)="fileDragOver = true"
+      (dragleave)="fileDragOver = false"
+      (dragend)="fileDragOver = false"
+      [multiple]="false"
+      #mediaInput
+    />
+    <span class="label">
+      {{ !fileDragOver ? placeHolderText : onDragText }}
+    </span>
+  </div>
+  <div class="mt-2 text-danger" *ngIf="control.invalid && control.touched">
+    Image is required
+  </div>
+  <div class="preview-image-holder d-flex justify-content-center" *ngIf="path">
+    <div class="preview-item p-2">
+      <img [src]="path" alt="" />
+      <i
+        class="fa fa-times-circle cursor-pointer"
+        (click)="onImageRemove()"
+      ></i>
+    </div>
+  </div>
+</div>

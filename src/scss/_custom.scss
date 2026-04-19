@@ -1,0 +1,22 @@
+// Here you can add other styles
+
+.ng-select {
+  .ng-value {
+    padding: 5px;
+    font-size: 14px !important;
+  }
+
+  &.ng-invalid.ng-touched {
+    .ng-select-container {
+      border-color: $danger;
+    }
+
+    & ~ .invalid-feedback {
+      display: block;
+    }
+  }
+}
+
+.is-invalid ~ .invalid-feedback {
+  display: block;
+}

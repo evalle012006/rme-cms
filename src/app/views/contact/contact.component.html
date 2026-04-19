@@ -1,0 +1,35 @@
+<div class="animated fadeIn">
+  <div class="d-flex justify-content-end mb-2">
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <table datatable [dtOptions]="dtOptions" [dtTrigger]="dtTrigger" class="table table-hover w-100">
+        <thead>
+        <tr>
+          <th>Firstname</th>
+          <th>Lastname</th>
+          <th>Email</th>
+          <th>Subject</th>
+          <th>Message</th>
+        </tr>
+        </thead>
+        <tbody *ngIf="contact?.length != 0">
+        <tr *ngFor="let company of contact">
+          <td [innerHTML]="company.firstname">{{ company.firstname }}</td>
+          <td [innerHTML]="company.lastname">{{ company.lastname }}</td>
+          <td>{{ company.email }}</td>
+          <td>{{ company.subject }}</td>
+          <td>{{ trimMessage(company.message) }}</td>
+        </tr>
+        </tbody>
+        <tbody *ngIf="contact?.length == 0">
+        <tr>
+          <td colspan="4" class="no-data-available">No data!</td>
+        </tr>
+        <tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+

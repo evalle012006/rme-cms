@@ -1,0 +1,39 @@
+<div class="animated fadeIn">
+  <form class="card" (ngSubmit)="saveProfile()">
+    <div class="card-header">
+      Profile
+    </div>
+    <div class="card-body" *ngIf="profileForm">
+      <div class="row">
+        <div class="col-md-3">
+          <label>Profile Image</label>
+          <app-single-dropzone [control]="profileForm.get('profile_image')"
+                               [placeHolderText]="'Click Or Drag Image to upload!'"
+                               [onDragText]="'Drop Image to upload!'"
+                               [path]="profileData?.full_profile_image"></app-single-dropzone>
+        </div>
+        <div class="col-md-9 row">
+          <app-form-input-text class="col-6" [control]="profileForm.get('firstname')"
+                               [label]="'First Name'">
+          </app-form-input-text>
+          <app-form-input-text class="col-6" [control]="profileForm.get('lastname')"
+                               [label]="'Last Name'">
+          </app-form-input-text>
+          <app-form-input-text class="col-6" [control]="profileForm.get('email')"
+                               [isReadOnly]="true" [label]="'Email'">
+          </app-form-input-text>
+        </div>
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary" [disabled]="profileForm.invalid">Save</button>
+        </div>
+      </div>
+    </div>
+  </form>
+  <div class="card">
+    <div class="card-header">Change Password</div>
+    <div class="card-body">
+      <button type="button" class="btn btn-primary" (click)="sendPasswordSetLink()">Send Password Reset Link</button>
+      <p class="mt-2">You will be logged out once you send the reset link.</p>
+    </div>
+  </div>
+</div>

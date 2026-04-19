@@ -1,0 +1,24 @@
+<div class="alert"
+     [class.alert-success]="fileDragOver"
+     [class.alert-theme]="!fileDragOver">
+  <div class="dropzone border border-primary rounded">
+    <input class="w-100 h-100 py-5" type="file"
+           (change)="onMediaHandle($event.target.files); fileDragOver = false;"
+           (dragenter)="fileDragOver = true"
+           (dragstart)="fileDragOver = true"
+           (dragover)="fileDragOver = true"
+           (dragleave)="fileDragOver = false"
+           (dragend)="fileDragOver = false"
+           [multiple]="true"
+           #mediaInput>
+    <span class="label">
+    {{!fileDragOver ? placeHolderText : onDragText}}
+    </span>
+  </div>
+  <div class="preview-image-holder d-flex justify-content-center">
+    <div class="preview-item p-2" *ngFor="let img of previewImages;let i=index">
+      <img [src]="img.path" alt="">
+      <i class="fa fa-times-circle cursor-pointer" (click)="onImageRemove(img.id,i)"></i>
+    </div>
+  </div>
+</div>

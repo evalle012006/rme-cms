@@ -1,0 +1,90 @@
+<div class="animated fadeIn">
+  <!-- <div class="d-flex justify-content-end mb-2">
+    <button class="btn btn-primary" routerLink="/company/add">Add</button>
+  </div> -->
+  <div class="card">
+    <div class="card-body">
+      <table
+        datatable
+        [dtOptions]="dtOptions"
+        [dtTrigger]="dtTrigger"
+        class="table table-hover w-100"
+      >
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Company</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody *ngIf="builders?.length != 0">
+          <tr *ngFor="let builder of builders">
+            <td>{{ builder.firstname }} {{ builder.lastname }}</td>
+            <td>{{ builder.email }}</td>
+            <td>{{ builder.company ? builder.company.company_name : '' }}</td>
+            <td>
+              <button
+                class="badge p-1 font-sm {{
+                  builder.email_verified_at ? 'badge-success' : 'badge-danger'
+                }}"
+                (click)="openModal(delete, builder.id)"
+              >
+                {{ builder.email_verified_at ? 'Approved' : 'Pending' }}
+              </button>
+            </td>
+            <td>
+              <a
+                class="btn btn-sm btn-primary"
+                routerLink="/builder/edit/{{ builder.id }}"
+                target="_blank"
+              >
+                Edit
+              </a>
+            </td>
+          </tr>
+        </tbody>
+        <tbody *ngIf="builders?.length == 0">
+          <tr>
+            <td colspan="3" class="no-data-available">No data!</td>
+          </tr>
+        </tbody>
+
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<ng-template #delete>
+  <div class="modal-body modal-body-txt text-center">
+    <div class="center img-center">
+      <img src="../../../assets/img/avatars/cancel.jpg" class="img-avatar" />
+    </div>
+    <h4 class="modal-title title-center">Change status ?</h4>
+    <p class="caption-txt">
+      {{
+        currentMode === 'approve'
+          ? 'Are you sure you want to move this company user to pendings ?'
+          : 'Are you sure you want to approve this company user'
+      }}
+    </p>
+  </div>
+  <div class="modal-footer modal-footer-buttons justify-content-center">
+    <button
+      class="modal-cancel-button btn-danger"
+      type="button"
+      (click)="hideModal()"
+    >
+      Cancel
+    </button>
+    <button
+      class="modal-delete-button btn-success"
+      type="button"
+      (click)="changeStatus()"
+    >
+      Yes
+    </button>
+  </div>
+</ng-template>

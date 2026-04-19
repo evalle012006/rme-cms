@@ -1,0 +1,125 @@
+<div class="animated fadeIn">
+  <h2>{{ capitalizedPageName() }}</h2>
+  <ng-container [ngSwitch]="pageName">
+    <!-- home -->
+    <ng-container *ngSwitchCase="'home'">
+      <app-common-form-section [data]="pageSections['banner']" [fields]="['image', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-review-ratio [data]="pageSections['review_ratio']" (formValues)="onFormSubmit($event)"></app-review-ratio>
+      <app-common-form-section [data]="pageSections['why_write_review']" [fields]="['image', 'title', 'body']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['recent_reviews']" [fields]="['title', 'body']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['our_blogs']" [fields]="['title', 'body']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+    </ng-container>
+
+    <!-- about -->
+    <ng-container *ngSwitchCase="'about'">
+      <app-common-form-section [data]="pageSections['banner']" [fields]="['image', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['get_to_know']" [fields]="['image', 'title', 'body']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-our-mission [data]="pageSections['our_mission']" (formValues)="onFormSubmit($event)"></app-our-mission>
+      <app-common-form-section [data]="pageSections['our_platform']" [fields]="['image', 'title', 'body']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['recent_reviews']" [fields]="['title', 'body']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+    </ng-container>
+
+    <!-- property guide -->
+    <ng-container *ngSwitchCase="'property_guide'">
+      <app-common-form-section [data]="pageSections['banner']" [fields]="['image', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+    </ng-container>
+
+    <!-- property coach -->
+    <ng-container *ngSwitchCase="'property_coach'">
+      <app-common-form-section [data]="pageSections['banner']" [fields]="['image', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+    </ng-container>
+
+    <!-- contact -->
+    <ng-container *ngSwitchCase="'contact'">
+      <app-common-form-section [data]="pageSections['banner']" [fields]="['image', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+    </ng-container>
+
+    <!-- review guidelines -->
+    <ng-container *ngSwitchCase="'review_guidelines'">
+      <app-common-form-section [data]="pageSections['banner']" [fields]="['image', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['reviews_on_rme']" [fields]="['body', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['guidelines']" [fields]="['body', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['reviews_dos']" [fields]="['body', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['moderation_works']" [fields]="['body', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['wrote_a_review']" [fields]="['body', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+    </ng-container>
+
+    <!-- terms of use -->
+    <ng-container *ngSwitchCase="'terms_of_use'">
+      <app-common-form-section [data]="pageSections['banner']" [fields]="['image', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+
+      <app-common-form-section [data]="pageSections['general']" [fields]="['body','title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['copyright']" [fields]="['body','title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['disclaimer']" [fields]="['body','title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+    </ng-container>
+
+    <!-- privacy policy -->
+    <ng-container *ngSwitchCase="'privacy_policy'">
+      <app-common-form-section [data]="pageSections['banner']" [fields]="['image', 'title']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+
+      <app-common-form-section [data]="pageSections['your_privacy']" [fields]="['body']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['definitions']" [fields]="['body']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+      <app-common-form-section [data]="pageSections['collecting_info']" [fields]="['body']"
+                               (formValues)="onFormSubmit($event)">
+      </app-common-form-section>
+    </ng-container>
+
+    <ng-container *ngSwitchDefault>
+      Not a valid page
+    </ng-container>
+  </ng-container>
+
+  <ng-template #loadingSections>
+    <div class="text-center">
+      Hold on! loading page sections...
+    </div>
+  </ng-template>
+</div>

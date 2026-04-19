@@ -1,0 +1,61 @@
+input {
+  margin: 0 !important
+}
+
+main.main.d-flex.align-items-center {
+  margin: 0 !important
+}
+
+.app-body {
+  margin-top: 0px !important;
+}
+
+.mx-auto {
+  height: 100vh;
+  display: table;
+}
+
+.card-group {
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.mt-4 {
+  margin-top: 0 !important
+}
+
+.card-body.custom-login input:focus {
+  box-shadow: none;
+  border: 1px solid #2f88d2;
+  border-radius: 2px;
+}
+
+.card-body.custom-login input.form-control.ng-dirty.ng-touched.is-invalid.ng-invalid {
+  border-radius: 2px;
+}
+
+.card-body.custom-login .invalid-feedback {
+  padding-left: 40px;
+}
+
+button.btn.btn-primary.login-btn {
+  background: #168eef;
+  border: none;
+  padding: 2.8px 12px 4.3px !important;
+  font-size: 15px;
+
+  border-radius: 3px
+}
+
+button.btn.btn-primary.login-btn:disabled {
+  opacity: .9;
+}
+
+button.btn.btn-primary.login-btn:focus {
+  box-shadow: none
+}
+
+button.btn.btn-primary.login-btn:active {
+  box-shadow: none
+}
+

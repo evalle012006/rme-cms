@@ -1,0 +1,26 @@
+<div class="animated fadeIn">
+  <div class="row">
+    <div class="col-3">
+      <div class="card">
+        <div class="card-body cursor-pointer" [class.bg-primary]="userType==='reviewer'"
+             (click)="changeType('reviewer')">
+          Reviewer
+        </div>
+      </div>
+    </div>
+    <div class="col-3">
+      <div class="card">
+        <div class="card-body cursor-pointer" [class.bg-primary]="userType==='builder'"
+             (click)="changeType('builder')">
+          Builder/Developer
+        </div>
+      </div>
+    </div>
+  </div>
+  <ng-container *ngIf="userType === 'reviewer'">
+    <app-reviewer-form [editMode]="false"></app-reviewer-form>
+  </ng-container>
+  <ng-container *ngIf="userType === 'builder'">
+    <app-builder-form [editMode]="false"></app-builder-form>
+  </ng-container>
+</div>

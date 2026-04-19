@@ -1,0 +1,35 @@
+<div class="modal-header">
+  <h4 class="modal-title pull-left">{{editMode ? 'Edit' : 'Add'}} Tag</h4>
+  <button type="button" class="close pull-right" aria-label="Close" (click)="closeModal()">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+<div class="modal-body">
+  <form (submit)="onSubmit()">
+    <app-form-input-text
+      [label]="'Tag Name'"
+      [control]="tagForm.get('name')"
+      [validationMessage]="'Tag Name is required'">
+    </app-form-input-text>
+
+    <app-form-input-select
+      [label]="'Tag Type'"
+      [control]="tagForm.get('type')"
+      [options]="tagTypeOption"
+      [validationMessage]="'Tag Type is required'">
+    </app-form-input-select>
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <label >Is Active?</label>
+      <label class="switch switch-primary">
+        <input type="checkbox" class="switch-input" [formControl]="tagForm.get('is_active')" checked="{{tagValue['is_active'] ? true : false}}">
+        <span class="switch-slider"></span>
+      </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">{{editMode ? 'Update' : 'Add'}} Tag</button>
+  </form>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-default border" (click)="closeModal()">Close</button>
+</div>

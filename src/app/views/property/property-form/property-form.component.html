@@ -1,0 +1,250 @@
+<div class="animated fadeIn">
+  <form
+    [formGroup]="propertyForm"
+    novalidate
+    (ngSubmit)="formSubmit()"
+    autocomplete="off"
+  >
+    <h4 class="mb-3">{{ editMode ? 'Update' : 'Add' }} Property</h4>
+    <div class="card">
+      <div class="card-header">Property Basic Details</div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-12">
+            <label>Property Logo</label>
+            <app-single-dropzone
+              [placeHolderText]="'Click Or Drag Image to upload!'"
+              [onDragText]="'Drop Image to upload!'"
+              [path]="propertyArr ? propertyArr.full_property_logo : ''"
+              [control]="propertyForm.get('logo')"
+            >
+            </app-single-dropzone>
+          </div>
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Project Name'"
+            [control]="propertyForm.get('project_name')"
+            [validationMessage]="'Project Name is required'"
+          >
+          </app-form-input-text>
+          <!--          <div class="col-6">-->
+          <!--            <div class="form-group">-->
+          <!--              <label for="company">Company</label>-->
+          <!--              <ng-select id="company" [formControlName]="'developer_name'" [items]="companyOption |async"-->
+          <!--                         [loading]="companyLoading"-->
+          <!--                         [typeahead]="companyInput" [bindValue]="'id'"-->
+          <!--                         [bindLabel]="'company_name'">-->
+          <!--              </ng-select>-->
+          <!--              <div *ngIf="propertyForm.get('developer_name').invalid && (propertyForm.get('developer_name').dirty || propertyForm.get('developer_name').touched)"-->
+          <!--                   class="invalid-feedback">-->
+          <!--                Developer is required-->
+          <!--              </div>-->
+          <!--            </div>-->
+          <!--          </div>-->
+
+          <app-form-input-select
+            class="col-md-6"
+            [label]="'Company'"
+            [bindLabel]="'company_name'"
+            [bindValue]="'id'"
+            [control]="propertyForm.get('developer_name')"
+            [validationMessage]="'Company is required'"
+            [options]="companyList"
+          >
+          </app-form-input-select>
+
+          <!-- <app-form-input-text
+            class="col-6"
+            [label]="'Email'"
+            [control]="propertyForm.get('email')"
+            [validationMessage]="'Email is required'"
+          >
+          </app-form-input-text> -->
+
+          <app-form-input-select
+            class="col-md-6"
+            [label]="'Status'"
+            [control]="propertyForm.get('status')"
+            [validationMessage]="'Status is required'"
+            [options]="statusOptions"
+          >
+          </app-form-input-select>
+
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Phone'"
+            [control]="propertyForm.get('phone')"
+            [validationMessage]="'Phone is required'"
+          >
+          </app-form-input-text>
+
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Website'"
+            [control]="propertyForm.get('website_url')"
+            [validationMessage]="'Website is required'"
+          >
+          </app-form-input-text>
+
+          <app-form-input-textarea
+            class="col-6"
+            [label]="'Description'"
+            [control]="propertyForm.get('description')"
+            [validationMessage]="'Description is required'"
+          >
+          </app-form-input-textarea>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Property Category</div>
+      <div class="card-body">
+        <ng-select
+          [multiple]="true"
+          [searchable]="true"
+          [items]="propertyCategories"
+          [bindLabel]="'name'"
+          [bindValue]="'id'"
+          [formControl]="propertyForm.get('property_categories')"
+        >
+        </ng-select>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Property Location Details</div>
+      <div class="card-body">
+        <div class="row">
+          <app-form-input-textarea
+            class="col-6"
+            [label]="'Address'"
+            [control]="propertyForm.get('address')"
+            [validationMessage]="'Address is required'"
+          >
+          </app-form-input-textarea>
+
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Country'"
+            [control]="propertyForm.get('country')"
+            [validationMessage]="'Country is required'"
+          >
+          </app-form-input-text>
+
+          <!-- <app-form-input-text
+            class="col-md-6"
+            [label]="'State'"
+            [control]="propertyForm.get('state')"
+            [validationMessage]="'State is required'"
+          >
+          </app-form-input-text> -->
+
+          <div class="col-md-6">
+            <label>State</label>
+            <ng-select
+              [searchable]="true"
+              [items]="states"
+              [bindLabel]="'state_name'"
+              [bindValue]="'state_name'"
+              [formControl]="propertyForm.get('state')"
+            >
+            </ng-select>
+            <div class="invalid-feedback">state is required</div>
+          </div>
+
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'City'"
+            [control]="propertyForm.get('city')"
+            [validationMessage]="'City is required'"
+          >
+          </app-form-input-text>
+
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Post Code'"
+            [control]="propertyForm.get('post_code')"
+            [validationMessage]="'Post Code is required'"
+          >
+          </app-form-input-text>
+          <!-- <app-form-input-text
+            class="col-md-6"
+            [label]="'Post Code'"
+            [control]="propertyForm.get('post_code')"
+            [validationMessage]="'Post Code is required'"
+            (change)="onChangePostcode($event.target.value)"
+          >
+          </app-form-input-text> -->
+
+          <div class="col-md-6">
+            <label>Suburbs</label>
+            <ng-select
+              [searchable]="true"
+              [items]="suburbsOptions"
+              [bindLabel]="'text'"
+              [bindValue]="'id'"
+              [formControl]="propertyForm.get('suburb')"
+              (open)="onChangePostcode(propertyForm.get('post_code').value)"
+            >
+            </ng-select>
+            <div class="invalid-feedback">Suburb is required</div>
+          </div>
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Latitude'"
+            [control]="propertyForm.get('lat')"
+            [validationMessage]="'Latitude is required'"
+          >
+          </app-form-input-text>
+
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Longitude'"
+            [control]="propertyForm.get('long')"
+            [validationMessage]="'Longitude is required'"
+          >
+          </app-form-input-text>
+
+          <div class="col-12">
+            <div class="form-group">
+              <label>Search Location</label>
+              <input
+                type="text"
+                class="form-control"
+                (keydown.enter)="$event.preventDefault()"
+                placeholder="Search Nearest Location"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="off"
+                #search
+              />
+            </div>
+          </div>
+          <agm-map
+            class="col-12"
+            [latitude]="propertyForm.get('lat').value"
+            [longitude]="propertyForm.get('long').value"
+            [scrollwheel]="false"
+            [zoom]="mapZoom"
+            (_handleMapCenterChange)="onSelectAddress()"
+          >
+            <agm-marker
+              [markerDraggable]="true"
+              [latitude]="propertyForm.get('lat').value"
+              [longitude]="propertyForm.get('long').value"
+              [iconUrl]="marker"
+              (dragEnd)="markerChanged($event)"
+            >
+            </agm-marker>
+          </agm-map>
+        </div>
+      </div>
+    </div>
+
+    <div class="mb-4 d-flex">
+      <button class="btn btn-primary" type="submit">
+        {{ editMode ? 'Update' : 'Add' }} Property</button
+      >&nbsp;
+      <button class="btn btn-danger" (click)="cancel()">Cancel</button>
+    </div>
+  </form>
+</div>

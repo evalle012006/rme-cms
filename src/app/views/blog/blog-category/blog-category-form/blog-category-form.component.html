@@ -1,0 +1,42 @@
+<div class="animated fadeIn">
+  <form class="card" [formGroup]="blogCategoryForm" novalidate (ngSubmit)="addBlogCategory()" autocomplete="off">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-12 d-flex justify-content-center">
+          <div class="dropzone-width">
+            <label>Image</label>
+            <app-single-dropzone [placeHolderText]="'Click Or Drag Image to upload!'"
+                                 [path]="category?.full_blog_category_image"
+                                 [onDragText]="'Drop Image to upload!'"
+                                 [control]="blogCategoryForm.get('image')">
+            </app-single-dropzone>
+          </div>
+        </div>
+        <app-form-input-text class="col-md-6" [label]="'Name'"
+                             [control]="blogCategoryForm.get('name')"
+                             [validationMessage]="'Name is required'">
+        </app-form-input-text>
+
+        <app-form-input-text class="col-md-6" [label]="'SEO Title'"
+                             [control]="blogCategoryForm.get('seo_title')">
+        </app-form-input-text>
+
+        <app-form-input-text class="col-md-6" [label]="'SEO Description'"
+                             [control]="blogCategoryForm.get('seo_description')">
+        </app-form-input-text>
+
+        <app-form-input-textarea class="col-md-6" [label]="'SEO Keywords'"
+                                 [control]="blogCategoryForm.get('seo_keywords')">
+        </app-form-input-textarea>
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit">
+            {{id ? 'Update' : 'Create'}}
+          </button>&nbsp;
+          <button class="btn btn-danger" (click)="cancel()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

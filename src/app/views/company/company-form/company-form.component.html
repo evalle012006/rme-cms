@@ -1,0 +1,249 @@
+<form
+  class="row mb-4"
+  [formGroup]="userForm"
+  novalidate
+  (ngSubmit)="saveUser()"
+  autocomplete="off"
+>
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h4>{{ editMode ? 'Edit' : 'Add' }} Company Detail</h4>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <label>Company Logo</label>
+            <app-single-dropzone
+              [placeHolderText]="'Click Or Drag Image to upload!'"
+              [onDragText]="'Drop Image to upload!'"
+              [path]="compnies ? compnies.full_company_logo : null"
+              [control]="userForm.get('logo')"
+            >
+            </app-single-dropzone>
+          </div>
+          <div class="col-md-9">
+            <div class="row">
+              <app-form-input-text
+                class="col-md-6"
+                [label]="'Company Name'"
+                [control]="userForm.get('company_name')"
+                [validationMessage]="'Company Name is required!'"
+              >
+              </app-form-input-text>
+
+              <app-form-input-text
+                class="col-md-6"
+                [label]="'Contact Number'"
+                [control]="userForm.get('contact_number')"
+                [validationMessage]="'Enter valid Contact Number.'"
+              >
+              </app-form-input-text>
+
+              <app-form-input-text
+                class="col-md-6"
+                [label]="'Website'"
+                [control]="userForm.get('website')"
+                [validationMessage]="'Enter valid website url.'"
+              >
+              </app-form-input-text>
+
+              <!-- <app-form-input-text class="col-md-6"
+                                   [label]="'Location'"
+                                   [control]="userForm.get('location')"
+                                   [validationMessage]="'Location is required!'">
+              </app-form-input-text> -->
+              <app-form-input-select
+                class="col-md-6"
+                [label]="'Status'"
+                [control]="userForm.get('status')"
+                [validationMessage]="'Status is required'"
+                [options]="statusOptions"
+              >
+              </app-form-input-select>
+            </div>
+          </div>
+          <app-form-input-textarea
+            class="col-12"
+            [label]="'Company Bio'"
+            [control]="userForm.get('bio')"
+            [validationMessage]="'Company bio is required'"
+          >
+          </app-form-input-textarea>
+          <div class="col-md-12" *ngIf="compnies && compnies.status == 1">
+            <label>Company Users</label>
+            <div class="d-block">
+              <ng-container
+                *ngIf="
+                  compnies && compnies.company_users.length > 0;
+                  else otherPart
+                "
+              >
+                <div class="row">
+                  <div class="col-md-3" *ngFor="let user of companyUsers">
+                    <div class="card">
+                      <div class="card-body">
+                        <p>
+                          <strong
+                            >{{ user.firstname }} {{ user.lastname }}</strong
+                          >
+                        </p>
+                        <p>{{ user.email }}</p>
+                        <div class="custom-control custom-switch">
+                          <input
+                            type="checkbox"
+                            class="custom-control-input"
+                            id="customSwitch-{{ user.id }}"
+                            [(ngModel)]="user.email_verified_at"
+                            [ngModelOptions]="{ standalone: true }"
+                          />
+                          <label
+                            class="custom-control-label"
+                            for="customSwitch-{{ user.id }}"
+                          ></label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- <ul>
+                  <li *ngFor="let user of companyUsers">
+                    <p>{{ user.firstname }} {{ user.lastname }}</p>
+                    <div class="custom-control custom-switch">
+                      <input
+                        type="checkbox"
+                        class="custom-control-input"
+                        id="customSwitch-{{ user.id }}"
+                        [(ngModel)]="user.email_verified_at"
+                        [ngModelOptions]="{ standalone: true }"
+                      />
+                      <label
+                        class="custom-control-label"
+                        for="customSwitch-{{ user.id }}"
+                      ></label>
+                    </div>
+                  </li>
+                </ul> -->
+              </ng-container>
+              <ng-template #otherPart>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  (click)="showModal(userModal)"
+                >
+                  Add User
+                </button>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div>
+      <button class="btn btn-primary" type="submit">
+        {{ companyId ? 'Update' : 'Create' }}</button
+      >&nbsp;
+      <button class="btn btn-danger" (click)="cancel()">
+        Cancel
+      </button>
+    </div>
+  </div>
+</form>
+
+<ng-template #userModal>
+  <div class="modal-header">
+    <h3>Assign User</h3>
+  </div>
+  <div class="modal-body">
+    <form
+      class="row mb-4"
+      [formGroup]="companyUserForm"
+      novalidate
+      (ngSubmit)="submitUserForm()"
+      autocomplete="off"
+      enctype="multipart/form-data"
+    >
+      <div class="card-body">
+        <div class="row">
+          <!-- <div class="col-md-3">
+              <label>Profile Image</label>
+              <app-single-dropzone
+                [placeHolderText]="'Click Or Drag Image to upload!'"
+                [onDragText]="'Drop Image to upload!'"
+                [path]="userData?.full_profile_image"
+                [control]="companyUserForm.get('profile_image')"
+              >
+              </app-single-dropzone>
+            </div> -->
+          <div class="col-md-12">
+            <div class="row">
+              <app-form-input-text
+                class="col-md-6"
+                [label]="'First Name'"
+                [control]="companyUserForm.get('firstname')"
+                [validationMessage]="'First Name is required'"
+              >
+              </app-form-input-text>
+
+              <app-form-input-text
+                class="col-md-6"
+                [label]="'Last Name'"
+                [control]="companyUserForm.get('lastname')"
+                [validationMessage]="'Last Name is required'"
+              >
+              </app-form-input-text>
+              <app-form-input-text
+                class="col-md-6"
+                [label]="'Mobile'"
+                [control]="companyUserForm.get('mobile')"
+                [validationMessage]="'Enter valid mobile number.'"
+              >
+              </app-form-input-text>
+              <!-- <app-form-input-text
+                  class="col-md-6"
+                  [label]="'Display Name'"
+                  [control]="companyUserForm.get('display_name')"
+                  [validationMessage]="'Display name is required'"
+                >
+                </app-form-input-text> -->
+            </div>
+          </div>
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Email'"
+            [control]="companyUserForm.get('email')"
+            [validationMessage]="'Email is required'"
+          >
+          </app-form-input-text>
+
+          <app-form-input-password
+            *ngIf="!editMode"
+            class="col-md-6"
+            [label]="'Password'"
+            [control]="companyUserForm.get('password')"
+            [validationMessage]="'Password is required'"
+          >
+          </app-form-input-password>
+
+          <!-- <app-form-input-text
+              class="col-md-6"
+              [label]="'Location'"
+              [control]="companyUserForm.get('location')"
+              [validationMessage]="'location is required'"
+            >
+            </app-form-input-text> -->
+          <div class="col-12">
+            <button class="btn btn-primary" type="submit">
+              Submit</button
+            >&nbsp;
+            <button type="button" class="btn btn-danger" (click)="hideModal()">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</ng-template>

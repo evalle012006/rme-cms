@@ -1,0 +1,33 @@
+<div class="animated fadeIn">
+  <form class="card" [formGroup]="ratingForm" novalidate (ngSubmit)="addRating()" autocomplete="off">
+    <div class="card-body">
+
+      <div class="row">
+        <div class="col-md-12">
+          <label>Rating Icon</label>
+          <app-single-dropzone [placeHolderText]="'Click Or Drag Image to upload!'"
+                               [onDragText]="'Drop Image to upload!'"
+                               [path]="rating?rating.full_ratingconf_icon:null"
+                               [control]="ratingForm.get('rating_icon')">
+          </app-single-dropzone>
+        </div>
+        <app-form-input-text class="col-md-12" [label]="'Name'"
+                             [control]="ratingForm.get('name')"
+                             [validationMessage]="'Name is required'">
+        </app-form-input-text>
+        <app-form-input-textarea class="col-12" [label]="'Description'"
+                                 [control]="ratingForm.get('description')"
+                                 [validationMessage]="'Description bio is required'">
+        </app-form-input-textarea>
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit">
+            {{id ? 'Update' : 'Create'}}
+          </button>&nbsp;
+          <button class="btn btn-danger" (click)="cancel()">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

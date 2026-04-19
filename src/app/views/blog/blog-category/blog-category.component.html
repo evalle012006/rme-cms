@@ -1,0 +1,33 @@
+<div class="animated fadeIn">
+  <div class="clearfix">
+    <button class="float-right btn btn-primary mb-2" routerLink="/blog-category/add" type="button">Add</button>
+  </div>
+</div>
+<div class="card">
+  <div class="card-body">
+    <table datatable [dtOptions]="dtOptions" [dtTrigger]="dtTrigger"
+           class="table table-hover w-100">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody *ngIf="blog_category?.length != 0">
+      <tr *ngFor="let person of blog_category">
+        <td>{{ person.id }}</td>
+        <td [innerHTML]="person.name">{{ person.name }}</td>
+        <td>
+          <button class="btn btn-sm btn-primary" routerLink="/blog-category/edit/{{person.id}}" type="button">Edit</button>
+        </td>
+      </tr>
+      </tbody>
+      <tbody *ngIf="blog_category?.length == 0">
+      <tr>
+        <td colspan="3" class="no-data-available">No data!</td>
+      </tr>
+      <tbody>
+    </table>
+  </div>
+</div>

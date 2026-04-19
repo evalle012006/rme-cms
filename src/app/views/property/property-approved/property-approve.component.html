@@ -1,0 +1,45 @@
+<div class="animated fadeIn">
+  <div class="d-flex justify-content-end mb-2">
+    <button class="btn btn-primary" routerLink="/property/add">Add</button>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <table datatable [dtOptions]="dtOptions" [dtTrigger]="dtTrigger" class="table table-hover w-100">
+        <thead>
+        <tr>
+          <th>Project Name</th>
+          <th>Status</th>
+          <th>Project Category</th>
+          <th>Action</th>
+        </tr>
+        </thead>
+        <tbody *ngIf="properties?.length != 0">
+        <tr *ngFor="let property of properties">
+          <td>{{ property.project_name }}</td>
+          <td>
+            <span class="badge p-1 font-sm" [ngClass]="property.status ? 'badge-success': 'badge-danger'">
+              {{ property.status ? 'Approved' : 'Pending' }}
+            </span>
+          </td>
+          <td>
+              <span *ngFor="let catItem of property.property_allowed_category"
+                    class="badge badge-secondary badge-pill p-1 m-1 font-sm">
+                {{catItem.name}}
+              </span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-primary" (click)="redirectToEditProperty(property.id)">Edit</button>
+          </td>
+        </tr>
+        </tbody>
+        <tbody *ngIf="properties?.length == 0">
+        <tr>
+          <td colspan="6" class="no-data-available">No data!</td>
+        </tr>
+        <tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+

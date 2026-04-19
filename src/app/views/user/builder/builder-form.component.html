@@ -1,0 +1,88 @@
+<form class="row mb-4" [formGroup]="userForm" novalidate (ngSubmit)="saveUser()"
+      autocomplete="off">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h4>{{editMode ? 'Edit' : 'Add'}} User Detail</h4>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <app-form-input-text class="col-md-6"
+                               [label]="'Name'"
+                               [control]="userForm.get('firstname')"
+                               [validationMessage]="'Name is required!'">
+          </app-form-input-text>
+
+          <app-form-input-text class="col-md-6"
+                               [label]="'Email'"
+                               [control]="userForm.get('email')"
+                               [validationMessage]="'Email is required!'">
+          </app-form-input-text>
+
+          <app-form-input-password *ngIf="!editMode" class="col-md-6"
+                                   [label]="'Password'"
+                                   [control]="userForm.get('password')"
+                                   [validationMessage]="'Password is required!'">
+          </app-form-input-password>
+
+          <app-form-input-select class="col-md-6"
+                                 [label]="'Status'"
+                                 [control]="userForm.get('status')"
+                                 [validationMessage]="'Status is required'"
+                                 [options]="statusOptions">
+          </app-form-input-select>
+
+          <app-form-input-select class="col-md-6"
+                                 [label]="'Brand Type'"
+                                 [control]="userForm.get('brand_type')"
+                                 [validationMessage]="'Brand type is required'"
+                                 [options]="brandOptions">
+          </app-form-input-select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-12">
+            <div class="form-group">
+<!--              <label for="company">Company</label>-->
+<!--              <ng-select id="company" [formControlName]="'company_id'" [items]="companyOption |async"-->
+<!--                         [loading]="companyLoading"-->
+<!--                         [typeahead]="companyInput" [bindValue]="'id'"-->
+<!--                         [bindLabel]="'company_name'">-->
+<!--              </ng-select>-->
+<!--              <div-->
+<!--                *ngIf="userForm.get('company_id').invalid && (userForm.get('company_id').dirty || userForm.get('company_id').touched)"-->
+<!--                class="invalid-feedback">-->
+<!--                company is required-->
+<!--              </div>-->
+
+              <app-form-input-select class="col-md-6"
+                                     [label]="'Company'"
+                                     [bindLabel]="'company_name'"
+                                     [bindValue]="'id'"
+                                     [control]="userForm.get('company_id')"
+                                     [validationMessage]="'Company is required'"
+                                     [options]="companyList">
+              </app-form-input-select>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div>
+      <button class="btn btn-primary" type="submit">
+        {{ editMode ? 'Update' : 'Create'}}
+      </button>&nbsp;
+      <button class="btn btn-danger" (click)="cancel()">
+        Cancel
+      </button>
+    </div>
+  </div>
+</form>

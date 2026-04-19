@@ -1,0 +1,59 @@
+<div class="animated fadeIn">
+  <div class="clearfix">
+    <button class="float-right btn btn-primary mb-2" routerLink="/blogs/add" type="button">Add</button>
+  </div>
+</div>
+<div class="card">
+  <div class="card-body">
+    <table datatable [dtOptions]="dtOptions" [dtTrigger]="dtTrigger"
+           class="table table-hover w-100">
+      <thead>
+      <tr>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody *ngIf="blogs?.length != 0">
+      <tr *ngFor="let person of blogs">
+        <td [innerHTML]="person.title">{{ person.title }}</td>
+        <td>
+              <span
+                    class="badge badge-secondary badge-pill p-1 m-1 font-sm">
+                {{person.blog_categories[0]['name']}}
+              </span>
+        </td>
+        <td>
+              <span
+                class="badge badge-info p-1 m-1 font-sm">
+                {{person.status === '0' ? 'Published' : person.status === '1' ? 'Drafted' : 'Archieve'}}
+              </span>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-primary" routerLink="/blogs/edit/{{person.id}}" type="button">Edit</button>
+          <button class="btn btn-sm btn-danger" type="button" (click)="deleteModel(delete, person.id)">Delete</button>
+        </td>
+      </tr>
+      </tbody>
+      <tbody *ngIf="blogs?.length == 0">
+      <tr>
+        <td colspan="4" class="no-data-available">No data!</td>
+      </tr>
+      <tbody>
+    </table>
+  </div>
+</div>
+<ng-template #delete>
+  <div class="modal-body modal-body-txt text-center">
+    <div class="center img-center">
+      <img src="../../../../assets/img/avatars/cancel.jpg" class="img-avatar" alt="admin@bootstrapmaster.com"/>
+    </div>
+    <h4 class="modal-title title-center">Delete?</h4>
+    <p class="caption-txt">Do you really want to delete these records?</p>
+  </div>
+  <div class="modal-footer modal-footer-buttons justify-content-center">
+    <button class="modal-cancel-button btn-danger" type="button" (click)="closeModel()">Cancel</button>
+    <button class="modal-delete-button btn-success" type="button" (click)="deleteBlog()">Delete</button>
+  </div>
+</ng-template>

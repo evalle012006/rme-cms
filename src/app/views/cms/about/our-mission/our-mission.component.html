@@ -1,0 +1,64 @@
+<form
+  [formGroup]="ourMissionForm"
+  novalidate
+  (ngSubmit)="save()"
+  autocomplete="off"
+>
+  <div class="card">
+    <div class="card-header">
+      <strong>Our mission section</strong>
+      <div class="card-header-actions">
+        <button class="btn btn-primary" type="submit">save</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <app-form-input-text
+          class="col-md-8"
+          [label]="'Title'"
+          [control]="ourMissionForm.get('title')"
+          [validationMessage]="'Title is required'"
+        >
+        </app-form-input-text>
+      </div>
+      <div class="row" *ngIf="formData">
+        <div class="col-md-6">
+          <label>Card 1</label>
+          <app-form-input-ck-editor
+            class="col-md-12"
+            [control]="ourMissionForm.get('card_1')"
+            [validationMessage]="'Card content is required'"
+          >
+          </app-form-input-ck-editor>
+        </div>
+        <div class="col-md-6">
+          <label>Card 2</label>
+          <app-form-input-ck-editor
+            class="col-md-12"
+            [control]="ourMissionForm.get('card_2')"
+            [validationMessage]="'Card content is required'"
+          >
+          </app-form-input-ck-editor>
+        </div>
+        <div class="col-md-6">
+          <label>Card 3</label>
+          <app-form-input-ck-editor
+            class="col-md-12"
+            [control]="ourMissionForm.get('card_3')"
+            [validationMessage]="'Card content is required'"
+          >
+          </app-form-input-ck-editor>
+        </div>
+        <div class="col-md-6">
+          <label>Card 4</label>
+          <app-form-input-ck-editor
+            class="col-md-12"
+            [control]="ourMissionForm.get('card_4')"
+            [validationMessage]="'Card content is required'"
+          >
+          </app-form-input-ck-editor>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>

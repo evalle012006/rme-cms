@@ -1,0 +1,25 @@
+<div class="animated fadeIn">
+  <div>
+    <div class="card" *ngFor="let property of properties;let i = index">
+      <div class="card-header">
+        {{property.name}}
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-10">
+            <ng-select [multiple]="true"
+                       [searchable]="true"
+                       [items]="ratingItems"
+                       [bindLabel]="'name'"
+                       [bindValue]="'id'"
+                       [(ngModel)]="selectedPropertiesAllowedRatings['property_'+property.id]">
+            </ng-select>
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-primary" (click)="savePropertyAllowedRating(property.id)">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

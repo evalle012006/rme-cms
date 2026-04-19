@@ -1,0 +1,110 @@
+<form
+  class="row mb-4"
+  [formGroup]="userForm"
+  novalidate
+  (ngSubmit)="saveUser()"
+  autocomplete="off"
+  enctype="multipart/form-data"
+>
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <span class="h4">Edit Company User</span>
+        <div class="card-header-actions">
+          <a
+            class="text-right"
+            href="mailto:{{ userData['email'] }}"
+            *ngIf="userData"
+            ><button class="btn btn-primary" type="button">
+              Email User
+            </button>
+          </a>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3">
+            <label>Company Logo</label>
+            <app-single-dropzone
+              [placeHolderText]="'Click Or Drag Image to upload!'"
+              [onDragText]="'Drop Image upload!'"
+              [path]="
+                userData && userData['company']
+                  ? userData['company']['full_company_logo']
+                  : ''
+              "
+              [control]="userForm.get('company_logo')"
+            >
+            </app-single-dropzone>
+          </div>
+          <div class="col-md-9">
+            <div class="row">
+              <app-form-input-text
+                class="col-md-6"
+                [label]="'First Name'"
+                [control]="userForm.get('firstname')"
+                [validationMessage]="'First Name is required'"
+              >
+              </app-form-input-text>
+
+              <app-form-input-text
+                class="col-md-6"
+                [label]="'Last Name'"
+                [control]="userForm.get('lastname')"
+                [validationMessage]="'Last Name is required'"
+              >
+              </app-form-input-text>
+
+              <app-form-input-select
+                class="col-md-6"
+                [label]="'Status'"
+                [control]="userForm.get('status')"
+                [validationMessage]="'Status is required'"
+                [options]="statusOptions"
+              >
+              </app-form-input-select>
+              <app-form-input-text
+                class="col-md-6"
+                [label]="'Email'"
+                [control]="userForm.get('email')"
+                [validationMessage]="'Email is required'"
+                [isReadOnly]="true"
+              >
+              </app-form-input-text>
+            </div>
+          </div>
+
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Company Name'"
+            [control]="userForm.get('company_name')"
+            [validationMessage]="'Company name is required'"
+          >
+          </app-form-input-text>
+
+          <app-form-input-text
+            class="col-md-6"
+            [label]="'Website URL'"
+            [control]="userForm.get('website')"
+          >
+          </app-form-input-text>
+
+          <app-form-input-textarea
+            class="col-md-12"
+            [label]="'Company Bio'"
+            [control]="userForm.get('company_bio')"
+          >
+          </app-form-input-textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12">
+    <div>
+      <button class="btn btn-primary" type="submit">Update</button>&nbsp;
+      <button class="btn btn-danger" (click)="cancel()">
+        Cancel
+      </button>
+    </div>
+  </div>
+</form>

@@ -1,0 +1,102 @@
+.custom-upload
+  dropzone
+  > .dropzone.dz-wrapper.dz-multiple.dz-started
+  .dz-message {
+  border: 1px solid #aaa;
+}
+
+.custom-upload .dropzone .dz-preview .dz-image {
+  width: 130px;
+  height: 120px;
+}
+
+.custom-upload dropzone > .dropzone.dz-wrapper .dz-preview {
+  background-color: transparent;
+  border: none;
+  width: 100%;
+  height: 100%;
+  margin: 0px !important;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-upload .dropzone .dz-preview .dz-remove {
+  position: relative;
+  top: -10px;
+}
+
+.custom-upload .dropzone .dz-preview .dz-error-message {
+  top: 110px;
+  left: 10px;
+  right: 10px;
+}
+
+.spaceing {
+  margin-bottom: 12px;
+}
+
+.spaceing input,
+.spaceing select,
+.spaceing textarea {
+  border-radius: 5px;
+}
+
+.spaceing .alert-danger {
+  padding: 5px 10px;
+  margin-bottom: 0px;
+}
+
+dropzone {
+  width: 180px !important;
+  position: relative;
+  height: 180px !important;
+  margin: 0 auto;
+}
+
+dropzone > .dropzone.dz-wrapper.dz-multiple.dz-started .dz-message {
+  /* position: absolute; */
+  top: 0px;
+  bottom: 0;
+  left: 0px;
+  right: 0px;
+}
+
+dropzone > .dropzone.dz-wrapper {
+  height: 100%;
+}
+
+dropzone > .dropzone.dz-wrapper .dz-preview {
+  /* position: absolute; */
+  right: 0px;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border: 1px solid #00000038;
+}
+
+.dropzone .dz-preview .dz-image {
+  margin: 10px auto 0px;
+}
+
+dropzone > .dropzone.dz-wrapper .dz-message {
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0;
+  position: absolute !important;
+}
+
+.custom-field {
+  width: 300px;
+  margin-left: 10px;
+}
+.modal-form {
+  line-height: 48px;
+}
+
+.input-error {
+  margin-left: 153px;
+  color: red;
+}

@@ -1,0 +1,110 @@
+<div class="animated fadeIn">
+  <form
+    class="card"
+    [formGroup]="blogForm"
+    novalidate
+    (ngSubmit)="addBlog()"
+    autocomplete="off"
+  >
+    <div class="card-body">
+      <div class="row">
+        <div class="col-12 d-flex justify-content-center">
+          <div class="dropzone-width">
+            <label>Feature Image</label>
+            <app-single-dropzone
+              [placeHolderText]="'Click Or Drag Image to upload!'"
+              [path]="blogData?.full_feature_image"
+              [onDragText]="'Drop Image to upload!'"
+              [control]="blogForm.get('feature_image')"
+            >
+            </app-single-dropzone>
+          </div>
+        </div>
+
+        <app-form-input-ck-editor
+          class="col-md-12"
+          [control]="blogForm.get('description')"
+          [validationMessage]="'Description is required'"
+        >
+        </app-form-input-ck-editor>
+
+        <app-form-input-text
+          class="col-md-6"
+          [label]="'Title'"
+          [control]="blogForm.get('title')"
+          [validationMessage]="'Title is required'"
+        >
+        </app-form-input-text>
+
+        <app-form-input-date
+          class="col-md-6"
+          [label]="'Date'"
+          [control]="blogForm.get('blog_date')"
+          [validationMessage]="'Date is required'"
+        >
+        </app-form-input-date>
+
+        <app-form-input-text
+          class="col-md-6"
+          [label]="'Author Name'"
+          [control]="blogForm.get('author_name')"
+          [validationMessage]="'Author name is required'"
+        >
+        </app-form-input-text>
+
+        <app-form-input-select
+          class="col-md-6"
+          [label]="'Status'"
+          [control]="blogForm.get('status')"
+          [validationMessage]="'Status is required'"
+          [options]="statusOptions"
+        >
+        </app-form-input-select>
+
+        <app-form-input-text
+          class="col-md-6"
+          [label]="'SEO Title'"
+          [validationMessage]="'SEO title is required'"
+          [control]="blogForm.get('seo_title')"
+        >
+        </app-form-input-text>
+
+        <app-form-input-text
+          class="col-md-6"
+          [label]="'SEO Description'"
+          [validationMessage]="'SEO description is required'"
+          [control]="blogForm.get('seo_description')"
+        >
+        </app-form-input-text>
+
+        <app-form-input-textarea
+          class="col-md-6"
+          [label]="'SEO Keywords'"
+          [validationMessage]="'SEO keyword is required'"
+          [control]="blogForm.get('seo_keywords')"
+        >
+        </app-form-input-textarea>
+
+        <div class="col-md-6">
+          <label>Blog Category</label>
+          <ng-select
+            [searchable]="true"
+            [items]="blog_categories"
+            [bindLabel]="'name'"
+            [bindValue]="'id'"
+            [formControl]="blogForm.get('category_id')"
+          >
+          </ng-select>
+          <div class="invalid-feedback">Property Category is required</div>
+        </div>
+
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit">
+            {{ id ? 'Update' : 'Create' }}</button
+          >&nbsp;
+          <button class="btn btn-danger" (click)="cancel()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>

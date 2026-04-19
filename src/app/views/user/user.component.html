@@ -1,0 +1,101 @@
+<div class="animated fadeIn">
+  <div class="clearfix">
+    <button
+      class="float-right btn btn-primary mb-2"
+      routerLink="/users/add"
+      type="button"
+    >
+      Add
+    </button>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <table
+        datatable
+        [dtOptions]="dtOptions"
+        [dtTrigger]="dtTrigger"
+        class="table table-hover w-100"
+      >
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Change Requests</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody *ngIf="users?.length != 0">
+          <tr *ngFor="let person of users">
+            <td>{{ person.id }}</td>
+            <td>{{ person.email }}</td>
+            <td>
+              <button
+                class="btn btn-sm btn-primary"
+                (click)="openModal(displayNameModal, person)"
+                *ngIf="person.has_change_request"
+              >
+                View Request
+              </button>
+            </td>
+            <td>
+              <button
+                class="btn btn-sm btn-primary"
+                routerLink="/users/edit/{{ person.id }}"
+                type="button"
+              >
+                Edit
+              </button>
+            </td>
+          </tr>
+        </tbody>
+        <tbody *ngIf="users?.length == 0">
+          <tr>
+            <td colspan="3" class="no-data-available">No data!</td>
+          </tr>
+        </tbody>
+
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<ng-template #displayNameModal>
+  <div class="modal-body modal-body-txt text-center">
+    <div class="row text-left modal-form">
+      <div class="col-md-12">
+        <strong>Old display name</strong> : {{ activePerson.display_name }}
+      </div>
+      <div class="col-md-12 d-flex">
+        <strong>New display name</strong>&nbsp;:
+        <input
+          class="form-control custom-field"
+          [(ngModel)]="activePerson.requested_display_name"
+        />
+      </div>
+      <div
+        class="input-error"
+        *ngIf="activePerson.requested_display_name === ''"
+      >
+        *Display name should not be blank
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer modal-footer-buttons justify-content-center">
+    <button
+      class="modal-cancel-button btn-danger"
+      type="button"
+      (click)="changeRequestStatus(0)"
+    >
+      Reject
+    </button>
+    <button
+      class="modal-delete-button btn-success"
+      type="button"
+      (click)="changeRequestStatus(1)"
+      [disabled]="activePerson.requested_display_name == '' ? true : false"
+    >
+      Approve
+    </button>
+  </div>
+</ng-template>

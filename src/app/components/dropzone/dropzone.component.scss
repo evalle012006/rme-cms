@@ -1,0 +1,61 @@
+@import "./src/scss/style";
+
+.dropzone {
+  position: relative;
+  border: none;
+
+  input {
+    opacity: 0;
+    position: relative;
+    z-index: 99;
+  }
+
+  &.drag-over {
+  }
+
+  .label {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    text-align: center;
+    pointer-events: none;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 0;
+    line-height: 60px;
+  }
+
+  .progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+}
+
+.preview-image-holder {
+  display: flex;
+  flex-wrap: wrap;
+
+  .preview-item {
+    position: relative;
+
+    img {
+      width: 165px;
+      height: 165px;
+      object-fit: inherit;
+    }
+
+    i.fa {
+      font-size: 22px;
+      position: absolute;
+      top: -1px;
+      right: -2px;
+    }
+  }
+}
+
+.alert-theme {
+  background: rgb($primary, 0.2 );
+}
