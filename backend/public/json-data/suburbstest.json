@@ -1,0 +1,18 @@
+[
+    {
+        "id": "1",
+        "name": "Aarons Pass",
+        "state": "New South Wales",
+        "postcode": "2850",
+        "latitude": "-32.86328",
+        "longitude": "149.80375"
+    },
+    {
+        "id": "2",
+        "name": "Abba River",
+        "state": "Western Australia",
+        "postcode": "6280",
+        "latitude": "-33.68488",
+        "longitude": "115.46334"
+    }
+]
