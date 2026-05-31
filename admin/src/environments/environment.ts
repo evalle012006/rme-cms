@@ -3,13 +3,26 @@
 // The list of file replacements can be found in `angular.json`.
 // http://www.ratemyestate.local/api/
 // rate-my-estate.local
-export const environment = {
-  production: false,
-  api_url: 'http://www.ratemyestate.local/api/',
-  backend_url: 'http://www.ratemyestate.local/',
-  img_url: 'http://www.ratemyestate.local/storage/',
-};
+// export const environment = {
+//   production: false,
+//   api_url: 'http://www.ratemyestate.local/api/',
+//   backend_url: 'http://www.ratemyestate.local/',
+//   img_url: 'http://www.ratemyestate.local/storage/',
+// };
 
+// export const environment = {
+//   production: false,
+//   api_url: 'http://localhost:8000/api/',
+//   backend_url: 'http://localhost:8000/',
+//   img_url: 'http://localhost:8000/storage/',
+// };
+
+export const environment = {
+  production: true,
+  api_url: 'https://ratemyestate.castledigital.com.au/api/',
+  backend_url: 'https://ratemyestate.castledigital.com.au/',
+  img_url: 'https://ratemyestate.castledigital.com.au/storage/',
+};
 /*
  * In development mode, to ignore zone related error stack frames such as
  * `zone.run`, `zoneDelegate.invokeTask` for easier debugging, you can

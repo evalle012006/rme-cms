@@ -1,8 +1,8 @@
 export const environment = {
   production: true,
-  api_url: 'https://ratemyestate.com.au/api/',
-  backend_url: 'https://ratemyestate.com.au/',
-  img_url: 'https://rme-prod.s3.ap-southeast-2.amazonaws.com/',
+  api_url: 'https://ratemyestate.castledigital.com.au/api/',
+  backend_url: 'https://ratemyestate.castledigital.com.au/',
+  img_url: 'https://ratemyestate.castledigital.com.au/storage/',
 };
 
 // uncomment below when creating build for staging

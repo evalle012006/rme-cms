@@ -185,7 +185,6 @@ return [
         App\Providers\RouteServiceProvider::class,
         App\Providers\ViewComposerServiceProvider::class,
         Spatie\Permission\PermissionServiceProvider::class,
-        Barryvdh\Debugbar\ServiceProvider::class,
 
     ],
 
@@ -237,7 +236,6 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
-        'Debugbar' => Barryvdh\Debugbar\Facade::class,
         'DataTables' => Yajra\DataTables\Facades\DataTables::class,
         'Image' => Intervention\Image\Facades\Image::class,
         'Socialite' => Laravel\Socialite\Facades\Socialite::class,
