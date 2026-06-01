@@ -1,60 +1,76 @@
+import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import {
   LayoutDashboard, Users, Building2, Star, Home,
-  Tag, FileText, Mail, Settings, LogOut, ChevronDown, ChevronRight, Megaphone
+  Tag, FileText, Mail, Settings, LogOut,
+  ChevronDown, ChevronRight, Megaphone,
+  type LucideIcon,
 } from 'lucide-react'
-import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
-const nav = [
+// ── Nav config types ──────────────────────────────────────────────────────────
+interface NavChild {
+  label: string
+  to: string
+}
+
+interface NavItemConfig {
+  label: string
+  icon: LucideIcon
+  to?: string
+  children?: NavChild[]
+}
+
+// ── Nav config ────────────────────────────────────────────────────────────────
+const nav: NavItemConfig[] = [
   { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard' },
   {
     label: 'Users', icon: Users, children: [
       { label: 'All Users', to: '/users' },
-    ]
+    ],
   },
   {
     label: 'Company Users', icon: Building2, children: [
       { label: 'Approved', to: '/builders/approved' },
       { label: 'Pending', to: '/builders/pending' },
-    ]
+    ],
   },
   {
     label: 'Company', icon: Building2, children: [
       { label: 'Approved', to: '/companies/approved' },
       { label: 'Pending', to: '/companies/pending' },
-    ]
+    ],
   },
   {
     label: 'Reviews', icon: Star, children: [
       { label: 'Approved', to: '/reviews/approved' },
       { label: 'Pending', to: '/reviews/pending' },
-    ]
+    ],
   },
   {
     label: 'Properties', icon: Home, children: [
       { label: 'Approved', to: '/properties/approved' },
       { label: 'Pending', to: '/properties/pending' },
-    ]
+    ],
   },
   {
     label: 'Advertises', icon: Megaphone, children: [
       { label: 'Approved', to: '/advertises/approved' },
       { label: 'Pending', to: '/advertises/pending' },
-    ]
+    ],
   },
   {
     label: 'Property Settings', icon: Settings, children: [
       { label: 'Categories', to: '/property-categories' },
       { label: 'Manage Rating', to: '/manage-rating' },
-    ]
+    ],
   },
   {
     label: 'Blogs', icon: FileText, children: [
       { label: 'Blog Categories', to: '/blog-categories' },
       { label: 'All Blogs', to: '/blogs' },
-    ]
+    ],
   },
   {
     label: 'CMS Pages', icon: FileText, children: [
@@ -66,14 +82,15 @@ const nav = [
       { label: 'Review Guidelines', to: '/cms/review-guidelines' },
       { label: 'Terms of Use', to: '/cms/terms-of-use' },
       { label: 'Privacy Policy', to: '/cms/privacy-policy' },
-    ]
+    ],
   },
   { label: 'Rating Setting', icon: Star, to: '/rating-setting' },
   { label: 'Manage Tags', icon: Tag, to: '/tags' },
   { label: 'Contact Us', icon: Mail, to: '/contact-us' },
 ]
 
-function NavItem({ item }) {
+// ── NavItem ───────────────────────────────────────────────────────────────────
+function NavItem({ item }: { item: NavItemConfig }) {
   const [open, setOpen] = useState(false)
 
   if (item.children) {
@@ -96,7 +113,8 @@ function NavItem({ item }) {
                 key={child.to}
                 to={child.to}
                 className={({ isActive }) =>
-                  cn('block px-2 py-1.5 rounded text-xs transition-colors',
+                  cn(
+                    'block px-2 py-1.5 rounded text-xs transition-colors',
                     isActive
                       ? 'text-primary-300 font-medium'
                       : 'text-gray-400 hover:text-white'
@@ -112,11 +130,13 @@ function NavItem({ item }) {
     )
   }
 
+  // Leaf node — `to` is guaranteed when there are no children
   return (
     <NavLink
-      to={item.to}
+      to={item.to!}
       className={({ isActive }) =>
-        cn('flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
+        cn(
+          'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
           isActive
             ? 'bg-primary-500/20 text-primary-300 font-medium'
             : 'text-gray-300 hover:bg-white/10 hover:text-white'
@@ -129,6 +149,7 @@ function NavItem({ item }) {
   )
 }
 
+// ── Sidebar ───────────────────────────────────────────────────────────────────
 export default function Sidebar() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
