@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'sonner'
+import AuthLayout from '@/components/AuthLayout'
 import AuthGuard from '@/components/AuthGuard'
 import DefaultLayout from '@/components/DefaultLayout'
 import LoginPage from '@/pages/LoginPage'
@@ -11,14 +12,17 @@ import DashboardPage from '@/pages/DashboardPage'
 export default function App() {
   return (
     <BrowserRouter>
-      {/* Sonner — replaces react-hot-toast; position matches original */}
       <Toaster position="top-right" richColors />
 
       <Routes>
-        {/* Public */}
-        <Route path="/login" element={<LoginPage />} />
+        {/* Unauthenticated routes — centered card shell, redirects to /dashboard if already logged in */}
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<LoginPage />} />
+          {/* Future: <Route path="/forgot-password" element={<ForgotPasswordPage />} /> */}
+          {/* Future: <Route path="/reset-password" element={<ResetPasswordPage />} /> */}
+        </Route>
 
-        {/* Protected — wrapped by AuthGuard, rendered inside DefaultLayout */}
+        {/* Authenticated routes — sidebar + top bar, redirects to /login if logged out */}
         <Route element={<AuthGuard />}>
           <Route element={<DefaultLayout />}>
             <Route path="/dashboard" element={<DashboardPage />} />
