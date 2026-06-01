@@ -21,7 +21,10 @@ services:
       - mysql
 
   # -------------------------------------------------------------------------
-  # Nginx — serves both the Laravel app (port 8000) and Angular admin (port 8001)
+  # Nginx — serves three virtual hosts from one container:
+  #   Port 8000 → Laravel public site (PHP-FPM)
+  #   Port 8001 → Angular admin SPA  (legacy — kept live during React migration)
+  #   Port 8002 → React admin SPA    (new build — ratemyestatecms-react.castledigital.com.au)
   # -------------------------------------------------------------------------
   nginx:
     image: nginx:alpine
@@ -30,9 +33,11 @@ services:
     ports:
       - "8000:8000"   # Laravel public site → ratemyestate.castledigital.com.au
       - "8001:8001"   # Angular admin SPA  → ratemyestatecms.castledigital.com.au
+      - "8002:8002"   # React admin SPA    → ratemyestatecms-react.castledigital.com.au
     volumes:
       - ./backend:/var/www/backend
-      - ./backend/public/admin:/var/www/admin   # compiled Angular build
+      - ./backend/public/admin:/var/www/admin   # compiled Angular build  (legacy)
+      - ./backend/public/cms:/var/www/cms       # compiled React build    (new)
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
     networks:
       - rme_internal
