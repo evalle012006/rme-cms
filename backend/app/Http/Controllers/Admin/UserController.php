@@ -10,6 +10,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -44,13 +45,14 @@ class UserController extends BaseController
     {
         $data = $request->all();
         $rules = [
-            'email' => 'required|email|unique:users,email',
+            'email'         => 'required|email|unique:users,email',
             'profile_image' => 'nullable',
-            'firstname' => 'required',
-            'lastname' => 'required',
-            'mobile' => 'required|unique:users,mobile',
-            'location' => 'required',
-            'status' => 'required'
+            'firstname'     => 'required',
+            'lastname'      => 'required',
+            'display_name'  => 'nullable|string|max:255', // FIX RME-105: added display_name
+            'mobile'        => 'required|unique:users,mobile',
+            'location'      => 'required',
+            'status'        => 'required',
         ];
         try {
             $data = $this->validate($request, $rules);
@@ -63,7 +65,14 @@ class UserController extends BaseController
             $data['password'] = bcrypt($request->password);
             $user = User::create($data);
             $user->assignRole('reviewer');
-            $user->sendEmailVerificationNotification();
+
+            // FIX RME-106: wrapped in try/catch so mail failure doesn't 500 the response
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Exception $e) {
+                Log::error('REVIEWER_SIGNUP_VERIFICATION_EMAIL_ERROR: ' . $e->getMessage());
+            }
+
             return $this->formatSuccessResponse('User Created', $user);
         } catch (ValidationException $e) {
             return $this->apiFormatFailureResponse('false', $e->errors());
@@ -113,7 +122,12 @@ class UserController extends BaseController
             $user->update($data);
 
             if ($sendMail) {
-                Mail::to($user->email)->send(new ChangeRequestUpdate('approved'));
+                // FIX RME-106: wrapped in try/catch
+                try {
+                    Mail::to($user->email)->send(new ChangeRequestUpdate('approved'));
+                } catch (\Exception $e) {
+                    Log::error('REVIEWER_UPDATE_MAIL_ERROR: ' . $e->getMessage());
+                }
             }
 
             return $this->formatSuccessResponse('User Updated', $data);
@@ -125,38 +139,34 @@ class UserController extends BaseController
     public function builderSignup(Request $request)
     {
         $rules = [
-            'firstname' => 'required',
-            'email' => 'unique:users,email|required',
-            'password' => 'required',
-            'status' => 'required',
+            'firstname'  => 'required',
+            'lastname'   => 'nullable|string|max:255', // FIX RME-107: added lastname
+            'email'      => 'unique:users,email|required',
+            'password'   => 'required',
+            'status'     => 'required',
             'brand_type' => 'required',
-            'company_id' => 'required'
+            'company_id' => 'required',
         ];
 
         try {
             $data = $this->validate($request, $rules);
             $userInsert = [];
-            $userInsert['firstname'] = $data['firstname'];
-            $userInsert['email'] = $data['email'];
-            $userInsert['status'] = $data['status'];
+            $userInsert['firstname']  = $data['firstname'];
+            $userInsert['lastname']   = $data['lastname'] ?? null; // FIX RME-107: save lastname
+            $userInsert['email']      = $data['email'];
+            $userInsert['status']     = $data['status'];
             $userInsert['brand_type'] = $data['brand_type'];
             $userInsert['company_id'] = $data['company_id'];
-            $userInsert['password'] = bcrypt($request->password);
+            $userInsert['password']   = bcrypt($request->password);
             $user = User::create($userInsert);
             $user->assignRole('builder');
-            $user->sendEmailVerificationNotification();
 
-            //compant_details
-//            $companyInsert = $data['company'];
-//            if ($request->hasFile('company.logo')) {
-//                $file = $request->file('company.logo');
-//                $companyInsert['logo'] = $this->saveToS3($file, self::COMPANY_LOGO_STORAGE_PATH);
-//                $companyInsert['logo_thumb'] = $this->saveThumbToS3($data['logo']);
-////                $companyInsert['logo'] = $request->file('company.logo')->store(self::COMPANY_LOGO_STORAGE_PATH);
-//            }
-//            $companyInsert['user_id'] = $user->id;
-//
-//            CompanyDetails::create($companyInsert);
+            // FIX RME-106: wrapped in try/catch so mail failure doesn't 500 the response
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Exception $e) {
+                Log::error('BUILDER_SIGNUP_VERIFICATION_EMAIL_ERROR: ' . $e->getMessage());
+            }
 
             return $this->formatSuccessResponse('User Created', $user);
         } catch (ValidationException $e) {
@@ -169,11 +179,12 @@ class UserController extends BaseController
         $data = $request->all();
 
         $rules = [
-            'email' => 'required|email|unique:users,email,'.$request->id,
-            'firstname' => 'required',
-            'status' => 'required',
+            'email'      => 'required|email|unique:users,email,'.$request->id,
+            'firstname'  => 'required',
+            'lastname'   => 'nullable|string|max:255', // FIX RME-107: added lastname
+            'status'     => 'required',
             'brand_type' => 'required',
-            'company_id' => 'required'
+            'company_id' => 'required',
         ];
         try {
             $data = $this->validate($request, $rules);
@@ -226,9 +237,12 @@ class UserController extends BaseController
 
                     $updated = User::whereId($data['id'])->update($updateData);
                     if ($updated) {
-                        // send mail to user
-                        Mail::to($user->email)->send(new ChangeRequestUpdate($data['status'] == 1 ? 'approved' : 'rejected'));
-                        // end
+                        // FIX RME-106: wrapped in try/catch
+                        try {
+                            Mail::to($user->email)->send(new ChangeRequestUpdate($data['status'] == 1 ? 'approved' : 'rejected'));
+                        } catch (\Exception $e) {
+                            Log::error('CHANGE_REQUEST_MAIL_ERROR: ' . $e->getMessage());
+                        }
                         return $this->formatSuccessResponse($data['status'] == 1 ? 'Request approved successfully' : 'Request rejected successfully',
                             'success');
                     }
@@ -278,7 +292,12 @@ class UserController extends BaseController
                     }
                 }
                 if ($data['status']) {
-                    \Mail::to($user->email)->send(new \App\Mail\BuilderApproved());
+                    // FIX RME-106: wrapped in try/catch
+                    try {
+                        \Mail::to($user->email)->send(new \App\Mail\BuilderApproved());
+                    } catch (\Exception $e) {
+                        Log::error('BUILDER_STATUS_CHANGE_MAIL_ERROR: ' . $e->getMessage());
+                    }
                 }
                 return $this->formatSuccessResponse('Success', 200);
             }
@@ -335,7 +354,12 @@ class UserController extends BaseController
                     'bio' => $data['company_bio'] ? $data['company_bio'] : null
                 ];
                 if ($data['status']) {
-                    \Mail::to($user->email)->send(new \App\Mail\BuilderApproved());
+                    // FIX RME-106: wrapped in try/catch
+                    try {
+                        \Mail::to($user->email)->send(new \App\Mail\BuilderApproved());
+                    } catch (\Exception $e) {
+                        Log::error('UPDATE_BUILDER_MAIL_ERROR: ' . $e->getMessage());
+                    }
                 }
                 if ($request->hasFile('company_logo')) {
                     $file = $request->file('company_logo');

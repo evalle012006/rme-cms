@@ -133,9 +133,12 @@ class CompanyDetailsController extends BaseController
                 $companyUser = User::create($companyUserData);
                 $companyUser->assignRole('builder');
 
-                // send reset password link to user email
-                $emailData = ['email' => $companyUser->email, 'password' => $passwordString, 'company_name' => $data['company_name']];
-                $this->sendResetPwMail($emailData);
+                try {
+                    $emailData = ['email' => $companyUser->email, 'password' => $passwordString, 'company_name' => $data['company_name']];
+                    $this->sendResetPwMail($emailData);
+                } catch (\Exception $e) {
+                    Log::error('COMPANY_UPDATE_BUILDER_MAIL_ERROR: ' . $e->getMessage());
+                }
             }
             return $this->formatSuccessResponse('Company Updated', $data);
         } catch (ValidationException $e) {

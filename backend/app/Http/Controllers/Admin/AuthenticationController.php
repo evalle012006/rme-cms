@@ -6,26 +6,21 @@ use App\Http\Controllers\BaseController;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
 
 class AuthenticationController extends BaseController
 {
-    /**
-     * AuthenticationController constructor.
-     */
     public function __construct()
     {
     }
 
-    /**
-     * AuthenticationController Authentication Method
-     */
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-            'remember_me' => 'boolean'
+            'email'       => 'required|string|email',
+            'password'    => 'required|string',
+            'remember_me' => 'boolean',
         ]);
 
         if (!Auth::attempt($credentials)) {
@@ -35,7 +30,6 @@ class AuthenticationController extends BaseController
         $user = $request->user();
 
         if ($user->hasRole('admin')) {
-
             $tokenResult = $user->createToken('Access Token');
             $token = $tokenResult->token;
             if ($request->remember_me) {
@@ -45,7 +39,7 @@ class AuthenticationController extends BaseController
 
             $data = [
                 'access_token' => $tokenResult->accessToken,
-                'user' => $user
+                'user'         => $user,
             ];
             return $this->formatSuccessResponse('success', $data);
         } else {
@@ -63,14 +57,20 @@ class AuthenticationController extends BaseController
     {
         $response = $this->broker()->sendResetLink(['email' => auth()->user()->email]);
         $isEmailSent = $response == Password::RESET_LINK_SENT;
+
         if ($isEmailSent) {
-            $tokenRepository = app('Laravel\Passport\TokenRepository');
-            $refreshTokenRepository = app('Laravel\Passport\RefreshTokenRepository');
+            try {
+                $tokenRepository        = app('Laravel\Passport\TokenRepository');
+                $refreshTokenRepository = app('Laravel\Passport\RefreshTokenRepository');
 
-            $tokenId = $this->getTokenId($request);
+                $tokenId = $this->getTokenId($request);
 
-            $tokenRepository->revokeAccessToken($tokenId);
-            $refreshTokenRepository->revokeRefreshTokensByAccessTokenId($tokenId);
+                $tokenRepository->revokeAccessToken($tokenId);
+                $refreshTokenRepository->revokeRefreshTokensByAccessTokenId($tokenId);
+            } catch (\Exception $e) {
+                Log::error('PASSWORD_RESET_TOKEN_REVOKE_ERROR: ' . $e->getMessage());
+                // Not fatal — the email was sent. Token will expire naturally.
+            }
         }
 
         return $this->formatSuccessResponse('Password Reset', ['sent' => $isEmailSent]);

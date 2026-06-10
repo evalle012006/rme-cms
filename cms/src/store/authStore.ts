@@ -2,13 +2,26 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 // ── Domain types ─────────────────────────────────────────────────────────────
-// Mirrors the user object returned by Laravel's /api/admin/login.
-// Extend fields here as you consume more of the user payload.
+export interface AuthUserRole {
+  id: number
+  name: string
+  guard_name: string
+}
+
 export interface AuthUser {
   id: number
   name: string
+  firstname: string
+  lastname: string
+  display_name: string | null
+  mobile: string | null
   email: string
-  // Add role, avatar, etc. as needed
+  profile_image: string | null
+  profile_thumb_image: string | null
+  location: string | null
+  status: string
+  full_name: string
+  roles: AuthUserRole[]
 }
 
 // ── State & actions ──────────────────────────────────────────────────────────
