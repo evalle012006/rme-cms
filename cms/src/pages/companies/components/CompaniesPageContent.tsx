@@ -265,7 +265,7 @@ export function CompaniesPageContent({
       <DeleteCompanyDialog
         open={deleteDialogOpen}
         companyName={companyToDelete?.company_name}
-        loading={deleting}
+        // loading={deleting}
         onOpenChange={(open) => {
           if (!open) closeDeleteDialog()
         }}

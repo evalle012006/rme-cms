@@ -11,7 +11,7 @@ export type DeleteCompanyDialogProps = {
 export function DeleteCompanyDialog({
   open,
   companyName,
-  loading = false,
+  // loading = false,
   onOpenChange,
   onConfirm,
 }: DeleteCompanyDialogProps) {
