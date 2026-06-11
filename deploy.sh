@@ -201,6 +201,12 @@ docker-compose exec -T php chown -R www-data:www-data storage bootstrap/cache
 docker-compose exec -T php chmod -R 775 storage bootstrap/cache
 
 # -----------------------------------------------------------------------------
+# STEP 12 — Create storage symlink (public/storage → storage/app/public)
+# -----------------------------------------------------------------------------
+log "Creating storage symlink..."
+docker-compose exec -T php php artisan storage:link --force || warn "storage:link failed (check storage permissions)"
+
+# -----------------------------------------------------------------------------
 # DONE
 # -----------------------------------------------------------------------------
 log "✅ Deploy complete!"
