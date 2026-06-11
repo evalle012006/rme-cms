@@ -142,18 +142,18 @@ export function ReviewsListPage({
         header: "Recommendation",
         cell: (row) => renderRecommendation(row.recommendation),
       },
-      {
-        key: "action",
-        header: "Action",
-        width: "120px",
-        cell: (row) => (
-          <Link to={ROUTES.reviews.edit(row.id)}>
-            <Button color="primary" size="sm" className="h-auto py-1.5">
-              Edit
-            </Button>
-          </Link>
-        ),
-      },
+      // {
+      //   key: "action",
+      //   header: "Action",
+      //   width: "120px",
+      //   cell: (row) => (
+      //     <Link to={ROUTES.reviews.edit(row.id)}>
+      //       <Button color="primary" size="sm" className="h-auto py-1.5">
+      //         Edit
+      //       </Button>
+      //     </Link>
+      //   ),
+      // },
     ],
     [statusLabel, statusTone]
   )
