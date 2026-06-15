@@ -367,20 +367,22 @@ class DashboardController extends BaseController
 
     public function downloadCsv()
     {
-//        return ($_SERVER);
         try {
-            if (App::environment() == 'local') {
+            if (config('filesystems.default') !== 's3') {
+                // Local or staging — store to public disk
                 Excel::store(new AllExport, 'csv-exports/admin-export.csv', 'public', \Maatwebsite\Excel\Excel::CSV);
+                $url = Storage::disk('public')->url('csv-exports/admin-export.csv');
             } else {
+                // Production S3
                 Excel::store(new AllExport, 'csv-exports/admin-export.csv', 's3', \Maatwebsite\Excel\Excel::CSV, [
                     'visibility' => 'public',
                 ]);
+                $url = Storage::disk('s3')->url('csv-exports/admin-export.csv');
             }
-
-            return $this->formatSuccessResponse('success', ['url' => 'csv-exports/admin-export.csv']);
+            return $this->formatSuccessResponse('success', ['url' => $url]);
         } catch (\Exception $e) {
             Log::info('CSV_EXPORT_ERROR : ' . $e->getMessage());
-            return $this->formatFailureResponse('error');
+            return $this->formatFailureResponse('error', $e->getMessage());
         }
     }
 }
