@@ -51,9 +51,9 @@ class UploadController extends Controller
                 // Non-fatal — original upload succeeded
             }
 
-            return response()->json(['filename' => $filename, 'size' => $size]);
+            return response()->json(['filename' => 'Uploads/images/' . $filename, 'size' => $size]);
         } elseif ($upload_success) {
-            return response()->json(['filename' => $filename, 'size' => $size]);
+            return response()->json(['filename' => 'Uploads/images/' . $filename, 'size' => $size]);
         } else {
             Log::error('UPLOAD_FAILED: ' . $filename);
             return response()->json(['error' => 'File upload failed'], 500);
