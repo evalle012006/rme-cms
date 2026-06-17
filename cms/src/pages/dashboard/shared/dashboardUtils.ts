@@ -237,3 +237,99 @@ export function getMaxChartValue(values: number[]): number {
   if (max <= 5) return 5
   return Math.ceil(max / 5) * 5
 }
+
+type ExportFilterOption = {
+  value: string
+  label: string
+}
+
+function getExportFilterOptionLabel(
+  value: string,
+  options: ExportFilterOption[]
+): string | null {
+  if (!value) {
+    return null
+  }
+
+  return options.find((option) => option.value === value)?.label ?? null
+}
+
+const EXPORT_FILTER_SEPARATOR = '   |   '
+
+function formatExportFilterSummary(
+  parts: Array<{ label: string; value: string | null }>
+): string | undefined {
+  const applied = parts
+    .filter((part) => part.value)
+    .map((part) => `${part.label}: ${part.value}`)
+
+  return applied.length > 0 ? applied.join(EXPORT_FILTER_SEPARATOR) : undefined
+}
+
+export function formatPropertyReviewsExportFilters(
+  filters: {
+    companyId: string
+    mode: string
+    stateId: string
+    suburbId: string
+  },
+  options: {
+    companyOptions: ExportFilterOption[]
+    stateOptions: ExportFilterOption[]
+    suburbOptions: ExportFilterOption[]
+  }
+): string | undefined {
+  const modeLabel = PROPERTY_REVIEWS_MODE_OPTIONS.find(
+    (option) => option.value === filters.mode
+  )?.label
+
+  return formatExportFilterSummary([
+    {
+      label: 'Company',
+      value: getExportFilterOptionLabel(filters.companyId, options.companyOptions),
+    },
+    { label: 'View', value: modeLabel ?? null },
+    {
+      label: 'State',
+      value: getExportFilterOptionLabel(filters.stateId, options.stateOptions),
+    },
+    {
+      label: 'Suburb',
+      value: getExportFilterOptionLabel(filters.suburbId, options.suburbOptions),
+    },
+  ])
+}
+
+export function formatRatingAttributesExportFilters(
+  filters: {
+    companyId: string
+    stateId: string
+    suburbId: string
+    projectId: string
+  },
+  options: {
+    companyOptions: ExportFilterOption[]
+    stateOptions: ExportFilterOption[]
+    suburbOptions: ExportFilterOption[]
+    projectOptions: ExportFilterOption[]
+  }
+): string | undefined {
+  return formatExportFilterSummary([
+    {
+      label: 'Company',
+      value: getExportFilterOptionLabel(filters.companyId, options.companyOptions),
+    },
+    {
+      label: 'State',
+      value: getExportFilterOptionLabel(filters.stateId, options.stateOptions),
+    },
+    {
+      label: 'Suburb',
+      value: getExportFilterOptionLabel(filters.suburbId, options.suburbOptions),
+    },
+    {
+      label: 'Project',
+      value: getExportFilterOptionLabel(filters.projectId, options.projectOptions),
+    },
+  ])
+}

@@ -8,6 +8,8 @@ import {
   CHART_TICK,
   chartAxisBorder,
   chartGridLines,
+  chartTickFont,
+  chartTickPadding,
   chartWrapperClassName,
   starTick,
 } from '@/pages/dashboard/shared/chartSetup'
@@ -44,7 +46,11 @@ export function PropertyReviewsChart({
         scales: {
           x: {
             offset: true,
-            ticks: { color: CHART_TICK },
+            ticks: {
+              color: CHART_TICK,
+              font: chartTickFont,
+              padding: chartTickPadding,
+            },
             grid: {
               ...chartGridLines,
               display: true,
@@ -57,6 +63,8 @@ export function PropertyReviewsChart({
             ticks: {
               stepSize: 1,
               color: CHART_TICK,
+              font: chartTickFont,
+              padding: chartTickPadding,
               callback: (value) => starTick(value),
             },
             grid: {

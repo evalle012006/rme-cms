@@ -7,6 +7,8 @@ import {
   CHART_TICK,
   chartAxisBorder,
   chartGridLines,
+  chartTickFont,
+  chartTickPadding,
   chartWrapperClassName,
 } from '@/pages/dashboard/shared/chartSetup'
 import { getMaxChartValue } from '@/pages/dashboard/shared/dashboardUtils'
@@ -44,6 +46,8 @@ export function ReviewCountChart({ labels, values }: ReviewCountChartProps) {
             offset: false,
             ticks: {
               color: CHART_TICK,
+              font: chartTickFont,
+              padding: chartTickPadding,
               maxRotation: 45,
               minRotation: 45,
               autoSkip: labels.length > 20,
@@ -60,6 +64,8 @@ export function ReviewCountChart({ labels, values }: ReviewCountChartProps) {
             ticks: {
               stepSize: 1,
               color: CHART_TICK,
+              font: chartTickFont,
+              padding: chartTickPadding,
             },
             grid: {
               ...chartGridLines,

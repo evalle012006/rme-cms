@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate, NavLink } from 'react-router-dom'
-import { LogOut, Settings, ChevronDown, Menu } from 'lucide-react'
+import { User, LogOut, Settings, ChevronDown, Menu } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 import { ROUTES } from '@/constants/routes'

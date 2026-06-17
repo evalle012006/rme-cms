@@ -18,7 +18,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ open, collapsed, onCollapsedChange }: SidebarProps) {
-  const { logout } = useAuthStore()
+  const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const [logoutOpen, setLogoutOpen] = useState(false)
 

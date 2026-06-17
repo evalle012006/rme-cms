@@ -15,6 +15,10 @@ import {
   type DashboardData,
 } from '@/api/dashboard/dashboardAPIHandler'
 import { ROUTES } from '@/constants/routes'
+// import {
+//   captureDashboardSnapshot,
+//   exportDashboardPdf,
+// } from '@/pages/dashboard/shared/dashboardExport'
 
 const BREADCRUMB = [
   { label: 'Home', to: ROUTES.root },
@@ -45,32 +49,22 @@ export default function DashboardPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  const handleExport = async () => {
-    setExporting(true)
-    try {
-      await dashboardAPI.exportCsv()
-      toast.success('Dashboard data exported')
-    } catch {
-      toast.error('Could not export dashboard data')
-    } finally {
-      setExporting(false)
-    }
-  }
-
   const stats = [
     {
       icon: Building2,
       count: counters.company,
-      label: 'Company',
+      label: 'Companies',
       iconClassName: 'bg-teal-500',
       countClassName: 'text-teal-500',
+      accentColor: '#14b8a6',
     },
     {
       icon: TrendingUp,
       count: counters.property,
-      label: 'Project',
+      label: 'Projects',
       iconClassName: 'bg-teal-600',
       countClassName: 'text-teal-600',
+      accentColor: '#0d9488',
     },
     {
       icon: Star,
@@ -78,6 +72,7 @@ export default function DashboardPage() {
       label: 'Reviews',
       iconClassName: 'bg-amber-400',
       countClassName: 'text-amber-500',
+      accentColor: '#f59e0b',
     },
     {
       icon: Users,
@@ -85,8 +80,56 @@ export default function DashboardPage() {
       label: 'Reviewers',
       iconClassName: 'bg-rose-400',
       countClassName: 'text-rose-500',
+      accentColor: '#f43f5e',
     },
   ]
+
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      // const snapshot = await captureDashboardSnapshot(
+      //   stats.map((stat) => ({
+      //     label: stat.label,
+      //     count: loading ? '—' : stat.count,
+      //     accentColor: stat.accentColor,
+      //   }))
+      // )
+      // await exportDashboardPdf(snapshot)
+      // toast.success('Dashboard exported as PDF')
+      const { url: csvUrl } = await dashboardAPI.exportCsv({
+        showErrorToast: false,
+      })
+
+      const fullUrl = csvUrl.startsWith('http')
+        ? csvUrl
+        : `${import.meta.env.VITE_API_BASE_URL}/storage/${csvUrl}`
+
+      const link = document.createElement('a')
+      link.href = fullUrl
+      link.download = 'admin-export.csv'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+
+      toast.success('Dashboard exported as CSV')
+    } catch {
+      // toast.error('Could not export dashboard PDF')
+      toast.error('Could not export dashboard data')
+    } finally {
+      setExporting(false)
+    }
+
+    // PDF export (disabled for now)
+    // const snapshot = await captureDashboardSnapshot(
+    //   stats.map((stat) => ({
+    //     label: stat.label,
+    //     count: loading ? '—' : stat.count,
+    //     accentColor: stat.accentColor,
+    //   }))
+    // )
+    // await exportDashboardPdf(snapshot)
+    // toast.success('Dashboard exported as PDF')
+  }
 
   return (
     <div className="space-y-6">

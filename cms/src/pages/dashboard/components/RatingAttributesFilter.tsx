@@ -38,7 +38,7 @@ export function RatingAttributesFilter({
     <div className="flex flex-wrap items-center gap-3">
       <div className="w-44">
         <SelectDropdown
-          placeholder="-- select company --"
+          placeholder="-- Select Company --"
           options={companyOptions}
           value={values.companyId}
           onChange={(event) =>
@@ -53,7 +53,7 @@ export function RatingAttributesFilter({
 
       <div className="w-44">
         <SelectDropdown
-          placeholder="-- all states --"
+          placeholder="-- All States --"
           options={stateOptions}
           value={values.stateId}
           onChange={(event) =>
@@ -68,7 +68,7 @@ export function RatingAttributesFilter({
 
       <div className="w-44">
         <SelectDropdown
-          placeholder="-- all subrubs --"
+          placeholder="-- All Suburbs --"
           options={suburbOptions}
           value={values.suburbId}
           onChange={(event) =>
@@ -83,7 +83,7 @@ export function RatingAttributesFilter({
 
       <div className="w-44">
         <SelectDropdown
-          placeholder="-- all projects --"
+          placeholder="-- All Projects --"
           options={projectOptions}
           value={values.projectId}
           onChange={(event) => update({ projectId: event.target.value })}

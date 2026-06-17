@@ -37,7 +37,7 @@ export function PropertyReviewsFilter({
     <div className="flex flex-wrap items-center gap-3">
       <div className="w-44">
         <SelectDropdown
-          placeholder="-- all company --"
+          placeholder="-- All Companies --"
           options={companyOptions}
           value={values.companyId}
           onChange={(event) =>
@@ -62,7 +62,7 @@ export function PropertyReviewsFilter({
         <div className="flex flex-wrap items-center gap-3">
           <div className="w-44">
             <SelectDropdown
-              placeholder="-- all states --"
+              placeholder="-- All States --"
               options={stateOptions}
               value={values.stateId}
               onChange={(event) =>
@@ -77,7 +77,7 @@ export function PropertyReviewsFilter({
 
           <div className="w-44">
             <SelectDropdown
-              placeholder="-- all subrubs --"
+              placeholder="-- All Suburbs --"
               options={suburbOptions}
               value={values.suburbId}
               onChange={(event) => update({ suburbId: event.target.value })}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   dashboardAPI,
   extractPropertyReviewsChartData,
@@ -11,6 +11,7 @@ import { DashboardSectionCard } from '@/pages/dashboard/shared/DashboardSectionC
 import {
   buildPropertyReviewsOptionsPayload,
   DEFAULT_PROPERTY_REVIEWS_FILTERS,
+  formatPropertyReviewsExportFilters,
   toSelectOptions,
 } from '@/pages/dashboard/shared/dashboardUtils'
 import type { SelectDropdownOption } from '@/components/atoms/SelectDropdown'
@@ -98,8 +99,22 @@ export function PropertyReviewsSection({
     }
   }
 
+  const exportSubtitle = useMemo(
+    () =>
+      formatPropertyReviewsExportFilters(filters, {
+        companyOptions,
+        stateOptions,
+        suburbOptions,
+      }),
+    [filters, companyOptions, stateOptions, suburbOptions]
+  )
+
   return (
-    <DashboardSectionCard title="Property Reviews">
+    <DashboardSectionCard
+      title="Property Reviews"
+      exportSubtitle={exportSubtitle}
+      data-dashboard-export="property-reviews"
+    >
       <div className="px-5 pt-5">
         <PropertyReviewsFilter
           values={filters}

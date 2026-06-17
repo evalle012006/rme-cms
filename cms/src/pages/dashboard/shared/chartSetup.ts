@@ -21,7 +21,7 @@ ChartJS.register(
 export const CHART_PRIMARY = '#0694a2'
 export const CHART_PRIMARY_LIGHT = '#16bdca'
 export const CHART_GRID = '#c5cdd8'
-export const CHART_TICK = '#6b7280'
+export const CHART_TICK = '#374151'
 
 export const chartGridLines = {
   color: CHART_GRID,
@@ -37,6 +37,20 @@ export const chartAxisBorder = {
 
 export const chartWrapperClassName = 'chart-wrapper h-[280px] w-full'
 
+export const chartTickFont = {
+  size: 12,
+  weight: 500,
+}
+
+export const chartLayoutPadding = {
+  top: 18,
+  right: 22,
+  bottom: 18,
+  left: 20,
+}
+
+export const chartTickPadding = 10
+
 export function starTick(value: string | number) {
   return `${value} star`
 }
@@ -44,6 +58,9 @@ export function starTick(value: string | number) {
 const baseChartOptions = {
   responsive: true,
   maintainAspectRatio: false,
+  layout: {
+    padding: chartLayoutPadding,
+  },
   plugins: {
     legend: { display: false },
     tooltip: {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   dashboardAPI,
   type DashboardCompany,
@@ -8,6 +8,7 @@ import {
 import { DashboardSectionCard } from '@/pages/dashboard/shared/DashboardSectionCard'
 import {
   buildRatingAttributesPayload,
+  formatRatingAttributesExportFilters,
   toPropertySelectOptions,
   toSelectOptions,
 } from '@/pages/dashboard/shared/dashboardUtils'
@@ -66,16 +67,41 @@ export function RatingAttributesSection({
     }
   }
 
+  const companyOptions = useMemo(
+    () => toSelectOptions(initialCompanies),
+    [initialCompanies]
+  )
+  const stateOptions = useMemo(
+    () => toSelectOptions(initialStates),
+    [initialStates]
+  )
+  const projectOptions = useMemo(
+    () => toPropertySelectOptions(initialProjects),
+    [initialProjects]
+  )
+  const exportSubtitle = useMemo(
+    () =>
+      formatRatingAttributesExportFilters(filters, {
+        companyOptions,
+        stateOptions,
+        suburbOptions: [],
+        projectOptions,
+      }),
+    [filters, companyOptions, stateOptions, projectOptions]
+  )
+
   return (
     <DashboardSectionCard
       title="Rating Attributes"
+      exportSubtitle={exportSubtitle}
+      data-dashboard-export="rating-attributes"
       headerRight={
         <RatingAttributesFilter
           values={filters}
-          companyOptions={toSelectOptions(initialCompanies)}
-          stateOptions={toSelectOptions(initialStates)}
+          companyOptions={companyOptions}
+          stateOptions={stateOptions}
           suburbOptions={[]}
-          projectOptions={toPropertySelectOptions(initialProjects)}
+          projectOptions={projectOptions}
           loading={loading}
           onChange={setFilters}
           onSearch={() => void fetchChart()}

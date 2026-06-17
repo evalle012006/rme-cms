@@ -6,6 +6,9 @@ import {
   CHART_GRID,
   CHART_PRIMARY,
   CHART_TICK,
+  chartLayoutPadding,
+  chartTickFont,
+  chartTickPadding,
   chartWrapperClassName,
   starTick,
 } from '@/pages/dashboard/shared/chartSetup'
@@ -42,6 +45,12 @@ export function RatingAttributesChart({
       options: {
         ...baseBarChartOptions,
         indexAxis: 'y',
+        layout: {
+          padding: {
+            ...chartLayoutPadding,
+            left: 28,
+          },
+        },
         scales: {
           x: {
             min: 0,
@@ -49,13 +58,20 @@ export function RatingAttributesChart({
             ticks: {
               stepSize: 1,
               color: CHART_TICK,
+              font: chartTickFont,
+              padding: chartTickPadding,
               callback: (value) => starTick(value),
             },
             grid: { color: CHART_GRID },
             border: { color: CHART_GRID },
           },
           y: {
-            ticks: { color: CHART_TICK, autoSkip: false },
+            ticks: {
+              color: CHART_TICK,
+              font: chartTickFont,
+              padding: chartTickPadding,
+              autoSkip: false,
+            },
             grid: { color: CHART_GRID },
             border: { color: CHART_GRID },
           },

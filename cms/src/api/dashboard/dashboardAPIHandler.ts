@@ -125,6 +125,10 @@ export function extractPropertyReviewsChartData(
   return response.properties_bar_chart?.data ?? []
 }
 
+export interface DashboardExportCsvResponse {
+  url: string
+}
+
 export function normalizeDashboardCounters(
   data: DashboardData
 ): DashboardCounters {
@@ -193,19 +197,13 @@ export const dashboardAPI = {
       options
     ),
 
-  exportCsv: async (): Promise<void> => {
-    const response = await apiClient.get(DASHBOARD_ENDPOINTS.EXPORT_CSV, {
-      responseType: 'blob',
-    })
-
-    const blob = new Blob([response.data], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `dashboard-export-${new Date().toISOString().slice(0, 10)}.csv`
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    window.URL.revokeObjectURL(url)
-  },
+  exportCsv: (
+    options?: ApiRequestOptions
+  ): Promise<DashboardExportCsvResponse> =>
+    apiRequest<DashboardExportCsvResponse>(
+      apiClient.get<ApiEnvelope<DashboardExportCsvResponse>>(
+        DASHBOARD_ENDPOINTS.EXPORT_CSV
+      ),
+      options
+    ),
 }

@@ -49,6 +49,7 @@ export function ReviewCountSection() {
     <DashboardSectionCard
       className="overflow-visible"
       title="Review Count"
+      data-dashboard-export="review-count"
       headerRight={
         <ReviewCountDateRangePicker
           value={range}
