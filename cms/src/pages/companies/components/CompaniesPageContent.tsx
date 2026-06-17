@@ -55,7 +55,6 @@ export function CompaniesPageContent({
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [companyToDelete, setCompanyToDelete] = useState<Company | null>(null)
-  const [deleting, setDeleting] = useState(false)
 
   const isPendingList = statusFilter === COMPANY_STATUS.PENDING
 
@@ -184,7 +183,7 @@ export function CompaniesPageContent({
   const handleConfirmDelete = async () => {
     if (!companyToDelete) return
 
-    setDeleting(true)
+    // setDeleting(true)
     try {
       await companiesAPI.delete(companyToDelete.id, {
         successMessage: 'Company deleted successfully',
@@ -195,7 +194,7 @@ export function CompaniesPageContent({
     } catch {
       // Toast already shown by the API wrapper / global interceptor.
     } finally {
-      setDeleting(false)
+      // setDeleting(false)
     }
   }
 
