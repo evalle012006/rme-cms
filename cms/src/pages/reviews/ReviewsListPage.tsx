@@ -3,6 +3,7 @@ import { Breadcrumb, type BreadcrumbItem } from "@/components/atoms/Breadcrumb"
 import { DataTable, type DataTableColumn } from "@/components/atoms/DataTable"
 import { StatusBadge, type StatusTone } from "@/components/atoms/StatusBadge"
 import {
+  REVIEW_STATUS,
   reviewsAPI,
   type Review,
   type ReviewStatusFilter,
@@ -12,6 +13,9 @@ import type {
   DataTablesRequest,
   SortDir,
 } from "@/types/api"
+import { Link } from "react-router-dom"
+import { Button } from "@/components/atoms/Button"
+import { ROUTES } from "@/constants/routes"
 
 // ── Column metadata for `/datatable-reviews` ────────────────────────────────
 // Index order mirrors what the backend expects. Only `title` is searchable
@@ -139,18 +143,16 @@ export function ReviewsListPage({
         header: "Recommendation",
         cell: (row) => renderRecommendation(row.recommendation),
       },
-      // {
-      //   key: "action",
-      //   header: "Action",
-      //   width: "120px",
-      //   cell: (row) => (
-      //     <Link to={ROUTES.reviews.edit(row.id)}>
-      //       <Button color="primary" size="sm" className="h-auto py-1.5">
-      //         Edit
-      //       </Button>
-      //     </Link>
-      //   ),
-      // },
+      {
+        key: "action",
+        header: "Action",
+        width: "120px",
+        cell: (row) => (
+          <Link to={`${ROUTES.reviews.edit(row.id)}?from=${statusFilter === REVIEW_STATUS.APPROVED ? "approved" : "pending"}`}>
+            <Button size="sm" color="primary">Edit</Button>
+          </Link>
+        ),
+      },
     ],
     [statusLabel, statusTone]
   )

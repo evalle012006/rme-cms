@@ -28,10 +28,11 @@ class UserController extends BaseController
 
     public function getDatatableUsers(Request $request)
     {
-        $user = User::where('id', '!=', auth()->user()->id)->whereHas('roles', function ($qry) {
-            $qry->where('name', 'reviewer');
-        });
-        return datatables($user->orderBy('created_at', 'DESC'))->toJson();
+        $user = User::where('id', '!=', auth()->user()->id)
+            ->whereHas('roles', function ($qry) {
+                $qry->where('name', 'reviewer');
+            });
+        return datatables($user)->toJson();
     }
 
     public function getUserById(Request $request)
@@ -92,7 +93,7 @@ class UserController extends BaseController
             'mobile' => 'nullable',
 //            'location' => 'required',
             'location' => 'nullable',
-            'status' => 'required'
+            'status' => 'required|in:1,2,3,4', // 1=Approved,2=Pending,3=Rejected,4=Suspended
         ];
 
         try {
@@ -140,7 +141,7 @@ class UserController extends BaseController
     {
         $rules = [
             'firstname'  => 'required',
-            'lastname'   => 'nullable|string|max:255', // FIX RME-107: added lastname
+            'lastname'   => 'nullable|string|max:255',
             'email'      => 'unique:users,email|required',
             'password'   => 'required',
             'status'     => 'required',
@@ -151,17 +152,22 @@ class UserController extends BaseController
         try {
             $data = $this->validate($request, $rules);
             $userInsert = [];
-            $userInsert['firstname']  = $data['firstname'];
-            $userInsert['lastname']   = $data['lastname'] ?? null; // FIX RME-107: save lastname
-            $userInsert['email']      = $data['email'];
-            $userInsert['status']     = $data['status'];
-            $userInsert['brand_type'] = $data['brand_type'];
-            $userInsert['company_id'] = $data['company_id'];
-            $userInsert['password']   = bcrypt($request->password);
+            $userInsert['firstname']         = $data['firstname'];
+            $userInsert['lastname']          = $data['lastname'] ?? null;
+            $userInsert['email']             = $data['email'];
+            $userInsert['status']            = $data['status'];
+            $userInsert['brand_type']        = $data['brand_type'];
+            $userInsert['company_id']        = $data['company_id'];
+            $userInsert['password']          = bcrypt($request->password);
+            // Mirror email_verified_at from status so the builder list
+            // (which filters on email_verified_at, not status) reflects
+            // the correct approval state immediately on creation.
+            $userInsert['email_verified_at'] = $data['status'] === '1'
+                ? \Carbon\Carbon::now()->format('Y-m-d H:i:s')
+                : null;
             $user = User::create($userInsert);
             $user->assignRole('builder');
 
-            // FIX RME-106: wrapped in try/catch so mail failure doesn't 500 the response
             try {
                 $user->sendEmailVerificationNotification();
             } catch (\Exception $e) {
@@ -271,8 +277,7 @@ class UserController extends BaseController
         } else {
             $builders = $builders->whereNull('email_verified_at');
         }
-
-        return datatables($builders->orderBy('created_at', 'DESC'))->toJson();
+        return datatables($builders)->toJson();
     }
 
     public function changeBuilderStatus(Request $request)
@@ -311,7 +316,7 @@ class UserController extends BaseController
         if ($validator->failed()) {
             return $this->formatFailureResponse('Errors with inputs', 400);
         } else {
-            $user = User::select('id', 'firstname', 'lastname', 'email', 'email_verified_at', 'company_id')
+            $user = User::select('id', 'firstname', 'lastname', 'email', 'email_verified_at', 'status', 'company_id')
                 ->with([
                     'company' => function ($qry) {
                         $qry->select('id', 'bio', 'company_name', 'logo', 'website');

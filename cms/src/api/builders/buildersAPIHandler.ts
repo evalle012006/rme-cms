@@ -29,6 +29,7 @@ export interface Builder {
   firstname: string | null
   lastname: string | null
   email_verified_at: string | null
+  status: string | null
   full_profile_image: string | null
   full_name: string
   company: BuilderCompany | null

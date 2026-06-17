@@ -31,7 +31,7 @@ class ReviewController extends BaseController
 //            die;
             $reviews->where('status', $filter);
         }
-        $reviews->orderBy('created_at', 'DESC');
+        // $reviews->orderBy('created_at', 'DESC');
         return datatables($reviews->where('status', $request->status))->toJson();
     }
 
@@ -100,8 +100,10 @@ class ReviewController extends BaseController
                 }
 
                 // send mail on review approve
-                if (!$this->sendEmail($id)) {
-                    throw new \RuntimeException();
+                try {
+                    $this->sendEmail($id);
+                } catch (\Exception $e) {
+                    Log::error('REVIEW_APPROVE_MAIL_ERROR: ' . $e->getMessage());
                 }
                 // end
             }

@@ -49,6 +49,7 @@ import BlogsListPage from './pages/blogs/BlogsListPage'
 import BlogAddPage from './pages/blogs/BlogAddPage'
 import BlogEditPage from './pages/blogs/BlogEditPage'
 import { ROUTES } from '@/constants/routes'
+import ReviewEditPage from './pages/reviews/ReviewEditPage'
 
 export default function App() {
   return (
@@ -81,6 +82,7 @@ export default function App() {
 
             <Route path={ROUTES.reviews.approved} element={<ReviewApprovedPage />} />
             <Route path={ROUTES.reviews.pending} element={<ReviewPendingPage />} />
+            <Route path={ROUTES.reviews.editPattern} element={<ReviewEditPage />} />
 
             <Route path={ROUTES.cms.home} element={<HomePage />} />
             <Route path={ROUTES.cms.about} element={<AboutPage />} />

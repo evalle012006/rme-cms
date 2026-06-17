@@ -39,6 +39,6 @@ export class UserService {
   };
 
   updateBuilder = (data) => {
-    return this.http.post(environment.api_url + 'builder/udpate-builder', data);
+    return this.http.post(environment.api_url + 'builder/update-builder', data);
   };
 }

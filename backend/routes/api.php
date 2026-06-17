@@ -59,7 +59,7 @@ Route::group(['namespace' => 'Admin', 'middleware' => 'auth:api'], function () {
     Route::post('change-request-status', 'UserController@changeRequestStatus');
     Route::post('builder/change-builder-status', 'UserController@changeBuilderStatus');
     Route::post('builder/get-by-id', 'UserController@getBuilderInfoById');
-    Route::post('builder/udpate-builder', 'UserController@updateBuilder');
+    Route::post('builder/update-builder', 'UserController@updateBuilder');
 
     Route::post('property-category-add', 'CategoryController@addPropertyCategory');
     Route::post('property-category-update', 'CategoryController@updatePropertyCategory');

@@ -14,8 +14,9 @@ import { cn } from "@/lib/utils"
 
 import { usersAPI, type User } from "@/api/users/usersAPIHandler"
 import {
-  USER_NUMERIC_STATUS,
-  USER_NUMERIC_STATUS_OPTIONS,
+  USER_STATUS,
+  USER_STATUS_OPTIONS,
+  type UserStatus,
 } from "@/api/users/usersConstants"
 import { ROUTES } from "@/constants/routes"
 
@@ -42,6 +43,16 @@ const BREADCRUMB = [
   { label: "Edit" },
 ]
 
+// ── Status normalisation ─────────────────────────────────────────────────────
+// The backend stores status as "1"/"2"/"3"/"4". Guard against unexpected
+// values by falling back to Pending.
+const STATUS_MAP: Record<string, UserStatus> = {
+  "1": USER_STATUS.APPROVED,
+  "2": USER_STATUS.PENDING,
+  "3": USER_STATUS.REJECTED,
+  "4": USER_STATUS.SUSPENDED,
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 export default function UserEditPage() {
   const { id: idParam } = useParams<{ id: string }>()
@@ -54,9 +65,9 @@ export default function UserEditPage() {
   const [submitting, setSubmitting] = useState(false)
 
   const [profileImage, setProfileImage] = useState<File | null>(null)
-  const [existingProfileImageUrl, setExistingProfileImageUrl] = useState<
-    string | null
-  >(null)
+  const [existingProfileImageUrl, setExistingProfileImageUrl] = useState<string | null>(
+    null
+  )
   const [profileImageCleared, setProfileImageCleared] = useState(false)
   const [profileImageError, setProfileImageError] = useState<string | null>(
     null
@@ -73,7 +84,7 @@ export default function UserEditPage() {
       firstname: "",
       lastname: "",
       display_name: "",
-      status: USER_NUMERIC_STATUS.APPROVED,
+      status: USER_STATUS.PENDING,
       email: "",
       mobile: "",
       location: "",
@@ -99,13 +110,7 @@ export default function UserEditPage() {
         setProfileImage(null)
         setProfileImageCleared(false)
         setProfileImageError(null)
-        // Treat anything other than the explicit "0" / "Pending" string as
-        // Approved — the backend stores "1" but older rows occasionally come
-        // back as the literal value "approved".
-        const normalisedStatus =
-          data.status === "0" || data.status === "pending"
-            ? USER_NUMERIC_STATUS.PENDING
-            : USER_NUMERIC_STATUS.APPROVED
+        const normalisedStatus = STATUS_MAP[data.status] ?? USER_STATUS.PENDING
         reset({
           firstname: data.firstname ?? "",
           lastname: data.lastname ?? "",
@@ -285,7 +290,7 @@ export default function UserEditPage() {
               error={errors.status?.message}
               {...register("status")}
             >
-              {USER_NUMERIC_STATUS_OPTIONS.map((opt) => (
+              {USER_STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>

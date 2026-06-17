@@ -1,11 +1,8 @@
-// ── User status (create endpoints) ───────────────────────────────────────────
-// `/auth/reviewer/signup` and `/auth/builder/signup` expect a numeric status
-// value in the form-data payload. We keep the values as numeric strings so
-// they slot directly into the <select>'s string-only value space.
-//
-// Mapping is taken from the legacy admin and observed signup payloads:
-//   "1" = Approved (confirmed via reviewer signup payload)
-//   "2" = Pending  (1-indexed order of the dropdown options)
+// ── User status ───────────────────────────────────────────────────────────────
+// Both create (/auth/reviewer/signup) and update (/auth/reviewer/update)
+// use the same 4-value numeric encoding:
+//   "1" = Approved
+//   "2" = Pending
 //   "3" = Rejected
 //   "4" = Suspended
 
@@ -23,27 +20,6 @@ export const USER_STATUS_OPTIONS: { value: UserStatus; label: string }[] = [
   { value: USER_STATUS.PENDING, label: "Pending" },
   { value: USER_STATUS.REJECTED, label: "Rejected" },
   { value: USER_STATUS.SUSPENDED, label: "Suspended" },
-]
-
-// ── User numeric status (edit endpoints) ─────────────────────────────────────
-// `/user` and `/auth/reviewer/update` use a *different* numeric encoding:
-// a binary 1/0 for Approved/Pending. Kept separate from USER_STATUS so the
-// two flows (create vs edit) don't get conflated.
-
-export const USER_NUMERIC_STATUS = {
-  APPROVED: "1",
-  PENDING: "0",
-} as const
-
-export type UserNumericStatus =
-  (typeof USER_NUMERIC_STATUS)[keyof typeof USER_NUMERIC_STATUS]
-
-export const USER_NUMERIC_STATUS_OPTIONS: {
-  value: UserNumericStatus
-  label: string
-}[] = [
-  { value: USER_NUMERIC_STATUS.APPROVED, label: "Approved" },
-  { value: USER_NUMERIC_STATUS.PENDING, label: "Pending" },
 ]
 
 // ── Brand type (Builder / Developer users) ───────────────────────────────────

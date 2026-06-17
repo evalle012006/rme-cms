@@ -26,14 +26,16 @@ class PropertyController extends BaseController
 
     public function getDatatablePropertyApprove(Request $request)
     {
-        return datatables(Properties::with('propertyAllowedCategory')->where('status', 1)->orderBy('created_at',
-            'DESC'))->toJson();
+        return datatables(
+            Properties::with('propertyAllowedCategory')->where('status', 1)
+        )->toJson();
     }
 
     public function getDatatablePropertyPending(Request $request)
     {
-        return datatables(Properties::with('propertyAllowedCategory')->where('status', 0)->orderBy('created_at',
-            'DESC'))->toJson();
+        return datatables(
+            Properties::with('propertyAllowedCategory')->where('status', 0)
+        )->toJson();
     }
 
     public function addProperty(Request $request)

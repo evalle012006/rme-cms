@@ -87,7 +87,7 @@ class RegisterController extends Controller
             'display_name' => $data['display_name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'status' => 1
+            'status' => 2
         ]);
 
         $user->assignRole('reviewer');
