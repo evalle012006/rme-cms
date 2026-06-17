@@ -405,7 +405,7 @@ export default function ReviewEditPage() {
         description="This review will be permanently deleted. This cannot be undone."
         confirmLabel="Delete"
         onConfirm={handleDelete}
-        onCancel={() => setConfirmDelete(false)}
+        onOpenChange={(open) => { if (!open) setConfirmDelete(false) }}
       />
 
       <ConfirmDialog
@@ -416,7 +416,7 @@ export default function ReviewEditPage() {
           : "This will move the review back to pending."}
         confirmLabel={confirmStatus === REVIEW_STATUS.APPROVED ? "Approve" : "Set Pending"}
         onConfirm={handleStatusFlip}
-        onCancel={() => setConfirmStatus(null)}
+        onOpenChange={(open) => { if (!open) setConfirmStatus(null) }}
       />
     </div>
   )

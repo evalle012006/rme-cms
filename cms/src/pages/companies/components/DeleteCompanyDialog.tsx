@@ -11,10 +11,9 @@ export type DeleteCompanyDialogProps = {
 export function DeleteCompanyDialog({
   open,
   companyName,
-  loading = false,
   onOpenChange,
   onConfirm,
-}: DeleteCompanyDialogProps) {
+}: Omit<DeleteCompanyDialogProps, 'loading'>) {
   return (
     <ConfirmDialog
       open={open}
@@ -24,10 +23,7 @@ export function DeleteCompanyDialog({
           ? `Are you sure you want to delete "${companyName}"? This action cannot be undone.`
           : 'Are you sure you want to delete this company? This action cannot be undone.'
       }
-      loading={loading}
-      icon="warning"
       confirmLabel="Confirm"
-      confirmLoadingLabel="Deleting…"
       onOpenChange={onOpenChange}
       onConfirm={onConfirm}
     />
