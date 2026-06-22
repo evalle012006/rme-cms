@@ -429,7 +429,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
     <script async defer
-            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC7JqDN3xLHwrnW89MCXrbzC39IiDvmgag&callback=initMap&libraries=geometry,places&ver=5.4">
+            src="https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_key') }}&callback=initMap&libraries=geometry,places&ver=5.4">
     </script>
     <script>
 

@@ -4,8 +4,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { ModalModule } from 'ngx-bootstrap/modal';
 import { AgmCoreModule } from '@agm/core';
-// AIzaSyCcywKcxXeMZiMwLDcLgyEnNglcLOyB_qw
-// AIzaSyC7JqDN3xLHwrnW89MCXrbzC39IiDvmgag - live
+
 @NgModule({
   imports: [
     CommonModule,
@@ -13,7 +12,7 @@ import { AgmCoreModule } from '@agm/core';
     ReactiveFormsModule,
     ModalModule.forRoot(),
     AgmCoreModule.forRoot({
-      apiKey: 'AIzaSyC7JqDN3xLHwrnW89MCXrbzC39IiDvmgag',
+      apiKey: `${process.env.GOOGLE_MAPS_API_KEY}`,
       libraries: ['places'],
     }),
   ],

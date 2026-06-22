@@ -30,7 +30,8 @@
 
 @section('extra-script')
     <script type='text/javascript'
-            src='https://maps.googleapis.com/maps/api/js?key=AIzaSyC7JqDN3xLHwrnW89MCXrbzC39IiDvmgag&#038;libraries=geometry%2Cplaces&#038;ver=5.4.1'></script>
+            src='https://maps.googleapis.com/maps/api/js?key={{ config('services.google.maps_key') }}&libraries=geometry,places&ver=5.4.1'>
+    </script>
     <script type='text/javascript'
             src='https://cdn.sobekrepository.org/includes/gmaps-markerwithlabel/1.9.1/gmaps-markerwithlabel-1.9.1.min.js?ver=5.4.1'></script>
 
