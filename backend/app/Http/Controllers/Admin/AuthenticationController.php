@@ -55,21 +55,24 @@ class AuthenticationController extends BaseController
 
     public function resetPassword(Request $request)
     {
-        $response = $this->broker()->sendResetLink(['email' => auth()->user()->email]);
+        try {
+            $response = $this->broker()->sendResetLink(['email' => auth()->user()->email]);
+        } catch (\Exception $e) {
+            Log::error('PASSWORD_RESET_SEND_ERROR: ' . $e->getMessage());
+            return $this->formatSuccessResponse('Password Reset', ['sent' => false]);
+        }
+
         $isEmailSent = $response == Password::RESET_LINK_SENT;
 
         if ($isEmailSent) {
             try {
                 $tokenRepository        = app('Laravel\Passport\TokenRepository');
                 $refreshTokenRepository = app('Laravel\Passport\RefreshTokenRepository');
-
                 $tokenId = $this->getTokenId($request);
-
                 $tokenRepository->revokeAccessToken($tokenId);
                 $refreshTokenRepository->revokeRefreshTokensByAccessTokenId($tokenId);
             } catch (\Exception $e) {
                 Log::error('PASSWORD_RESET_TOKEN_REVOKE_ERROR: ' . $e->getMessage());
-                // Not fatal — the email was sent. Token will expire naturally.
             }
         }
 
