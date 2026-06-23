@@ -1,10 +1,9 @@
 // Minimal Google Maps JS API loader.
 //
 // We don't pull in `@googlemaps/js-api-loader` to keep the bundle lean — there's
-// only one consumer (the property add page's Places Autocomplete) and the
-// script is tiny. The loader is idempotent: concurrent callers all wait on the
-// same promise, and a second call after a successful load resolves
-// immediately.
+// only one consumer (the property add/edit pages) and the script is tiny. The
+// loader is idempotent: concurrent callers all wait on the same promise, and a
+// second call after a successful load resolves immediately.
 //
 // The API key comes from `VITE_GOOGLE_MAPS_API_KEY`. When the env var is
 // missing the loader rejects with a typed error so callers can degrade
@@ -47,8 +46,39 @@ interface PlacesAutocompleteOptions {
   fields?: string[]
 }
 
+export interface LatLngLiteral {
+  lat: number
+  lng: number
+}
+
+export interface MapOptions {
+  center?: LatLngLiteral
+  zoom?: number
+  mapTypeControl?: boolean
+  streetViewControl?: boolean
+  fullscreenControl?: boolean
+}
+
+export interface GoogleMap {
+  setCenter(latLng: LatLngLiteral): void
+  panTo(latLng: LatLngLiteral): void
+  addListener(event: 'click', handler: (e: { latLng: PlaceGeometryLocation | null }) => void): { remove(): void }
+}
+
+export interface GoogleMarker {
+  setPosition(latLng: LatLngLiteral): void
+  getPosition(): PlaceGeometryLocation | null | undefined
+  addListener(event: 'dragend', handler: () => void): { remove(): void }
+}
+
 export interface GoogleNamespace {
   maps: {
+    Map: new (el: HTMLElement, opts?: MapOptions) => GoogleMap
+    Marker: new (opts: {
+      map: GoogleMap
+      position: LatLngLiteral
+      draggable?: boolean
+    }) => GoogleMarker
     places: {
       Autocomplete: new (
         input: HTMLInputElement,
@@ -82,7 +112,7 @@ export function loadGoogleMaps(): Promise<GoogleNamespace> {
   }
 
   const existing = (window as unknown as { google?: GoogleNamespace }).google
-  if (existing?.maps?.places) {
+  if (existing?.maps?.Map && existing?.maps?.places) {
     return Promise.resolve(existing)
   }
 
@@ -105,11 +135,11 @@ export function loadGoogleMaps(): Promise<GoogleNamespace> {
     script.defer = true
     script.onload = () => {
       const win = window as unknown as { google?: GoogleNamespace }
-      if (win.google?.maps?.places) {
+      if (win.google?.maps?.Map && win.google?.maps?.places) {
         resolve(win.google)
       } else {
         loadPromise = null
-        reject(new GoogleMapsLoadError('Google Maps loaded without Places library'))
+        reject(new GoogleMapsLoadError('Google Maps loaded without required libraries'))
       }
     }
     script.onerror = () => {
@@ -120,4 +150,30 @@ export function loadGoogleMaps(): Promise<GoogleNamespace> {
   })
 
   return loadPromise
+}
+
+export function parseCoordinate(value: string | null | undefined): number | null {
+  if (value == null || value === '') return null
+  const parsed = Number.parseFloat(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+export function requestCurrentPosition(): Promise<LatLngLiteral> {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocation is not supported by this browser'))
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        })
+      },
+      (error) => reject(error),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    )
+  })
 }

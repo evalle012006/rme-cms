@@ -14,6 +14,9 @@ export default function ReviewPendingPage() {
       statusFilter={REVIEW_STATUS.PENDING}
       statusLabel="Pending"
       statusTone="pending"
+      flipStatusTo={REVIEW_STATUS.APPROVED}
+      flipConfirmMessage="Are you sure you want to approve this review ?"
+      flipSuccessMessage="Review approved successfully"
     />
   )
 }

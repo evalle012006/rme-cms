@@ -13,6 +13,7 @@ import {
   LocationAutocomplete,
   type ResolvedPlace,
 } from '@/components/atoms/LocationAutocomplete'
+import { LocationMap } from '@/components/atoms/LocationMap'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { propertiesAPI } from '@/api/properties/propertiesAPIHandler'
@@ -100,6 +101,8 @@ export default function PropertyAddPage() {
   })
 
   const postCode = watch('post_code')
+  const lat = watch('lat')
+  const long = watch('long')
   const previousPostCode = useRef<string | null>(null)
 
   useEffect(() => {
@@ -167,6 +170,14 @@ export default function PropertyAddPage() {
       if (place.lng != null) setValue('long', String(place.lng))
     },
     [setValue, states]
+  )
+
+  const handleMapLocationChange = useCallback(
+    (nextLat: number, nextLng: number) => {
+      setValue('lat', String(nextLat))
+      setValue('long', String(nextLng))
+    },
+    [setValue]
   )
 
   const applyServerErrors = (apiErrors: Record<string, string[]>) => {
@@ -444,12 +455,21 @@ export default function PropertyAddPage() {
             </div>
 
             <FormField label="Search Location">
-              <LocationAutocomplete
-                value={searchLocation}
-                onChange={setSearchLocation}
-                onPlaceSelected={handlePlaceSelected}
-                disabled={submitting}
-              />
+              <div className="space-y-3">
+                <LocationAutocomplete
+                  value={searchLocation}
+                  onChange={setSearchLocation}
+                  onPlaceSelected={handlePlaceSelected}
+                  disabled={submitting}
+                />
+                <LocationMap
+                  lat={lat}
+                  lng={long}
+                  onLocationChange={handleMapLocationChange}
+                  requestCurrentLocation
+                  disabled={submitting}
+                />
+              </div>
             </FormField>
           </div>
         </Card>

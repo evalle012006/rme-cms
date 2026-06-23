@@ -1,423 +1,479 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { toast } from "sonner"
 
 import { Breadcrumb } from "@/components/atoms/Breadcrumb"
 import { Button } from "@/components/atoms/Button"
 import { FormControl } from "@/components/atoms/FormControl"
+import { FormField } from "@/components/atoms/FormField"
+import { ImageDropzone } from "@/components/atoms/ImageDropzone"
+import { MultiSelect, type MultiSelectOption } from "@/components/atoms/MultiSelect"
 import { Card } from "@/components/ui/card"
-import { ConfirmDialog } from "@/components/atoms/ConfirmDialog"
-import { ROUTES } from "@/constants/routes"
 import {
   reviewsAPI,
   REVIEW_STATUS,
-  type ReviewDetail,
-  type ReviewTag,
   type BuyerTypeOption,
   type ReviewCategory,
+  type ReviewDetail,
 } from "@/api/reviews/reviewsAPIHandler"
+import { statesAPI, type State } from "@/api/states/statesAPIHandler"
+import { ROUTES } from "@/constants/routes"
 
-const schema = z.object({
-  title:              z.string().min(1, "Title is required"),
-  comment:            z.string(),
-  buyer_type:         z.string().min(1, "Buyer type is required"),
-  recommendation:     z.string().min(1, "Recommendation is required"),
-  status:             z.string().min(1, "Status is required"),
-  state:              z.string().min(1, "State is required"),
-  suburb:             z.string().min(1, "Suburb is required"),
-  post_code:          z.string().min(1, "Post code is required"),
-  year_of_completion: z.string(),
-  property_id:        z.string().min(1, "Property is required"),
-  category_id:        z.string().min(1, "Category is required"),
-})
+// ── Return path ──────────────────────────────────────────────────────────────
+// Honour the `?from=approved|pending` hint when present, otherwise infer from
+// the review's own status.
+function resolveReturnPath(from: string | null, status?: number) {
+  if (from === "approved") return ROUTES.reviews.approved
+  if (from === "pending") return ROUTES.reviews.pending
+  return status === REVIEW_STATUS.APPROVED
+    ? ROUTES.reviews.approved
+    : ROUTES.reviews.pending
+}
 
-type FormData = z.infer<typeof schema>
-
-const BREADCRUMB = [
-  { label: "Home",    to: ROUTES.root },
-  { label: "Reviews", to: ROUTES.reviews.approved },
-  { label: "Edit Review" },
+const STATUS_OPTIONS = [
+  { value: String(REVIEW_STATUS.PENDING), label: "Pending" },
+  { value: String(REVIEW_STATUS.APPROVED), label: "Accept" },
 ]
 
+const RECOMMENDATION_OPTIONS = [
+  { value: "1", label: "Yes" },
+  { value: "0", label: "No" },
+]
+
+interface ReviewFormState {
+  status: string
+  title: string
+  property_id: string
+  recommendation: string
+  buyer_type: string
+  post_code: string
+  state: string
+  category_id: string
+  comment: string
+  year_of_completion: string
+  suburb: string
+  tag_ids: number[]
+}
+
+const EMPTY_FORM: ReviewFormState = {
+  status: "",
+  title: "",
+  property_id: "",
+  recommendation: "",
+  buyer_type: "",
+  post_code: "",
+  state: "",
+  category_id: "",
+  comment: "",
+  year_of_completion: "",
+  suburb: "",
+  tag_ids: [],
+}
+
+function toFormState(review: ReviewDetail): ReviewFormState {
+  const recommended =
+    typeof review.recommendation === "boolean"
+      ? review.recommendation
+      : review.recommendation === 1
+
+  return {
+    status: String(review.status),
+    title: review.title ?? "",
+    property_id: review.property_id ? String(review.property_id) : "",
+    recommendation: recommended ? "1" : "0",
+    buyer_type: review.buyer_type ? String(review.buyer_type) : "",
+    post_code: review.post_code ?? "",
+    state: review.state ? String(review.state) : "",
+    category_id: review.category_id ? String(review.category_id) : "",
+    comment: review.comment ?? "",
+    year_of_completion: review.year_of_completion ?? "",
+    suburb: review.suburb ?? "",
+    tag_ids: (review.review_tags ?? []).map((t) => t.id),
+  }
+}
+
 export default function ReviewEditPage() {
-  const { id: idParam }   = useParams<{ id: string }>()
-  const [searchParams]    = useSearchParams()
-  const navigate          = useNavigate()
-  const returnPath        = searchParams.get("from") === "pending"
-    ? ROUTES.reviews.pending
-    : ROUTES.reviews.approved
+  const navigate = useNavigate()
+  const { id: idParam } = useParams<{ id: string }>()
+  const [searchParams] = useSearchParams()
+  const reviewId = Number(idParam)
 
-  const [review,       setReview]       = useState<ReviewDetail | null>(null)
-  const [loading,      setLoading]      = useState(true)
-  const [notFound,     setNotFound]     = useState(false)
-  const [submitting,   setSubmitting]   = useState(false)
-  const [suburbs,      setSuburbs]      = useState<string[]>([])
-  const [buyerTypes,   setBuyerTypes]   = useState<BuyerTypeOption[]>([])
-  const [categories,   setCategories]   = useState<ReviewCategory[]>([])
-  const [states,       setStates]       = useState<{ id: number; state_name: string }[]>([])
-  const [allTags,      setAllTags]      = useState<ReviewTag[]>([])
-  const [selectedTags, setSelectedTags] = useState<ReviewTag[]>([])
-  const [confirmDelete, setConfirmDelete] = useState(false)
-  const [confirmStatus, setConfirmStatus] = useState<0 | 1 | null>(null)
+  const [review, setReview] = useState<ReviewDetail | null>(null)
+  const [states, setStates] = useState<State[]>([])
+  const [buyerTypes, setBuyerTypes] = useState<BuyerTypeOption[]>([])
+  const [categories, setCategories] = useState<ReviewCategory[]>([])
+  const [form, setForm] = useState<ReviewFormState>(EMPTY_FORM)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    watch,
-    formState: { errors },
-  } = useForm<FormData>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      title: "", comment: "", buyer_type: "", recommendation: "",
-      status: "", state: "", suburb: "", post_code: "",
-      year_of_completion: "", property_id: "", category_id: "",
-    },
-  })
+  const [photo, setPhoto] = useState<File | null>(null)
+  const [existingPhotoUrl, setExistingPhotoUrl] = useState<string | null>(null)
+  const [doc, setDoc] = useState<File | null>(null)
+  const [existingDocUrl, setExistingDocUrl] = useState<string | null>(null)
 
-  const watchedPostCode = watch("post_code")
-  const watchedStatus   = Number(watch("status"))
+  const returnPath = resolveReturnPath(
+    searchParams.get("from"),
+    review?.status
+  )
 
-  // Load review + supporting data
+  const breadcrumb = useMemo(
+    () => [
+      { label: "Home", to: ROUTES.root },
+      { label: "Review", to: returnPath },
+      { label: "Edit" },
+    ],
+    [returnPath]
+  )
+
   useEffect(() => {
-    if (!idParam) { setNotFound(true); setLoading(false); return }
+    if (!idParam || Number.isNaN(reviewId)) {
+      toast.error("Invalid review id")
+      navigate(ROUTES.reviews.approved)
+      return
+    }
+
     let mounted = true
+    setLoading(true)
+
     Promise.all([
-      reviewsAPI.getById(idParam),
-      reviewsAPI.getBuyerTypes(),
-      reviewsAPI.getStates(),
+      reviewsAPI.getById(reviewId, { customErrorMessage: "Review not found" }),
+      reviewsAPI.getFormMeta(),
+      statesAPI.getAll(),
     ])
-      .then(([rev, buyerData, stateData]) => {
+      .then(([detail, meta, loadedStates]) => {
         if (!mounted) return
-        setReview(rev)
-        setBuyerTypes(buyerData.buyertype.option_select)
-        setCategories(buyerData.categories)
-        setStates(stateData)
-        setAllTags(rev.tags_list ?? [])
-        setSelectedTags(rev.reviewTags ?? [])
-        setSuburbs((rev.suburb_list ?? []).map(s => s.text))
-        reset({
-          title:              rev.title              ?? "",
-          comment:            rev.comment            ?? "",
-          buyer_type:         String(rev.buyer_type  ?? ""),
-          recommendation:     rev.recommendation != null ? String(Number(rev.recommendation)) : "",
-          status:             String(rev.status),
-          state:              rev.state              ?? "",
-          suburb:             rev.suburb             ?? "",
-          post_code:          rev.post_code          ?? "",
-          year_of_completion: rev.year_of_completion != null ? String(rev.year_of_completion) : "",
-          property_id:        String(rev.property_id ?? ""),
-          category_id:        String(rev.category_id ?? ""),
-        })
+        setReview(detail)
+        setBuyerTypes(meta.buyertype?.option_select ?? [])
+        setCategories(meta.categories ?? [])
+        setStates(loadedStates)
+        setForm(toFormState(detail))
+        setExistingPhotoUrl(detail.full_review_image)
+        setExistingDocUrl(detail.full_review_docs ?? null)
       })
-      .catch(() => { if (mounted) setNotFound(true) })
-      .finally(() => { if (mounted) setLoading(false) })
-    return () => { mounted = false }
-  }, [idParam, reset])
+      .catch(() => {
+        if (mounted) navigate(ROUTES.reviews.approved)
+      })
+      .finally(() => {
+        if (mounted) setLoading(false)
+      })
 
-  // Reload suburbs when post code changes
-  useEffect(() => {
-    if (!watchedPostCode || watchedPostCode.length < 4) return
-    reviewsAPI.getSuburbs(watchedPostCode)
-      .then(res => setSuburbs(res.map(s => s.text)))
-      .catch(() => {})
-  }, [watchedPostCode])
+    return () => {
+      mounted = false
+    }
+  }, [idParam, reviewId, navigate])
 
-  const toggleTag = (tag: ReviewTag) => {
-    setSelectedTags(prev =>
-      prev.find(t => t.id === tag.id)
-        ? prev.filter(t => t.id !== tag.id)
-        : [...prev, tag]
+  const setField = useCallback(
+    <K extends keyof ReviewFormState>(key: K, value: ReviewFormState[K]) => {
+      setForm((prev) => ({ ...prev, [key]: value }))
+    },
+    []
+  )
+
+  const propertyOptions = useMemo(
+    () => review?.property_list ?? [],
+    [review]
+  )
+  const suburbOptions = useMemo(() => review?.suburb_list ?? [], [review])
+  const tagOptions = useMemo<MultiSelectOption[]>(
+    () => (review?.tags_list ?? []).map((t) => ({ value: t.id, label: t.name })),
+    [review]
+  )
+
+  const userVerified = !!review?.users?.email_verified_at
+  const userName =
+    review?.users?.full_name || review?.users?.display_name || ""
+  const companyName = review?.property?.company?.company_name ?? ""
+
+  const fieldsDisabled = loading || submitting
+
+  const handleCancel = useCallback(() => {
+    navigate(returnPath)
+  }, [navigate, returnPath])
+
+  const handleEmailUser = useCallback(() => {
+    const email = review?.users?.email
+    if (!email) {
+      toast.error("No email available for this user")
+      return
+    }
+    window.location.href = `mailto:${email}`
+  }, [review])
+
+  const handleSubmit = useCallback(
+    async (event: React.FormEvent) => {
+      event.preventDefault()
+      if (!review) return
+
+      setSubmitting(true)
+      try {
+        await reviewsAPI.update(
+          {
+            id: review.id,
+            title: form.title,
+            property_id: Number(form.property_id),
+            recommendation: form.recommendation === "1",
+            comment: form.comment,
+            buyer_type: form.buyer_type,
+            status: Number(form.status),
+            state: Number(form.state),
+            suburb: form.suburb,
+            post_code: form.post_code,
+            year_of_completion: form.year_of_completion,
+            review_tags: form.tag_ids,
+          },
+          {
+            successMessage: "Review updated successfully",
+            customErrorMessage: "Failed to update review",
+          }
+        )
+        navigate(returnPath)
+      } catch {
+        // Error toast handled by apiRequest / global interceptor.
+      } finally {
+        setSubmitting(false)
+      }
+    },
+    [form, navigate, returnPath, review]
+  )
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <Breadcrumb items={breadcrumb} />
+        <Card className="p-6">
+          <div className="grid grid-cols-1 gap-x-8 gap-y-5 md:grid-cols-2">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
+                <div className="h-10 animate-pulse rounded-lg bg-gray-200" />
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
     )
   }
 
-  const onSubmit = async (data: FormData) => {
-    if (!review) return
-    setSubmitting(true)
-    try {
-      await reviewsAPI.update(
-        review.id,
-        {
-          title:              data.title,
-          comment:            data.comment || null,
-          buyer_type:         Number(data.buyer_type),
-          recommendation:     Number(data.recommendation),
-          status:             Number(data.status),
-          state:              data.state,
-          suburb:             data.suburb,
-          post_code:          data.post_code,
-          year_of_completion: data.year_of_completion ? Number(data.year_of_completion) : null,
-          property_id:        Number(data.property_id),
-          category_id:        Number(data.category_id),
-          review_tags:        selectedTags,
-        },
-        { successMessage: "Review updated." }
-      )
-      navigate(returnPath)
-    } catch {
-      // Toast handled by interceptor
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const handleDelete = async () => {
-    if (!review) return
-    try {
-      await reviewsAPI.delete(review.id, { successMessage: "Review deleted." })
-      navigate(returnPath)
-    } catch {}
-  }
-
-  const handleStatusFlip = async () => {
-    if (!review || confirmStatus === null) return
-    try {
-      await reviewsAPI.changeStatus(review.id, confirmStatus, {
-        successMessage: confirmStatus === REVIEW_STATUS.APPROVED ? "Review approved." : "Review set to pending.",
-      })
-      setReview(prev => prev ? { ...prev, status: confirmStatus } : prev)
-      setConfirmStatus(null)
-    } catch {}
-  }
-
-  const handleCancel = useCallback(() => navigate(returnPath), [navigate, returnPath])
-
-  if (loading) return (
-    <div className="space-y-10">
-      <Breadcrumb items={BREADCRUMB} />
-      <Card className="p-10">
-        <div className="space-y-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-10 animate-pulse rounded bg-gray-200" />
-          ))}
-        </div>
-      </Card>
-    </div>
-  )
-
-  if (notFound || !review) return (
-    <div className="space-y-10">
-      <Breadcrumb items={BREADCRUMB} />
-      <Card className="p-10 text-center text-sm text-gray-500">Review not found.</Card>
-    </div>
-  )
-
-  const reviewerName = review.users
-    ? `${review.users.display_name ?? ""} (${review.users.firstname ?? ""} ${review.users.lastname ?? ""})`.trim()
-    : "—"
-
   return (
-    <div className="space-y-10">
-      <Breadcrumb items={BREADCRUMB} />
+    <div className="space-y-6">
+      <Breadcrumb items={breadcrumb} />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-        <Card className="overflow-hidden p-0">
-          <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-6 py-4">
-            <h2 className="text-base font-semibold text-gray-800">Edit Review</h2>
-            <div className="flex gap-2">
-              {watchedStatus === REVIEW_STATUS.APPROVED ? (
-                <Button type="button" color="destructive" size="sm"
-                  onClick={() => setConfirmStatus(REVIEW_STATUS.PENDING)}>
-                  Set Pending
-                </Button>
-              ) : (
-                <Button type="button" color="primary" size="sm"
-                  onClick={() => setConfirmStatus(REVIEW_STATUS.APPROVED)}>
-                  Approve
-                </Button>
-              )}
-              <Button type="button" color="destructive" size="sm"
-                onClick={() => setConfirmDelete(true)}>
-                Delete
-              </Button>
-            </div>
+      <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+        <Card className="p-6">
+          <div className="mb-6 flex justify-end">
+            <Button
+              type="button"
+              size="sm"
+              className="h-auto bg-teal-500 px-4 py-2 text-white hover:bg-teal-600"
+              onClick={handleEmailUser}
+            >
+              Email User
+            </Button>
           </div>
 
-          <div className="grid grid-cols-1 gap-x-6 gap-y-5 p-6 md:grid-cols-2">
-            {/* Reviewer — read only */}
-            <FormControl label="Reviewer" value={reviewerName} readOnly disabled />
-
-            {/* Property */}
-            <FormControl
-              variant="select"
-              label="Property"
-              error={errors.property_id?.message}
-              {...register("property_id")}
-            >
-              <option value="" disabled>Select property</option>
-              {(review.property_list ?? []).map(p => (
-                <option key={p.id} value={String(p.id)}>{p.project_name}</option>
-              ))}
-            </FormControl>
-
-            {/* Title */}
-            <FormControl
-              label="Title"
-              placeholder="Review title"
-              error={errors.title?.message}
-              className="md:col-span-2"
-              {...register("title")}
-            />
-
-            {/* Comment */}
-            <FormControl
-              variant="textarea"
-              label="Comment"
-              placeholder="Review comment"
-              error={errors.comment?.message}
-              className="md:col-span-2"
-              {...register("comment")}
-            />
-
-            {/* Category */}
-            <FormControl
-              variant="select"
-              label="Category"
-              error={errors.category_id?.message}
-              {...register("category_id")}
-            >
-              <option value="" disabled>Select category</option>
-              {categories.map(c => (
-                <option key={c.id} value={String(c.id)}>{c.name}</option>
-              ))}
-            </FormControl>
-
-            {/* Buyer type */}
-            <FormControl
-              variant="select"
-              label="Buyer Type"
-              error={errors.buyer_type?.message}
-              {...register("buyer_type")}
-            >
-              <option value="" disabled>Select buyer type</option>
-              {buyerTypes.map(b => (
-                <option key={b.id} value={String(b.id)}>{b.name}</option>
-              ))}
-            </FormControl>
-
-            {/* Recommendation */}
-            <FormControl
-              variant="select"
-              label="Recommendation"
-              error={errors.recommendation?.message}
-              {...register("recommendation")}
-            >
-              <option value="" disabled>Select</option>
-              <option value="1">Recommend</option>
-              <option value="0">Don't Recommend</option>
-            </FormControl>
-
-            {/* Status */}
+          <div className="grid grid-cols-1 gap-x-8 gap-y-5 md:grid-cols-2">
+            {/* Left column */}
             <FormControl
               variant="select"
               label="Status"
-              error={errors.status?.message}
-              {...register("status")}
+              disabled={fieldsDisabled}
+              value={form.status}
+              onChange={(e) => setField("status", e.target.value)}
             >
-              <option value="1">Approved</option>
-              <option value="0">Pending</option>
-            </FormControl>
-
-            {/* State */}
-            <FormControl
-              variant="select"
-              label="State"
-              error={errors.state?.message}
-              {...register("state")}
-            >
-              <option value="" disabled>Select state</option>
-              {states.map(s => (
-                <option key={s.id} value={s.state_name}>{s.state_name}</option>
+              {STATUS_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </FormControl>
 
-            {/* Post code */}
+            {/* Right column */}
             <FormControl
-              label="Post Code"
-              placeholder="Post code"
-              error={errors.post_code?.message}
-              {...register("post_code")}
+              variant="select"
+              label="Category"
+              disabled={fieldsDisabled}
+              value={form.category_id}
+              onChange={(e) => setField("category_id", e.target.value)}
+            >
+              <option value="">Select Category</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </FormControl>
+
+            <FormControl
+              label="Title"
+              disabled={fieldsDisabled}
+              value={form.title}
+              onChange={(e) => setField("title", e.target.value)}
             />
 
-            {/* Suburb */}
+            <FormControl
+              label={`User ${userVerified ? "( Verified )" : "( Not Verified )"}`}
+              alwaysReadOnly
+              value={userName}
+            />
+
+            <FormControl
+              variant="select"
+              label="Property"
+              disabled={fieldsDisabled}
+              value={form.property_id}
+              onChange={(e) => setField("property_id", e.target.value)}
+            >
+              <option value="">Select Property</option>
+              {propertyOptions.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.project_name}
+                </option>
+              ))}
+            </FormControl>
+
+            <FormControl
+              label="Company"
+              alwaysReadOnly
+              value={companyName}
+            />
+
+            <FormControl
+              variant="select"
+              label="Recommendation"
+              disabled={fieldsDisabled}
+              value={form.recommendation}
+              onChange={(e) => setField("recommendation", e.target.value)}
+            >
+              {RECOMMENDATION_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </FormControl>
+
+            <FormControl
+              variant="textarea"
+              label="Comment"
+              disabled={fieldsDisabled}
+              className="min-h-[44px]"
+              value={form.comment}
+              onChange={(e) => setField("comment", e.target.value)}
+            />
+
+            <FormControl
+              variant="select"
+              label="Buyer Type"
+              disabled={fieldsDisabled}
+              value={form.buyer_type}
+              onChange={(e) => setField("buyer_type", e.target.value)}
+            >
+              <option value="">Select Buyer Type</option>
+              {buyerTypes.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.key_text}
+                </option>
+              ))}
+            </FormControl>
+
+            <FormControl
+              label="Year Of Completion"
+              disabled={fieldsDisabled}
+              value={form.year_of_completion}
+              onChange={(e) => setField("year_of_completion", e.target.value)}
+            />
+
+            <FormControl
+              label="Postcode"
+              disabled={fieldsDisabled}
+              value={form.post_code}
+              onChange={(e) => setField("post_code", e.target.value)}
+            />
+
             <FormControl
               variant="select"
               label="Suburb"
-              error={errors.suburb?.message}
-              {...register("suburb")}
+              disabled={fieldsDisabled}
+              value={form.suburb}
+              onChange={(e) => setField("suburb", e.target.value)}
             >
-              <option value="" disabled>Select suburb</option>
-              {suburbs.map(s => (
-                <option key={s} value={s}>{s}</option>
+              <option value="">Select Suburb</option>
+              {suburbOptions.map((s) => (
+                <option key={s.text} value={s.text}>
+                  {s.text}
+                </option>
               ))}
             </FormControl>
 
-            {/* Year of completion */}
             <FormControl
-              label="Year of Completion"
-              placeholder="e.g. 2023"
-              error={errors.year_of_completion?.message}
-              {...register("year_of_completion")}
-            />
+              variant="select"
+              label="State"
+              disabled={fieldsDisabled}
+              value={form.state}
+              onChange={(e) => setField("state", e.target.value)}
+            >
+              <option value="">Select State</option>
+              {states.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.state_name}
+                </option>
+              ))}
+            </FormControl>
 
-            {/* Tags */}
-            <div className="md:col-span-2">
-              <p className="mb-2 text-sm font-medium text-gray-700">Tags</p>
-              <div className="flex flex-wrap gap-2">
-                {allTags.map(tag => {
-                  const selected = !!selectedTags.find(t => t.id === tag.id)
-                  return (
-                    <button
-                      key={tag.id}
-                      type="button"
-                      onClick={() => toggleTag(tag)}
-                      className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                        selected
-                          ? "bg-primary-600 text-white"
-                          : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
-                    >
-                      {tag.name}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
+            <FormField label="Comment Tags">
+              <MultiSelect
+                options={tagOptions}
+                value={form.tag_ids}
+                onChange={(ids) => setField("tag_ids", ids)}
+                disabled={fieldsDisabled}
+                placeholder="Select tags…"
+              />
+            </FormField>
+
+            <FormField label="Photo proof">
+              <ImageDropzone
+                layout="banner"
+                value={photo}
+                existingImageUrl={existingPhotoUrl}
+                onChange={setPhoto}
+                onClearExisting={() => setExistingPhotoUrl(null)}
+                disabled={fieldsDisabled}
+              />
+            </FormField>
+
+            <FormField label="Document proof">
+              <ImageDropzone
+                layout="banner"
+                value={doc}
+                existingImageUrl={existingDocUrl}
+                onChange={setDoc}
+                onClearExisting={() => setExistingDocUrl(null)}
+                disabled={fieldsDisabled}
+              />
+            </FormField>
+          </div>
+
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Button
+              type="submit"
+              size="sm"
+              className="h-auto bg-teal-500 px-6 py-2.5 text-white hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={submitting}
+            >
+              {submitting ? "Updating…" : "Update"}
+            </Button>
+            <Button
+              type="button"
+              color="destructive"
+              size="sm"
+              className="h-auto px-6 py-2.5"
+              onClick={handleCancel}
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
           </div>
         </Card>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" color="primary" disabled={submitting}
-            className="px-6 py-2 disabled:cursor-not-allowed disabled:opacity-60">
-            {submitting ? "Saving…" : "Save"}
-          </Button>
-          <Button type="button" color="destructive" onClick={handleCancel} className="px-6 py-2">
-            Cancel
-          </Button>
-        </div>
       </form>
-
-      <ConfirmDialog
-        open={confirmDelete}
-        title="Delete Review"
-        description="This review will be permanently deleted. This cannot be undone."
-        confirmLabel="Delete"
-        onConfirm={handleDelete}
-        onOpenChange={(open) => { if (!open) setConfirmDelete(false) }}
-      />
-
-      <ConfirmDialog
-        open={confirmStatus !== null}
-        title={confirmStatus === REVIEW_STATUS.APPROVED ? "Approve Review" : "Set to Pending"}
-        description={confirmStatus === REVIEW_STATUS.APPROVED
-          ? "This will approve the review and make it visible."
-          : "This will move the review back to pending."}
-        confirmLabel={confirmStatus === REVIEW_STATUS.APPROVED ? "Approve" : "Set Pending"}
-        onConfirm={handleStatusFlip}
-        onOpenChange={(open) => { if (!open) setConfirmStatus(null) }}
-      />
     </div>
   )
 }

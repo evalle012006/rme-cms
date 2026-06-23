@@ -14,6 +14,9 @@ export default function AdvertisePendingPage() {
       statusFilter={ADVERTISE_STATUS.PENDING}
       statusLabel="Pending"
       statusTone="pending"
+      flipStatusTo={ADVERTISE_STATUS.APPROVED}
+      flipConfirmMessage="Are you sure you want to approve this advertise ?"
+      flipSuccessMessage="Advertise approved successfully"
     />
   )
 }

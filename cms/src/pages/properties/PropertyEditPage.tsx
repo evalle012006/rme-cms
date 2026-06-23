@@ -14,6 +14,7 @@ import {
   LocationAutocomplete,
   type ResolvedPlace,
 } from '@/components/atoms/LocationAutocomplete'
+import { LocationMap } from '@/components/atoms/LocationMap'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
@@ -100,6 +101,8 @@ export default function PropertyEditPage() {
   })
 
   const postCode = watch('post_code')
+  const lat = watch('lat')
+  const long = watch('long')
   const previousPostCode = useRef<string | null>(null)
 
   useEffect(() => {
@@ -201,6 +204,14 @@ export default function PropertyEditPage() {
       if (place.lng != null) setValue('long', String(place.lng))
     },
     [setValue, states]
+  )
+
+  const handleMapLocationChange = useCallback(
+    (nextLat: number, nextLng: number) => {
+      setValue('lat', String(nextLat))
+      setValue('long', String(nextLng))
+    },
+    [setValue]
   )
 
   const applyServerErrors = (apiErrors: Record<string, string[]>) => {
@@ -551,12 +562,20 @@ export default function PropertyEditPage() {
             </div>
 
             <FormField label="Search Location">
-              <LocationAutocomplete
-                value={searchLocation}
-                onChange={setSearchLocation}
-                onPlaceSelected={handlePlaceSelected}
-                disabled={fieldsDisabled}
-              />
+              <div className="space-y-3">
+                <LocationAutocomplete
+                  value={searchLocation}
+                  onChange={setSearchLocation}
+                  onPlaceSelected={handlePlaceSelected}
+                  disabled={fieldsDisabled}
+                />
+                <LocationMap
+                  lat={lat}
+                  lng={long}
+                  onLocationChange={handleMapLocationChange}
+                  disabled={fieldsDisabled}
+                />
+              </div>
             </FormField>
           </div>
         </Card>

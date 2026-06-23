@@ -14,6 +14,7 @@ import BuilderPendingPage from '@/pages/builders/BuilderPendingPage'
 import BuilderEditPage from '@/pages/builders/BuilderEditPage'
 import ReviewApprovedPage from '@/pages/reviews/ReviewApprovedPage'
 import ReviewPendingPage from '@/pages/reviews/ReviewPendingPage'
+import ReviewEditPage from '@/pages/reviews/ReviewEditPage'
 import ContactUsPage from '@/pages/contact/ContactUsPage'
 import ProfileSettingsPage from '@/pages/settings/ProfileSettingsPage'
 import HomePage from '@/pages/cms/HomePage'
@@ -49,7 +50,6 @@ import BlogsListPage from './pages/blogs/BlogsListPage'
 import BlogAddPage from './pages/blogs/BlogAddPage'
 import BlogEditPage from './pages/blogs/BlogEditPage'
 import { ROUTES } from '@/constants/routes'
-import ReviewEditPage from './pages/reviews/ReviewEditPage'
 
 export default function App() {
   return (

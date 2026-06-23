@@ -114,7 +114,9 @@ export default function BuilderEditPage() {
           firstname: data.firstname ?? "",
           lastname: data.lastname ?? "",
           // getById omits status — infer it from which list page opened this form.
-          status: String(data.status ?? (isFromPending ? BUILDER_STATUS.PENDING : BUILDER_STATUS.APPROVED)),
+          status: String(
+            isFromPending ? BUILDER_STATUS.PENDING : BUILDER_STATUS.APPROVED
+          ),
           email: data.email ?? "",
           company_name: data.company?.company_name ?? "",
           website: data.company?.website ?? "",

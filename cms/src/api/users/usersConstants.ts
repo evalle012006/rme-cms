@@ -1,8 +1,11 @@
-// ── User status ───────────────────────────────────────────────────────────────
-// Both create (/auth/reviewer/signup) and update (/auth/reviewer/update)
-// use the same 4-value numeric encoding:
-//   "1" = Approved
-//   "2" = Pending
+// ── User status (create endpoints) ───────────────────────────────────────────
+// `/auth/reviewer/signup` and `/auth/builder/signup` expect a numeric status
+// value in the form-data payload. We keep the values as numeric strings so
+// they slot directly into the <select>'s string-only value space.
+//
+// Mapping is taken from the legacy admin and observed signup payloads:
+//   "1" = Approved (confirmed via reviewer signup payload)
+//   "2" = Pending  (1-indexed order of the dropdown options)
 //   "3" = Rejected
 //   "4" = Suspended
 

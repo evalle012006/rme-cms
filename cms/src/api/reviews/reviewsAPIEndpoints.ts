@@ -1,10 +1,9 @@
 export const REVIEWS_ENDPOINTS = {
-  DATATABLE:     '/datatable-reviews',
-  GET_BY_ID:     '/review/get/:id',
-  UPDATE:        '/review-update/:id',
-  CHANGE_STATUS: '/review/change-status',
-  DELETE:        '/review/delete/:id',
-  BUYER_TYPES:   '/buyer-type-get',
-  STATES:        '/get-states',
-  SUBURBS:       '/get-suburbs',
+  DATATABLE: '/datatable-reviews',
+  STATUS_UPDATE: '/review/change-status',
+  DELETE: (id: number) => `/review/delete/${id}`,
+  GET: (id: number) => `/review/get/${id}`,
+  UPDATE: (id: number) => `/review-update/${id}`,
+  // Returns the buyer-type options + review categories used by the edit form.
+  FORM_META: '/buyer-type-get',
 } as const

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Breadcrumb, type BreadcrumbItem } from "@/components/atoms/Breadcrumb"
+import { Button } from "@/components/atoms/Button"
+import { ConfirmDialog } from "@/components/atoms/ConfirmDialog"
 import { DataTable, type DataTableColumn } from "@/components/atoms/DataTable"
 import { StatusBadge, type StatusTone } from "@/components/atoms/StatusBadge"
 import {
@@ -12,6 +14,7 @@ import type {
   DataTablesRequest,
   SortDir,
 } from "@/types/api"
+import { ViewAdvertiseDialog } from "./components/ViewAdvertiseDialog"
 
 // ── Column metadata for `/datatable-advertises` ─────────────────────────────
 // Index order mirrors what the backend expects. `title` is searchable and
@@ -26,14 +29,19 @@ const COLUMN_META: Pick<DataTablesColumnRequest, "name" | "searchable" | "ordera
 
 // ── Shared list page ─────────────────────────────────────────────────────────
 // Powers both the Approved and Pending tabs of "Advertises". The two pages
-// differ only by breadcrumb, status filter (1 vs 0), and the status badge
-// label/tone.
+// differ only by breadcrumb, status filter (1 vs 0), the status badge
+// label/tone, and the status the badge flips to when clicked.
 
 interface AdvertisesListPageProps {
   breadcrumb: BreadcrumbItem[]
   statusFilter: AdvertiseStatusFilter
   statusLabel: string
   statusTone: StatusTone
+  // Status to set via `/adv/change-status` when the badge is clicked, plus the
+  // confirm/success copy. Pending → 1 (approve), Approved → 0 (pending).
+  flipStatusTo: number
+  flipConfirmMessage: string
+  flipSuccessMessage: string
 }
 
 export function AdvertisesListPage({
@@ -41,6 +49,9 @@ export function AdvertisesListPage({
   statusFilter,
   statusLabel,
   statusTone,
+  flipStatusTo,
+  flipConfirmMessage,
+  flipSuccessMessage,
 }: AdvertisesListPageProps) {
   const [data, setData] = useState<Advertise[]>([])
   const [page, setPage] = useState(1)
@@ -51,6 +62,8 @@ export function AdvertisesListPage({
   const [sortDir, setSortDir] = useState<SortDir | undefined>(undefined)
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [confirmId, setConfirmId] = useState<number | null>(null)
+  const [viewAdvertise, setViewAdvertise] = useState<Advertise | null>(null)
 
   // Increments per request; sent back as-is by the backend so we can detect
   // stale responses and ignore them.
@@ -107,6 +120,19 @@ export function AdvertisesListPage({
     fetchAdvertises()
   }, [fetchAdvertises])
 
+  const confirmStatusFlip = useCallback(async () => {
+    if (confirmId === null) return
+    try {
+      await advertisesAPI.updateStatus(
+        { id: confirmId, status: flipStatusTo },
+        { successMessage: flipSuccessMessage }
+      )
+      fetchAdvertises()
+    } catch {
+      // Toast already shown by the API wrapper / global interceptor.
+    }
+  }, [confirmId, flipStatusTo, flipSuccessMessage, fetchAdvertises])
+
   const columns = useMemo<DataTableColumn<Advertise>[]>(
     () => [
       {
@@ -125,13 +151,28 @@ export function AdvertisesListPage({
         key: "status",
         header: "Status",
         width: "160px",
-        cell: () => <StatusBadge label={statusLabel} tone={statusTone} />,
+        cell: (row) => (
+          <StatusBadge
+            label={statusLabel}
+            tone={statusTone}
+            onClick={() => setConfirmId(row.id)}
+          />
+        ),
       },
       {
         key: "change_action",
         header: "Action",
         width: "120px",
-        cell: () => <span className="text-gray-400">—</span>,
+        cell: (row) => (
+          <Button
+            type="button"
+            size="sm"
+            className="h-auto bg-teal-500 py-1.5 text-white hover:bg-teal-600"
+            onClick={() => setViewAdvertise(row)}
+          >
+            View
+          </Button>
+        ),
       },
     ],
     [statusLabel, statusTone]
@@ -179,6 +220,26 @@ export function AdvertisesListPage({
         onPerPageChange={handlePerPageChange}
         onSearchChange={handleSearchChange}
         onSortChange={handleSortChange}
+      />
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        onOpenChange={(next) => {
+          if (!next) setConfirmId(null)
+        }}
+        title="Change status ?"
+        description={flipConfirmMessage}
+        confirmLabel="Yes"
+        cancelLabel="Cancel"
+        onConfirm={confirmStatusFlip}
+      />
+
+      <ViewAdvertiseDialog
+        open={viewAdvertise !== null}
+        advertise={viewAdvertise}
+        onOpenChange={(open) => {
+          if (!open) setViewAdvertise(null)
+        }}
       />
     </div>
   )

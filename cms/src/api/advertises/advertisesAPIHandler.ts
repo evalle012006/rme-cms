@@ -1,4 +1,10 @@
-import { apiClient, apiRequestRaw } from '@/api/apiService'
+import {
+  apiClient,
+  apiRequest,
+  apiRequestRaw,
+  type ApiEnvelope,
+  type ApiRequestOptions,
+} from '@/api/apiService'
 import { ADVERTISES_ENDPOINTS } from './advertisesAPIEndpoints'
 import type { DataTablesRequest, DataTablesResponse } from '@/types/api'
 
@@ -18,6 +24,13 @@ export interface AdvertiseCompany {
 export interface Advertise {
   id: number
   title: string | null
+  // `description` powers the body text of the View modal. Optional/nullable so
+  // the modal degrades gracefully when the backend omits it.
+  description?: string | null
+  // Raw stored path plus the `full_image_path` accessor the backend appends.
+  // We prefer the full URL when present and fall back to resolving the raw path.
+  image?: string | null
+  full_image_path?: string | null
   status: number
   company: AdvertiseCompany | null
 }
@@ -35,6 +48,11 @@ export const ADVERTISE_STATUS = {
 export type AdvertiseStatusFilter =
   (typeof ADVERTISE_STATUS)[keyof typeof ADVERTISE_STATUS]
 
+export interface UpdateAdvertiseStatusPayload {
+  id: number
+  status: number
+}
+
 export const advertisesAPI = {
   // DataTables endpoint uses its own response shape (no envelope).
   // Note the extra `status` field that filters approved vs pending rows.
@@ -47,5 +65,17 @@ export const advertisesAPI = {
         ADVERTISES_ENDPOINTS.DATATABLE,
         { ...payload, status }
       )
+    ),
+
+  updateStatus: (
+    payload: UpdateAdvertiseStatusPayload,
+    options?: ApiRequestOptions
+  ): Promise<unknown> =>
+    apiRequest<unknown>(
+      apiClient.post<ApiEnvelope<unknown>>(
+        ADVERTISES_ENDPOINTS.STATUS_UPDATE,
+        payload
+      ),
+      options
     ),
 }

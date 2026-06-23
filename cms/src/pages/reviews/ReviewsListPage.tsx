@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Link } from "react-router-dom"
+import { Trash2 } from "lucide-react"
+import { Button } from "@/components/atoms/Button"
 import { Breadcrumb, type BreadcrumbItem } from "@/components/atoms/Breadcrumb"
+import { ConfirmDialog } from "@/components/atoms/ConfirmDialog"
 import { DataTable, type DataTableColumn } from "@/components/atoms/DataTable"
 import { StatusBadge, type StatusTone } from "@/components/atoms/StatusBadge"
 import {
-  REVIEW_STATUS,
   reviewsAPI,
+  REVIEW_STATUS,
   type Review,
   type ReviewStatusFilter,
 } from "@/api/reviews/reviewsAPIHandler"
@@ -13,8 +17,6 @@ import type {
   DataTablesRequest,
   SortDir,
 } from "@/types/api"
-import { Link } from "react-router-dom"
-import { Button } from "@/components/atoms/Button"
 import { ROUTES } from "@/constants/routes"
 
 // ── Column metadata for `/datatable-reviews` ────────────────────────────────
@@ -32,25 +34,34 @@ const COLUMN_META: Pick<DataTablesColumnRequest, "name" | "searchable" | "ordera
 
 // ── Recommendation cell ──────────────────────────────────────────────────────
 // The backend may send either a string label or a numeric 0/1 flag depending
-// on the row. Normalise both to a readable label here.
-function renderRecommendation(value: Review["recommendation"]) {
-  if (value === null || value === undefined || value === "") return "—"
-  if (typeof value === "number") {
-    return value === 1 ? "Recommend" : "Don't Recommend"
+// on the row. Normalise to a yes/no flag so we can render a coloured badge.
+function isRecommended(value: Review["recommendation"]): boolean | null {
+  if (value === null || value === undefined || value === "") return null
+  if (typeof value === "boolean") return value
+  if (typeof value === "number") return value === 1
+  if (typeof value === "string") {
+    const normalised = value.trim().toLowerCase()
+    if (/^(don'?t|no|0)/.test(normalised)) return false
+    if (/^(rec|yes|1)/.test(normalised)) return true
   }
-  return value
+  return null
 }
 
 // ── Shared list page ─────────────────────────────────────────────────────────
-// Powers both the Approved and Pending tabs of "Reviews". The two pages
-// differ only by breadcrumb, status filter (1 vs 0), and the status badge
-// label/tone.
+// Powers both the Approved and Pending tabs of "Reviews". The two pages differ
+// only by breadcrumb, status filter (1 vs 0), the status badge label/tone, and
+// the status the badge flips to when clicked.
 
 interface ReviewsListPageProps {
   breadcrumb: BreadcrumbItem[]
   statusFilter: ReviewStatusFilter
   statusLabel: string
   statusTone: StatusTone
+  // Status to set via `/review/change-status` when the badge is clicked, plus
+  // the confirm/success copy. Pending → 1 (approve), Approved → 0 (pending).
+  flipStatusTo: number
+  flipConfirmMessage: string
+  flipSuccessMessage: string
 }
 
 export function ReviewsListPage({
@@ -58,6 +69,9 @@ export function ReviewsListPage({
   statusFilter,
   statusLabel,
   statusTone,
+  flipStatusTo,
+  flipConfirmMessage,
+  flipSuccessMessage,
 }: ReviewsListPageProps) {
   const [data, setData] = useState<Review[]>([])
   const [page, setPage] = useState(1)
@@ -68,6 +82,8 @@ export function ReviewsListPage({
   const [sortDir, setSortDir] = useState<SortDir | undefined>(undefined)
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [confirmId, setConfirmId] = useState<number | null>(null)
+  const [reviewToDelete, setReviewToDelete] = useState<Review | null>(null)
 
   // Increments per request; sent back as-is by the backend so we can detect
   // stale responses and ignore them.
@@ -123,6 +139,32 @@ export function ReviewsListPage({
     fetchReviews()
   }, [fetchReviews])
 
+  const confirmStatusFlip = useCallback(async () => {
+    if (confirmId === null) return
+    try {
+      await reviewsAPI.updateStatus(
+        { id: confirmId, status: flipStatusTo },
+        { successMessage: flipSuccessMessage }
+      )
+      fetchReviews()
+    } catch {
+      // Toast already shown by the API wrapper / global interceptor.
+    }
+  }, [confirmId, flipStatusTo, flipSuccessMessage, fetchReviews])
+
+  const confirmDelete = useCallback(async () => {
+    if (reviewToDelete === null) return
+    try {
+      await reviewsAPI.delete(reviewToDelete.id, {
+        successMessage: "Review deleted successfully",
+        customErrorMessage: "Failed to delete review",
+      })
+      fetchReviews()
+    } catch {
+      // Toast already shown by the API wrapper / global interceptor.
+    }
+  }, [reviewToDelete, fetchReviews])
+
   const columns = useMemo<DataTableColumn<Review>[]>(
     () => [
       {
@@ -136,21 +178,54 @@ export function ReviewsListPage({
         key: "status",
         header: "Status",
         width: "160px",
-        cell: () => <StatusBadge label={statusLabel} tone={statusTone} />,
+        cell: (row) => (
+          <StatusBadge
+            label={statusLabel}
+            tone={statusTone}
+            onClick={() => setConfirmId(row.id)}
+          />
+        ),
       },
       {
         key: "recommendation",
         header: "Recommendation",
-        cell: (row) => renderRecommendation(row.recommendation),
+        cell: (row) => {
+          const recommended = isRecommended(row.recommendation)
+          if (recommended === null) return <span className="text-gray-400">—</span>
+          return (
+            <StatusBadge
+              label={recommended ? "Yes" : "No"}
+              tone={recommended ? "approved" : "pending"}
+            />
+          )
+        },
       },
       {
         key: "action",
         header: "Action",
-        width: "120px",
+        width: "140px",
         cell: (row) => (
-          <Link to={`${ROUTES.reviews.edit(row.id)}?from=${statusFilter === REVIEW_STATUS.APPROVED ? "approved" : "pending"}`}>
-            <Button size="sm" color="primary">Edit</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              to={`${ROUTES.reviews.edit(row.id)}?from=${
+                statusFilter === REVIEW_STATUS.APPROVED ? "approved" : "pending"
+              }`}
+            >
+              <Button color="primary" size="sm" className="h-auto py-1.5">
+                Edit
+              </Button>
+            </Link>
+            <Button
+              type="button"
+              color="destructive"
+              size="sm"
+              className="h-auto px-2 py-1.5"
+              aria-label="Delete review"
+              onClick={() => setReviewToDelete(row)}
+            >
+              <Trash2 size={16} />
+            </Button>
+          </div>
         ),
       },
     ],
@@ -199,6 +274,30 @@ export function ReviewsListPage({
         onPerPageChange={handlePerPageChange}
         onSearchChange={handleSearchChange}
         onSortChange={handleSortChange}
+      />
+
+      <ConfirmDialog
+        open={confirmId !== null}
+        onOpenChange={(next) => {
+          if (!next) setConfirmId(null)
+        }}
+        title="Change status ?"
+        description={flipConfirmMessage}
+        confirmLabel="Yes"
+        cancelLabel="Cancel"
+        onConfirm={confirmStatusFlip}
+      />
+
+      <ConfirmDialog
+        open={reviewToDelete !== null}
+        onOpenChange={(next) => {
+          if (!next) setReviewToDelete(null)
+        }}
+        title="Delete ?"
+        description="Are you sure you want to delete this review ?"
+        confirmLabel="Yes"
+        cancelLabel="Cancel"
+        onConfirm={confirmDelete}
       />
     </div>
   )

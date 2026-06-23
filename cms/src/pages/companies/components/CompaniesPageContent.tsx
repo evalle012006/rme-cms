@@ -183,7 +183,6 @@ export function CompaniesPageContent({
   const handleConfirmDelete = async () => {
     if (!companyToDelete) return
 
-    // setDeleting(true)
     try {
       await companiesAPI.delete(companyToDelete.id, {
         successMessage: 'Company deleted successfully',
