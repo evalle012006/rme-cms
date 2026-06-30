@@ -14,25 +14,21 @@ use App\Models\Suburbs;
 use App\Models\Tags;
 use GuzzleHttp\Exception\ServerException;
 use Illuminate\Http\Request;
-use Dotenv\Exception\ValidationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException; 
 
 class ReviewController extends BaseController
 {
 
     public function getDatatableReview(Request $request)
     {
-        $filter = $request->filter;
-        $reviews = Review::with('property');
-        if (array_search($filter, ['0', '1']) !== false) {
-//            print_r('test');
-//            die;
-            $reviews->where('status', $filter);
-        }
-        // $reviews->orderBy('created_at', 'DESC');
-        return datatables($reviews->where('status', $request->status))->toJson();
+        $reviews = Review::with('property')
+            ->select('reviews.*')
+            ->where('status', $request->status);
+
+        return datatables($reviews)->toJson();
     }
 
     public function getReviewById($id)
@@ -64,52 +60,67 @@ class ReviewController extends BaseController
         try {
             $data = $this->validate($request, Review::$rules_admin);
             $reviewData = Review::find($id);
+
+            if (!$reviewData) {
+                return $this->formatFailureResponse('Review not found', 404);
+            }
+
             $oldStatus = $reviewData->status;
 
-            $reviewData->update($data);
-            $commentTags = $request->review_tags;
-            $tags = [];
+            // Handle photo upload
+            if ($request->hasFile('review_image')) {
+                $data['review_image'] = $this->saveToS3(
+                    $request->file('review_image'),
+                    self::REVIEW_STORAGE_PATH
+                );
+            } else {
+                unset($data['review_image']); // preserve existing
+            }
 
-            if (!empty($commentTags)) {
-                foreach ($commentTags as $tag) {
-                    if (!isset($tag['id'])) {
-                        $insert = [
-                            'name' => $tag['name'],
-                            'type' => 'positive',
-                            'is_active' => 1
-                        ];
-                        $inserted = Tags::create($insert);
-                        $tags[] = ['review_id' => $id, 'tag_id' => $inserted->id];
-                    } else {
-                        $tags[] = ['review_id' => $id, 'tag_id' => $tag['id']];
-                    }
-                }
+            // Handle doc upload
+            if ($request->hasFile('review_docs')) {
+                $data['review_docs'] = $this->saveToS3(
+                    $request->file('review_docs'),
+                    self::REVIEWDOCS_STORAGE_PATH
+                );
+            } else {
+                unset($data['review_docs']); // preserve existing
+            }
+
+            $reviewData->update($data);
+
+            // Tags — frontend sends array of integer IDs
+            $commentTags = $request->review_tags ?? [];
+            $tags = [];
+            foreach ($commentTags as $tagId) {
+                $tags[] = ['review_id' => $id, 'tag_id' => (int)$tagId];
             }
             ReviewTags::where('review_id', $id)->delete();
-            ReviewTags::insert($tags);
+            if (!empty($tags)) {
+                ReviewTags::insert($tags);
+            }
 
             if ((int)$data['status'] === 1 && $oldStatus === 0) {
                 $property = Properties::find($data['property_id']);
-                if ($property->status == 0 && $property->is_from == 'frontend') {
-                    $update['status'] = 1;
-                    $property->update($update);
+                if ($property && $property->status == 0 && $property->is_from == 'frontend') {
+                    $property->update(['status' => 1]);
                 }
-
-                if ($property->company && $property->company->status === 0) {
+                if ($property && $property->company && $property->company->status === 0) {
                     $property->company->update(['status' => 1]);
                 }
-
-                // send mail on review approve
                 try {
                     $this->sendEmail($id);
                 } catch (\Exception $e) {
                     Log::error('REVIEW_APPROVE_MAIL_ERROR: ' . $e->getMessage());
                 }
-                // end
             }
-            return $this->formatSuccessResponse('Review Updated', $data);
+
+            return $this->formatSuccessResponse('Review Updated', $reviewData->fresh());
         } catch (ValidationException $e) {
             return $this->apiFormatFailureResponse('false', $e->errors());
+        } catch (\Exception $e) {
+            Log::error('REVIEW_UPDATE_ERROR: ' . $e->getMessage());
+            return $this->formatFailureResponse('Error updating review', 500);
         }
     }
 

@@ -64,6 +64,8 @@ class DashboardController extends BaseController
         $amenitiesWiseReviews = [];
         foreach ($allReviews as $review) {
             foreach ($review->ratings as $rating) {
+                // Guard: skip ratings whose config has been soft-deleted
+                if (!$rating->reviewQuestion) continue;
                 if (!isset($amenitiesWiseReviews[$rating->reviewQuestion->name])) {
                     $amenitiesWiseReviews[$rating->reviewQuestion->name] = [];
                 }
@@ -348,6 +350,8 @@ class DashboardController extends BaseController
         $amenitiesWiseReviews = [];
         foreach ($allReviews as $review) {
             foreach ($review->ratings as $rating) {
+                // Guard: skip ratings whose config has been soft-deleted
+                if (!$rating->reviewQuestion) continue;
                 if (!isset($amenitiesWiseReviews[$rating->reviewQuestion->name])) {
                     $amenitiesWiseReviews[$rating->reviewQuestion->name] = [];
                 }
@@ -369,11 +373,9 @@ class DashboardController extends BaseController
     {
         try {
             if (config('filesystems.default') !== 's3') {
-                // Local or staging — store to public disk
                 Excel::store(new AllExport, 'csv-exports/admin-export.csv', 'public', \Maatwebsite\Excel\Excel::CSV);
                 $url = Storage::disk('public')->url('csv-exports/admin-export.csv');
             } else {
-                // Production S3
                 Excel::store(new AllExport, 'csv-exports/admin-export.csv', 's3', \Maatwebsite\Excel\Excel::CSV, [
                     'visibility' => 'public',
                 ]);
@@ -382,7 +384,7 @@ class DashboardController extends BaseController
             return $this->formatSuccessResponse('success', ['url' => $url]);
         } catch (\Exception $e) {
             Log::info('CSV_EXPORT_ERROR : ' . $e->getMessage());
-            return $this->formatFailureResponse('error', $e->getMessage());
+            return $this->formatFailureResponse('Error generating CSV export', 500);
         }
     }
 }

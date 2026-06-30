@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Image;
 
@@ -21,43 +22,29 @@ class UploadController extends Controller
         }
 
         $size = File::size($file);
-        $destinationPath = storage_path() . '/app/public/Uploads/images/';
+        $extension = $file->getClientOriginalExtension();
+        $allowed = ['gif', 'png', 'jpg', 'jpeg'];
+        $ext = strtolower($extension);
 
-        // ← CHANGED: removed @ suppression so failures surface in logs
-        if (!File::isDirectory($destinationPath)) {
-            File::makeDirectory($destinationPath, 0777, true);
+        if (!in_array($ext, $allowed)) {
+            return response()->json(['error' => 'Unsupported file type'], 422);
         }
 
-        $extension        = $file->getClientOriginalExtension();
-        $uniquesavename   = time() . uniqid(rand());
-        $filename         = str_random(12) . '-' . $uniquesavename . '.' . $extension;
-        $allowed          = ['gif', 'png', 'jpg', 'jpeg', 'JPG', 'PNG', 'GIF'];  // ← normalised
-        $ext              = strtolower(pathinfo($filename, PATHINFO_EXTENSION));   // ← CHANGED: lowercase for reliable comparison
-
-        $upload_success = $file->move($destinationPath, $filename);
-
-        if ($upload_success && in_array($ext, array_map('strtolower', $allowed))) {
-            // ← CHANGED: removed unreachable icon resize block (was after a return statement)
-            //   thumb generation is kept; icon generation removed since it was dead code
-            if (!File::isDirectory($destinationPath . 'thumb')) {
-                File::makeDirectory($destinationPath . 'thumb', 0777, true);
-            }
-            try {
-                $img = Image::make($destinationPath . $filename);
-                $img->resize(150, 150);
-                $img->save($destinationPath . 'thumb/' . $filename);
-            } catch (\Exception $e) {
-                Log::error('UPLOAD_THUMB_ERROR: ' . $e->getMessage());
-                // Non-fatal — original upload succeeded
-            }
-
-            return response()->json(['filename' => 'Uploads/images/' . $filename, 'size' => $size]);
-        } elseif ($upload_success) {
-            return response()->json(['filename' => 'Uploads/images/' . $filename, 'size' => $size]);
-        } else {
-            Log::error('UPLOAD_FAILED: ' . $filename);
+        try {
+            $path = $this->saveToS3($file, 'Uploads/images/');
+        } catch (\Exception $e) {
+            Log::error('UPLOAD_FAILED: ' . $e->getMessage());
             return response()->json(['error' => 'File upload failed'], 500);
         }
+
+        // Thumbnail — read back from storage (works for both local and S3)
+        try {
+            $this->saveThumbToS3($path);
+        } catch (\Exception $e) {
+            Log::error('UPLOAD_THUMB_ERROR: ' . $e->getMessage());
+        }
+
+        return response()->json(['filename' => $path, 'size' => $size]);
     }
 
     public function uploadFile(Request $request)
@@ -68,24 +55,16 @@ class UploadController extends Controller
             return response()->json(['error' => 'No file provided'], 422);
         }
 
-        $size            = File::size($file);
-        $destinationPath = storage_path() . '/app/public/Uploads/pdf_files/';
+        $size = File::size($file);
 
-        if (!File::isDirectory($destinationPath)) {
-            File::makeDirectory($destinationPath, 0777, true);
-        }
-
-        $uniquesavename = time() . uniqid(rand());
-        $filename       = str_random(12) . '-' . $uniquesavename . '.' . $file->getClientOriginalExtension();
-
-        $upload_success = $file->move($destinationPath, $filename);
-
-        if ($upload_success) {
-            return response()->json(['filename' => $filename, 'size' => $size]);
-        } else {
-            Log::error('FILE_UPLOAD_FAILED: ' . $filename);
+        try {
+            $path = $this->saveToS3($file, 'Uploads/pdf_files/');
+        } catch (\Exception $e) {
+            Log::error('FILE_UPLOAD_FAILED: ' . $e->getMessage());
             return response()->json(['error' => 'File upload failed'], 500);
         }
+
+        return response()->json(['filename' => $path, 'size' => $size]);
     }
 
     public function deleteUpload($folder, $image)
@@ -103,12 +82,19 @@ class UploadController extends Controller
 
     public function getFile($filename)
     {
+        if (config('filesystems.default') === 's3') {
+            if (!Storage::disk('s3')->exists($filename)) {
+                abort(404);
+            }
+            return redirect(Storage::disk('s3')->url($filename));
+        }
+
         $path = storage_path('app/' . $filename);
         if (!File::exists($path)) {
             abort(404);
         }
-        $file     = File::get($path);
-        $type     = File::mimeType($path);
+        $file = File::get($path);
+        $type = File::mimeType($path);
         $response = Response::make($file, 200);
         $response->header('Content-Type', $type);
         $response->header('Access-Control-Allow-Origin', '*');

@@ -5,52 +5,60 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\BaseController;
 use App\Models\RatingConfiguration;
 use Illuminate\Http\Request;
-use Dotenv\Exception\ValidationException;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class RatingController extends BaseController
 {
     public function addRating(Request $request)
     {
         $rules = [
-            'name' => 'unique:rating_configurations|required',
-            'rating_icon' => 'required',
-            'description' => 'required'
+            'name'        => 'unique:rating_configurations|required',
+            'rating_icon' => 'required|file|image',
+            'description' => 'required',
         ];
 
         try {
             $data = $this->validate($request, $rules);
-            if (isset($data['rating_icon'])) {
-                $data['rating_icon'] = $this->saveToS3($data['rating_icon'], self::RATINGCONF_STORAGE_PATH);
+            if ($request->hasFile('rating_icon')) {
+                $data['rating_icon'] = $this->saveToS3($request->file('rating_icon'), self::RATINGCONF_STORAGE_PATH);
             }
             $rating_conf = RatingConfiguration::create($data);
             return $this->formatSuccessResponse('success', $rating_conf);
         } catch (ValidationException $e) {
             return $this->apiFormatFailureResponse('false', $e->errors());
+        } catch (\Exception $e) {
+            return $this->formatFailureResponse('Error saving rating', 500);
         }
     }
 
     public function updateRating(Request $request)
     {
         $rules = [
-            'name' => 'required|unique:rating_configurations,name,' . $request->id,
-            'rating_icon' => 'required',
-            'description' => 'required'
+            'name'        => 'required|unique:rating_configurations,name,' . $request->id,
+            'rating_icon' => 'sometimes|file|image',
+            'description' => 'required',
         ];
+
         try {
             $data = $this->validate($request, $rules);
             $rating_conf = RatingConfiguration::find($request->id);
-            if (isset($data['rating_icon']) && is_file($data['rating_icon'])) {
-                $data['rating_icon'] = $this->saveToS3($data['rating_icon'], self::RATINGCONF_STORAGE_PATH);
+
+            if ($request->hasFile('rating_icon')) {
                 if (!empty($rating_conf->rating_icon)) {
                     Storage::delete($rating_conf->rating_icon);
                 }
+                $data['rating_icon'] = $this->saveToS3($request->file('rating_icon'), self::RATINGCONF_STORAGE_PATH);
+            } else {
+                unset($data['rating_icon']);
             }
 
             $rating_conf->update($data);
             return $this->formatSuccessResponse('success', $rating_conf);
         } catch (ValidationException $e) {
             return $this->apiFormatFailureResponse('false', $e->errors());
+        } catch (\Exception $e) {
+            return $this->formatFailureResponse('Error updating rating', 500);
         }
     }
 

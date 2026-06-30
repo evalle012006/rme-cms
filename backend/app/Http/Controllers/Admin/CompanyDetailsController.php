@@ -171,7 +171,7 @@ class CompanyDetailsController extends BaseController
 
     public function getDatatableCompany(Request $request)
     {
-        return datatables(CompanyDetails::query()->where('status', $request->status)->orderBy('created_at', 'DESC'))->toJson();
+        return datatables(CompanyDetails::query()->where('status', $request->status))->toJson();
     }
 
     public function getCompany(Request $request)

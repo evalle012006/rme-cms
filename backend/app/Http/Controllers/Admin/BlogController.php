@@ -136,7 +136,7 @@ class BlogController extends BaseController
 
     public function getDatatableBlog(Request $request)
     {
-        return datatables(Blogs::with('blogCategories')->orderBy('id','desc'))->toJson();
+        return datatables(Blogs::with('blogCategories'))->toJson();
     }
 
     public function getAllBlogCategory()

@@ -12,10 +12,11 @@ class AdvertiseController extends BaseController
     public function getAdvertisesDatatable(Request $request)
     {
         $status = $request->status;
-        $builders = Advertise::with(['company' => function ($qry) {
+        $advertises = Advertise::with(['company' => function ($qry) {
             $qry->select('id', 'company_name');
         }])->where('status', $status);
-        return datatables($builders->orderBy('created_at', 'DESC'))->toJson();
+
+        return datatables($advertises)->toJson();
     }
 
     public function changeAdvertiseStatus(Request $request)
