@@ -38,13 +38,16 @@ class AllExport implements FromView
                     $ratingsByTitle[$propertyCategory] = 0;
                 }
                 foreach ($item->ratings as $rating) {
+                    if (!$rating->reviewQuestion) {
+                        continue;
+                    }
                     $ratingsByTitle[$rating->reviewQuestion->name] = $rating->rate;
                     $totalRating += $rating->rate;
                 }
                 foreach ($item->reviewTags as $tag) {
                     $reviewTags[] = $tag->name;
                 }
-                $avgOfRating = round($totalRating / count($item->ratings));
+                $avgOfRating = count($item->ratings) > 0 ? round($totalRating / count($item->ratings)) : 0;
                 $item->tags = implode(', ', $reviewTags);
                 $item->overall_rating = $avgOfRating;
                 $item->rating_by_title = $ratingsByTitle;

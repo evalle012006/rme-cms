@@ -64,7 +64,17 @@ class RatingController extends BaseController
 
     public function deleteRating(Request $request)
     {
-        RatingConfiguration::where('id', $request->id)->delete();
+        $config = RatingConfiguration::find($request->id);
+
+        if (!$config) {
+            return $this->formatFailureResponse('Rating category not found', 404);
+        }
+
+        if ($config->ratings()->exists()) {
+            return $this->formatFailureResponse('Cannot delete a rating category with existing reviews attached.', 422);
+        }
+
+        $config->delete();
         return $this->formatSuccessResponse('delete record', 'success');
     }
 

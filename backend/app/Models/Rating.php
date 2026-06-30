@@ -19,6 +19,6 @@ class Rating extends Model
     //
     public function reviewQuestion()
     {
-        return $this->hasOne(RatingConfiguration::class, 'id', 'rating_conf_id');
+        return $this->hasOne(RatingConfiguration::class, 'id', 'rating_conf_id')->withTrashed();
     }
 }
