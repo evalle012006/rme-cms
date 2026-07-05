@@ -63,7 +63,7 @@ load_nvm() {
 # -----------------------------------------------------------------------------
 log "Pulling latest code..."
 cd "$REPO_DIR" || error "Repo not found at $REPO_DIR"
-git pull origin main || error "Git pull failed"
+git pull origin development || error "Git pull failed"
 
 # -----------------------------------------------------------------------------
 # STEP 2 — Build Angular admin (legacy — skip with --skip-angular)
@@ -204,7 +204,7 @@ docker-compose exec -T php chmod -R 775 storage bootstrap/cache
 # STEP 12 — Create storage symlink (public/storage → storage/app/public)
 # -----------------------------------------------------------------------------
 log "Creating storage symlink..."
-docker-compose exec -T php php artisan storage:link --force || warn "storage:link failed (check storage permissions)"
+docker-compose exec -T php php artisan storage:link || warn "storage:link failed (check storage permissions)"
 
 # -----------------------------------------------------------------------------
 # DONE

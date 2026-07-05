@@ -44,5 +44,8 @@ RUN chown -R www-data:www-data /var/www/backend/storage \
     && chmod -R 775 /var/www/backend/storage \
     && chmod -R 775 /var/www/backend/bootstrap/cache
 
+# Upload/post size limits (see docker/php/uploads.ini)
+COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+
 EXPOSE 9000
 CMD ["php-fpm"]
