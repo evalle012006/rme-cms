@@ -32,7 +32,6 @@ class Review extends Model implements ViewableContract
     ];
     static $rules_admin = [
         'title' => 'required',
-//        'user_id' => 'required',
         'property_id' => 'required',
         'recommendation' => 'required',
         'comment' => 'nullable',
@@ -43,6 +42,8 @@ class Review extends Model implements ViewableContract
         'post_code' => 'required',
         'year_of_completion' => 'nullable',
         'parent_id' => 'nullable',
+        'review_image' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:5120',
+        'review_docs' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,csv,txt|max:10240',
     ];
     protected $fillable = [
         'property_id',
