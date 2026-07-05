@@ -316,12 +316,19 @@ class UserController extends BaseController
         if ($validator->failed()) {
             return $this->formatFailureResponse('Errors with inputs', 400);
         } else {
-            $user = User::select('id', 'firstname', 'lastname', 'email', 'email_verified_at', 'status', 'company_id')
+            $user = User::select('id', 'firstname', 'lastname', 'email', 'email_verified_at', 'company_id')
                 ->with([
                     'company' => function ($qry) {
                         $qry->select('id', 'bio', 'company_name', 'logo', 'website');
                     }
                 ])->find($request->id);
+
+            // Approval is determined solely by email_verified_at, matching
+            // getDatatableBuilders / changeBuilderStatus / updateBuilder.
+            // The legacy `status` column (seeder-origin: 1/2/3) is not used
+            // for builder approval and is intentionally omitted here.
+            $user->is_approved = !is_null($user->email_verified_at);
+
             return $this->formatSuccessResponse('Success', $user);
         }
     }
