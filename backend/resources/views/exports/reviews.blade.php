@@ -1,7 +1,7 @@
 <table>
     <thead>
     <tr>
-        <th>Property Name</th>
+        <th>Project Name</th>
         <th>User</th>
         <th>Title</th>
         <th>Year Of Completion</th>

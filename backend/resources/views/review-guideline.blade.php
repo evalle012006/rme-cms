@@ -1,14 +1,19 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Review Guidelines | ' . seoSiteName())
+@section('meta_description', 'Read the ' . seoSiteName() . ' review guidelines to learn how to write helpful, honest and fair property reviews.')
+
 @section('content')
     <div class="bg-main inner-banner"
          style="background-image: url({{$sectionData['banner']['image'] ? checkUrl($sectionData['banner']['image']) : 'images/homepage/HomepageHero.jpg'}});">
         <div class="banner-caption">
             @if($sectionData['banner']['title'])
-                <h2>{{$sectionData['banner']['title']}}</h2>
+                <h1>{{$sectionData['banner']['title']}}</h1>
             @else
-                <h2>Review Guidelines</h2>
-            @endif
+{{-- CMS fallback (kept for later restore)
+<h1>Review Guidelines</h1>
+            --}}
+@endif
             <div class="breadcrumb-wrap">
                 <a href="{{route('root')}}">Home</a> / <span>Review Guidelines</span>
             </div>
@@ -20,30 +25,37 @@
                 @if($sectionData['reviews_on_rme']['title'])
                     <h4>{{$sectionData['reviews_on_rme']['title']}}</h4>
                 @else
-                    <h4>Property, Project & Builders reviews on ratemyestate</h4>
-                @endif
+{{-- CMS fallback (kept for later restore)
+<h4>Property, Project & Builders reviews on ratemyestate</h4>
+                --}}
+@endif
 
                 @if($sectionData['reviews_on_rme']['body'])
                     {!! $sectionData['reviews_on_rme']['body'] !!}
                 @else
-                    <p>Finding the right home is tedious, time-consuming and one of the biggest purchases of our lives.
+{{-- CMS fallback (kept for later restore)
+<p>Finding the right home is tedious, time-consuming and one of the biggest purchases of our lives.
                         So
                         why do it blindly?</p>
                     <p>That’s why we’ve created a community where you can find and share information about properties,
                         projects/ estates and builders across Australia written by past buyers.</p>
                     <p>This community allows you to purchase with confidence.</p>
-                @endif
+                --}}
+@endif
 
                 @if($sectionData['guidelines']['title'])
                     <h4>{{$sectionData['guidelines']['title']}}</h4>
                 @else
-                    <h4>Our community guidelines</h4>
-                @endif
+{{-- CMS fallback (kept for later restore)
+<h4>Our community guidelines</h4>
+                --}}
+@endif
 
                 @if($sectionData['guidelines']['body'])
                     {!! $sectionData['guidelines']['body'] !!}
                 @else
-                    <p>To build a community of reviews in the spirit of helping others, all reviews and subsequent
+{{-- CMS fallback (kept for later restore)
+<p>To build a community of reviews in the spirit of helping others, all reviews and subsequent
                         comments
                         from the company must follow our guidelines.</p>
                     <ul>
@@ -90,18 +102,22 @@
                             provided will not be published.
                         </li>
                     </ul>
-                @endif
+                --}}
+@endif
 
                 @if($sectionData['reviews_dos']['title'])
                     <h4>{{$sectionData['reviews_dos']['title']}}</h4>
                 @else
-                    <h4>Review dos and don’ts</h4>
-                @endif
+{{-- CMS fallback (kept for later restore)
+<h4>Review dos and don’ts</h4>
+                --}}
+@endif
 
                 @if($sectionData['reviews_dos']['body'])
                     {!! $sectionData['reviews_dos']['body'] !!}
                 @else
-                    <ol>
+{{-- CMS fallback (kept for later restore)
+<ol>
                         <li>
                             Do not highlight or call out individuals for either praise or criticism It is acceptable to
                             reference your experience though generalised, in a respectful and factual manner.
@@ -177,18 +193,22 @@
                             </ul>
                         </li>
                     </ol>
-                @endif
+                --}}
+@endif
 
                 @if($sectionData['moderation_works']['title'])
                     <h4>{{$sectionData['moderation_works']['title']}}</h4>
                 @else
-                    <h4>How does moderation work?</h4>
-                @endif
+{{-- CMS fallback (kept for later restore)
+<h4>How does moderation work?</h4>
+                --}}
+@endif
 
                 @if($sectionData['moderation_works']['body'])
                     {!! $sectionData['moderation_works']['body'] !!}
                 @else
-                    <p>We monitor all reviews to ensure that they meet our community guidelines and are helpful to
+{{-- CMS fallback (kept for later restore)
+<p>We monitor all reviews to ensure that they meet our community guidelines and are helpful to
                         others.
                         We have a four-stage moderation process:</p>
                     <ol>
@@ -213,18 +233,22 @@
                         highlighting the inappropriateness and ask for to amend. Once resubmitted, this will trigger
                         re-evaluation.
                     </p>
-                @endif
+                --}}
+@endif
 
                 @if($sectionData['wrote_a_review']['title'])
                     <h4>{{$sectionData['wrote_a_review']['title']}}</h4>
                 @else
-                    <h4>I wrote a review but I can't see it on the website - why not?</h4>
-                @endif
+{{-- CMS fallback (kept for later restore)
+<h4>I wrote a review but I can't see it on the website - why not?</h4>
+                --}}
+@endif
 
                 @if($sectionData['wrote_a_review']['body'])
                     {!! $sectionData['wrote_a_review']['body'] !!}
                 @else
-                    <p>If you wrote a review but can’t see it on the website, one of two things might have happened.</p>
+{{-- CMS fallback (kept for later restore)
+<p>If you wrote a review but can’t see it on the website, one of two things might have happened.</p>
                     <ul>
                         <li>We don’t yet have a page for the company you reviewed – it can take a little while to get
                             all
@@ -237,7 +261,8 @@
                     </ul>
                     <p>ENDS</p>
                     <p>Version 1 . 25 February 2020.</p>
-                @endif
+                --}}
+@endif
 
             </div>
         </div>

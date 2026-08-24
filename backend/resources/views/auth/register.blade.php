@@ -1,5 +1,8 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Sign Up | ' . seoSiteName())
+@section('meta_robots', 'noindex, nofollow')
+
 @section('content')
     <div class="sign-in-wrap">
         <div class="container">
@@ -13,13 +16,16 @@
                 <div class="form-wrap">
                     <div>
                         <h3>Few steps ahead to join us</h3>
+                        @if(session('social_auth_error'))
+                            <p class="text-danger">{{ session('social_auth_error') }}</p>
+                        @endif
                         <div class="social-media-wrap">
                             <ul>
                                 <li class="fb-icon">
-                                    <a href="#"><i class="fa fa-facebook" aria-hidden="true"></i></a>
+                                    <a href="{{ route('socialite-facebook') }}"><i class="fa fa-facebook" aria-hidden="true"></i></a>
                                 </li>
                                 <li class="gplus-icon">
-                                    <a href="#"><i class="fa fa-google" aria-hidden="true"></i></a>
+                                    <a href="{{ route('socialite-google') }}"><i class="fa fa-google" aria-hidden="true"></i></a>
                                 </li>
                             </ul>
                         </div>

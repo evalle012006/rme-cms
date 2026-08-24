@@ -214,8 +214,23 @@ export function BuildersListPage({
   const to = total === 0 ? null : Math.min(page * perPage, total)
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       <Breadcrumb items={breadcrumb} />
+
+      <div className="flex justify-end">
+        <Link
+          to={{
+            pathname: ROUTES.builder.add,
+            search: `?from=${
+              statusFilter === BUILDER_STATUS.APPROVED ? "approved" : "pending"
+            }`,
+          }}
+        >
+          <Button color="primary" className="h-auto px-4 py-2">
+            Add Company User
+          </Button>
+        </Link>
+      </div>
 
       <DataTable<Builder>
         columns={columns}

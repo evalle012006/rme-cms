@@ -4,7 +4,7 @@ import { ROUTES } from '@/constants/routes'
 
 const BREADCRUMB = [
   { label: 'Home', to: ROUTES.root },
-  { label: 'Property' },
+  { label: 'Project' },
 ]
 
 export default function PropertyApprovedPage() {

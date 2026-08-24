@@ -12,6 +12,18 @@ use Image;
 
 class UploadController extends Controller
 {
+    /** Allowed storage folder prefixes (must match BaseController + BlogCategory). */
+    private const ALLOWED_IMAGE_PATHS = [
+        'profile-image/',
+        'feature-image/',
+        'company-logo/',
+        'property/',
+        'propertycat-icon/',
+        'blog-category-image/',
+        'cms-images/',
+        'adv-images/',
+        'ratingconf-icon/',
+    ];
 
     public function uploadImages(Request $request)
     {
@@ -19,6 +31,20 @@ class UploadController extends Controller
 
         if (!$file) {
             return response()->json(['error' => 'No file provided under key "file"'], 422);
+        }
+
+        $imagePath = $request->input('image_path');
+        if (!is_string($imagePath) || $imagePath === '') {
+            return response()->json(['error' => 'Missing or invalid image_path'], 422);
+        }
+
+        // Normalize trailing slash so whitelist matches regardless of client form
+        if (substr($imagePath, -1) !== '/') {
+            $imagePath .= '/';
+        }
+
+        if (!in_array($imagePath, self::ALLOWED_IMAGE_PATHS, true)) {
+            return response()->json(['error' => 'Invalid image_path'], 422);
         }
 
         $size = File::size($file);
@@ -31,7 +57,7 @@ class UploadController extends Controller
         }
 
         try {
-            $path = $this->saveToS3($file, 'Uploads/images/');
+            $path = $this->saveToS3($file, $imagePath);
         } catch (\Exception $e) {
             Log::error('UPLOAD_FAILED: ' . $e->getMessage());
             return response()->json(['error' => 'File upload failed'], 500);

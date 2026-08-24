@@ -122,7 +122,7 @@ class BlogController extends BaseController
 
     public function getBlog($id)
     {
-        $blog = Blogs::with('blogCategories')->find($id);
+        $blog = Blogs::with(['blogCategories', 'user'])->find($id);
         if (!is_null($blog)) {
             return $this->formatSuccessResponse('success', $blog);
         }
@@ -168,8 +168,4 @@ class BlogController extends BaseController
         Blogs::where('id', $request->id)->delete();
         return $this->formatSuccessResponse('delete record', 'success');
     }
-
-
-
-
 }

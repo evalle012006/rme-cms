@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 
 class RatingConfiguration extends Model
 {
@@ -18,7 +17,7 @@ class RatingConfiguration extends Model
 
     function getFullRatingconfIconAttribute() {
         if (!empty($this->rating_icon)) {
-            return url(Storage::url($this->rating_icon));
+            return absoluteStorageUrl($this->rating_icon);
         }
         return null;
     }

@@ -6,6 +6,7 @@ import {
   type ApiRequestOptions,
 } from '@/api/apiService'
 import { uploadAPI } from '@/api/upload/uploadAPIHandler'
+import { STORAGE_PATHS } from '@/constants/storagePaths'
 import { BLOGS_ENDPOINTS } from './blogsAPIEndpoints'
 import type { BlogCategory } from '@/api/blogCategories/blogCategoriesAPIHandler'
 import type { DataTablesRequest, DataTablesResponse } from '@/types/api'
@@ -17,6 +18,12 @@ export interface BlogCategoryPivot {
 
 export interface BlogCategoryRelation extends BlogCategory {
   pivot: BlogCategoryPivot
+}
+
+export interface BlogAuthor {
+  id: number
+  profile_image: string | null
+  full_profile_image?: string | null
 }
 
 export interface Blog {
@@ -39,6 +46,7 @@ export interface Blog {
   deleted_at: string | null
   full_feature_image: string
   blog_categories: BlogCategoryRelation[]
+  user?: BlogAuthor | null
 }
 
 export interface CreateBlogPayload {
@@ -97,7 +105,10 @@ export const blogsAPI = {
     payload: CreateBlogPayload,
     options?: ApiRequestOptions
   ): Promise<Blog> => {
-    const featureImagePath = await uploadAPI.uploadImage(payload.feature_image)
+    const featureImagePath = await uploadAPI.uploadImage(
+      payload.feature_image,
+      STORAGE_PATHS.FEATURE
+    )
 
     return apiRequest<Blog>(
       apiClient.post<ApiEnvelope<Blog>>(BLOGS_ENDPOINTS.ADD, {
@@ -123,7 +134,10 @@ export const blogsAPI = {
   ): Promise<Blog> => {
     const featureImagePath =
       payload.feature_image instanceof File
-        ? await uploadAPI.uploadImage(payload.feature_image)
+        ? await uploadAPI.uploadImage(
+            payload.feature_image,
+            STORAGE_PATHS.FEATURE
+          )
         : payload.feature_image
 
     const fd = new FormData()

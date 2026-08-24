@@ -12,9 +12,11 @@ use App\Models\ReviewTags;
 use App\Models\SelectMaster;
 use App\Models\Suburbs;
 use App\Models\Tags;
+use App\Services\ResendService;
 use GuzzleHttp\Exception\ServerException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException; 
@@ -24,7 +26,7 @@ class ReviewController extends BaseController
 
     public function getDatatableReview(Request $request)
     {
-        $reviews = Review::with('property')
+        $reviews = Review::with(['property.company:id,company_name'])
             ->select('reviews.*')
             ->where('status', $request->status);
 
@@ -183,7 +185,12 @@ class ReviewController extends BaseController
                 ->with('property:id,project_name', 'users:id,email')
                 ->first()
                 ->toArray();
-            \Mail::to($reviewData['users']['email'])->send(new \App\Mail\ApprovedReviewMail($reviewData));
+            app(ResendService::class)->send(
+                $reviewData['users']['email'],
+                'Your review is approved and live!',
+                'email-template.approved-review',
+                ['details' => $reviewData]
+            );
             return true;
         } catch (\Exception $e) {
             return false;
@@ -202,6 +209,34 @@ class ReviewController extends BaseController
             return $this->formatSuccessResponse('success', $data);
         }
         return $this->formatSuccessResponse('success', []);
+    }
+
+    public function getSuburbsByState(Request $request)
+    {
+        $stateId = $request->state_id;
+
+        if (empty($stateId)) {
+            return $this->formatSuccessResponse('success', []);
+        }
+
+        $state = ReviewStates::select('id', 'name')->find($stateId);
+        if (!$state) {
+            return $this->formatSuccessResponse('success', []);
+        }
+
+        $data = Suburbs::where('state', $state->name)
+            ->orderBy('name')
+            ->distinct()
+            ->pluck('name')
+            ->map(function ($name) {
+                return [
+                    'id' => $name,
+                    'name' => $name,
+                ];
+            })
+            ->values();
+
+        return $this->formatSuccessResponse('success', $data);
     }
 
     public function deleteReview($id)

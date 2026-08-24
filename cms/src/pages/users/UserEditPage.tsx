@@ -22,7 +22,7 @@ import { ROUTES } from "@/constants/routes"
 
 // ── Form schema ──────────────────────────────────────────────────────────────
 // Email is read-only on the page (matching the legacy UI) but is still part
-// of the submit payload, so it lives in the form state. Mobile/location are
+// of the submit payload, so it lives in the form state. Mobile/suburb are
 // nullable on the backend, so empty values are allowed here.
 
 const editUserSchema = z.object({
@@ -69,9 +69,6 @@ export default function UserEditPage() {
     null
   )
   const [profileImageCleared, setProfileImageCleared] = useState(false)
-  const [profileImageError, setProfileImageError] = useState<string | null>(
-    null
-  )
 
   const {
     register,
@@ -109,7 +106,6 @@ export default function UserEditPage() {
         setExistingProfileImageUrl(data.full_profile_image ?? data.profile_image)
         setProfileImage(null)
         setProfileImageCleared(false)
-        setProfileImageError(null)
         const normalisedStatus = STATUS_MAP[data.status] ?? USER_STATUS.PENDING
         reset({
           firstname: data.firstname ?? "",
@@ -137,28 +133,12 @@ export default function UserEditPage() {
     navigate(-1)
   }, [navigate])
 
-  const hasProfileImage =
-    !!profileImage ||
-    (!!existingProfileImageUrl && !profileImageCleared) ||
-    (!!user?.profile_image && !profileImageCleared)
-
-  const validateProfileImage = useCallback(() => {
-    if (!hasProfileImage) {
-      setProfileImageError("Profile image is required")
-      return false
-    }
-    setProfileImageError(null)
-    return true
-  }, [hasProfileImage])
-
   // ── Submit ───────────────────────────────────────────────────────────────
   const onSubmit = async (data: EditUserFormData) => {
     if (!user) return
-    if (!validateProfileImage()) return
 
     const profileImagePayload =
       profileImage ?? (profileImageCleared ? null : user.profile_image)
-    if (!profileImagePayload) return
 
     setSubmitting(true)
     try {
@@ -185,10 +165,6 @@ export default function UserEditPage() {
     } finally {
       setSubmitting(false)
     }
-  }
-
-  const onInvalid = () => {
-    validateProfileImage()
   }
 
   if (loading) {
@@ -223,7 +199,7 @@ export default function UserEditPage() {
       <Breadcrumb items={BREADCRUMB} />
 
       <form
-        onSubmit={handleSubmit(onSubmit, onInvalid)}
+        onSubmit={handleSubmit(onSubmit)}
         className="space-y-6"
         noValidate
       >
@@ -248,11 +224,9 @@ export default function UserEditPage() {
                 existingUrl={
                   profileImageCleared ? null : existingProfileImageUrl
                 }
-                error={profileImageError ?? undefined}
                 onChange={(file) => {
                   setProfileImage(file)
                   if (file) {
-                    setProfileImageError(null)
                     setProfileImageCleared(false)
                   }
                 }}
@@ -298,7 +272,7 @@ export default function UserEditPage() {
             </FormControl>
           </div>
 
-          {/* Email + Mobile + Location row — full width grid (no logo column) */}
+          {/* Email + Mobile + Suburb row — full width grid (no logo column) */}
           <div className="grid grid-cols-1 gap-x-6 gap-y-5 px-6 pb-6 md:grid-cols-2">
             <FormControl
               label="Email"
@@ -319,8 +293,8 @@ export default function UserEditPage() {
             />
 
             <FormControl
-              label="Location"
-              placeholder="Location"
+              label="Suburb"
+              placeholder="Suburb"
               error={errors.location?.message}
               {...register("location")}
             />
@@ -357,13 +331,11 @@ function ProfileImagePicker({
   existingUrl,
   onChange,
   onClearExisting,
-  error,
 }: {
   file: File | null
   existingUrl: string | null
   onChange: (file: File | null) => void
   onClearExisting?: () => void
-  error?: string
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [filePreview, setFilePreview] = useState<string | null>(null)
@@ -427,8 +399,7 @@ function ProfileImagePicker({
           "relative flex aspect-square w-full cursor-pointer items-center justify-center rounded-card border-2 border-dashed transition-colors",
           dragOver
             ? "border-primary-500 bg-primary-100"
-            : "border-primary-300 bg-primary-100/60 hover:border-primary-400",
-          error && "border-red-400 bg-red-50"
+            : "border-primary-300 bg-primary-100/60 hover:border-primary-400"
         )}
       >
         {preview ? (
@@ -467,8 +438,6 @@ function ProfileImagePicker({
           onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
         />
       </div>
-
-      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Building2, TrendingUp, Star, Users } from 'lucide-react'
+import { Building2, TrendingUp, Star, Users, ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/atoms/Button'
 import { StatCard } from '@/components/atoms/StatCard'
@@ -29,6 +29,7 @@ const defaultCounters: DashboardCounters = {
   company: 0,
   property: 0,
   review: 0,
+  pending_review: 0,
   reviewer: 0,
 }
 
@@ -82,6 +83,15 @@ export default function DashboardPage() {
       countClassName: 'text-rose-500',
       accentColor: '#f43f5e',
     },
+    {
+      icon: ClipboardList,
+      count: counters.pending_review,
+      label: 'Pending Reviews',
+      iconClassName: 'bg-orange-500',
+      countClassName: 'text-orange-500',
+      accentColor: '#f97316',
+      to: ROUTES.reviews.pending,
+    },
   ]
 
   const handleExport = async () => {
@@ -102,7 +112,7 @@ export default function DashboardPage() {
 
       const fullUrl = csvUrl.startsWith('http')
         ? csvUrl
-        : `${import.meta.env.VITE_API_BASE_URL}/storage/${csvUrl}`
+        : `${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')}/storage/${csvUrl.replace(/^\/+/, '')}`
 
       const link = document.createElement('a')
       link.href = fullUrl
@@ -160,7 +170,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {stats.map((stat) => (
           <StatCard
             key={stat.label}
@@ -169,6 +179,7 @@ export default function DashboardPage() {
             label={stat.label}
             iconClassName={stat.iconClassName}
             countClassName={stat.countClassName}
+            to={stat.to}
           />
         ))}
       </div>

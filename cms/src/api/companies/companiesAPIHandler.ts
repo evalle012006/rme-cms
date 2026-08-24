@@ -6,6 +6,7 @@ import {
   type ApiRequestOptions,
 } from '@/api/apiService'
 import { uploadAPI } from '@/api/upload/uploadAPIHandler'
+import { STORAGE_PATHS } from '@/constants/storagePaths'
 import { COMPANIES_ENDPOINTS } from './companiesAPIEndpoints'
 import type { DataTablesRequest, DataTablesResponse } from '@/types/api'
 
@@ -123,7 +124,10 @@ export const companiesAPI = {
     payload: CreateCompanyPayload,
     options?: ApiRequestOptions
   ): Promise<Company> => {
-    const logoPath = await uploadAPI.uploadImage(payload.logo)
+    const logoPath = await uploadAPI.uploadImage(
+      payload.logo,
+      STORAGE_PATHS.COMPANY_LOGO
+    )
 
     return apiRequest<Company>(
       apiClient.post<ApiEnvelope<Company>>(COMPANIES_ENDPOINTS.CREATE, {
@@ -156,7 +160,10 @@ export const companiesAPI = {
   ): Promise<Company> => {
     const logoPath =
       payload.logo instanceof File
-        ? await uploadAPI.uploadImage(payload.logo)
+        ? await uploadAPI.uploadImage(
+            payload.logo,
+            STORAGE_PATHS.COMPANY_LOGO
+          )
         : payload.logo
 
     const fd = new FormData()

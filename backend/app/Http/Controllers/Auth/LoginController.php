@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Services\SocialFacebookAccountService;
+use App\Services\Auth\SocialAccountService;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 
 class LoginController extends Controller
 {
@@ -51,12 +53,22 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
+        // Suspended by admin (status 4) — show suspended popup, not email verification.
+        // CMS clears email_verified_at when status != Approved, so this must run first.
+        if ((string) $user->status === '4') {
+            Auth::logout();
+            $request->session()->forget('login_cred');
+            $request->session()->forget('verified');
+            $request->session()->put('account_suspended', true);
+            return redirect('/login');
+        }
+
         if ($user->hasVerifiedEmail() === false) {
-            \Auth::logout();
-            request()->session()->put('verified', false);
-            request()->session()->forget('login_cred');
+            Auth::logout();
+            $request->session()->put('verified', false);
+            $request->session()->forget('login_cred');
             if ($user->roles[0]['name'] !== 'builder') {
-                request()->session()->put('login_cred', $request->email);
+                $request->session()->put('login_cred', $request->email);
             }
             return redirect('/login');
         }
@@ -78,33 +90,99 @@ class LoginController extends Controller
 
     public function redirectToGoogleProvider()
     {
-        return Socialite::driver('google')->redirect();
+        return Socialite::driver('google')
+            ->scopes(['openid', 'profile', 'email'])
+            ->redirect();
     }
 
-    public function handleGoogleProviderCallback(SocialFacebookAccountService $service)
+    public function handleGoogleProviderCallback(Request $request, SocialAccountService $service)
     {
-        $user = $service->createOrGetUser(Socialite::driver('google')->stateless()->user(), 'google');
-        Auth::login($user, true);
-        return redirect()->route('root');
+        return $this->handleSocialCallback($request, $service, 'google', function () {
+            return Socialite::driver('google')->user();
+        });
     }
 
     public function redirectToFacebookProvider()
     {
-        return Socialite::driver('facebook')->redirect();
+        return Socialite::driver('facebook')
+            ->scopes(['email'])
+            ->redirect();
     }
 
-    public function handleFacebookProviderCallback(SocialFacebookAccountService $service)
+    public function handleFacebookProviderCallback(Request $request, SocialAccountService $service)
     {
-        $user = $service->createOrGetUser(Socialite::driver('facebook')->fields([
-            'name',
-            'first_name',
-            'last_name',
-            'email',
-            'gender',
-            'verified'
-        ])->stateless()->user(), 'facebook');
-//        auth()->login($user);
+        return $this->handleSocialCallback($request, $service, 'facebook', function () {
+            return Socialite::driver('facebook')
+                ->fields(['name', 'first_name', 'last_name', 'email'])
+                ->user();
+        });
+    }
+
+    /**
+     * Shared post-provider callback handling for the Blade public site.
+     *
+     * Responsibilities:
+     *   - detect provider "user cancelled" replies (?error=access_denied)
+     *   - catch Socialite state / network / API errors so users see /login with a
+     *     friendly message instead of a 500
+     *   - delegate to SocialAccountService to resolve the local user, respecting
+     *     the strict account-linking rules (see SocialAccountService::resolve)
+     *   - preserve the mid-review "guest-login" redirect used by the password flow
+     */
+    protected function handleSocialCallback(
+        Request $request,
+        SocialAccountService $service,
+        string $provider,
+        callable $fetchProviderUser
+    ) {
+        if ($request->has('error')) {
+            $code = $request->get('error') === 'access_denied' ? 'cancelled' : 'provider_error';
+            Log::warning('Social login provider error', [
+                'provider' => $provider,
+                'error'    => $request->get('error'),
+                'desc'     => $request->get('error_description'),
+            ]);
+            return redirect('/login?social_error=' . $code);
+        }
+
+        try {
+            $providerUser = $fetchProviderUser();
+        } catch (InvalidStateException $e) {
+            Log::warning('Social login invalid state', ['provider' => $provider]);
+            return redirect('/login?social_error=invalid_state');
+        } catch (\Throwable $e) {
+            Log::error('Social login provider fetch failed', [
+                'provider' => $provider,
+                'message'  => $e->getMessage(),
+            ]);
+            return redirect('/login?social_error=provider_error');
+        }
+
+        $result = $service->resolve($providerUser, $provider);
+
+        if (!$result->ok()) {
+            Log::info('Social login refused', [
+                'provider' => $provider,
+                'code'     => $result->errorCode,
+                'email'    => $providerUser->getEmail(),
+            ]);
+            return redirect('/login?social_error=' . $result->errorCode);
+        }
+
+        $user = $result->user;
+
+        if ((string) $user->status === '4') {
+            $request->session()->forget('login_cred');
+            $request->session()->forget('verified');
+            $request->session()->put('account_suspended', true);
+            return redirect('/login');
+        }
+
         Auth::login($user, true);
+
+        if (session()->has('guest-login')) {
+            return redirect()->route('review-step-2');
+        }
         return redirect()->route('root');
     }
 

@@ -19,23 +19,56 @@ import {
   type Builder,
   type BuilderStatusFilter,
 } from "@/api/builders/buildersAPIHandler"
+import { isValidationError } from "@/api/apiService"
 import { ROUTES } from "@/constants/routes"
 
 // ── Form schema ──────────────────────────────────────────────────────────────
 // Email is shown as read-only on the page (matching the legacy UI) but is
 // still included in the submit payload, so it lives in the form state.
+// Company fields are required only when the user is linked to a company.
 
-const editBuilderSchema = z.object({
+const editBuilderBaseSchema = z.object({
   firstname: z.string().min(1, "First name is required"),
   lastname: z.string().min(1, "Last name is required"),
   status: z.string().min(1, "Status is required"),
   email: z.string().min(1, "Email is required").email("Enter a valid email"),
-  company_name: z.string().min(1, "Company name is required"),
-  website: z.string().min(1, "Website is required"),
-  company_bio: z.string().min(1, "Company bio is required"),
+  company_name: z.string(),
+  website: z.string(),
+  company_bio: z.string(),
 })
 
-type EditBuilderFormData = z.infer<typeof editBuilderSchema>
+type EditBuilderFormData = z.infer<typeof editBuilderBaseSchema>
+
+function builderHasCompany(builder: Builder | null): boolean {
+  return Boolean(builder?.company_id ?? builder?.company?.id)
+}
+
+function createEditBuilderSchema(requireCompany: () => boolean) {
+  return editBuilderBaseSchema.superRefine((data, ctx) => {
+    if (!requireCompany()) return
+    if (!data.company_name.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Company name is required",
+        path: ["company_name"],
+      })
+    }
+    if (!data.website.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Website is required",
+        path: ["website"],
+      })
+    }
+    if (!data.company_bio.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Company bio is required",
+        path: ["company_bio"],
+      })
+    }
+  })
+}
 
 function resolveReturnPath(from: string | null) {
   return from === "pending" ? ROUTES.builder.pending : ROUTES.builder.approved
@@ -77,10 +110,22 @@ export default function BuilderEditPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPath, setLogoPath] = useState<string | null>(null)
 
+  const hasCompany = builderHasCompany(builder)
+  // Resolver is created once; read latest company linkage via ref on validate.
+  const hasCompanyRef = useRef(false)
+  hasCompanyRef.current = hasCompany
+
+  const editBuilderSchema = useMemo(
+    () => createEditBuilderSchema(() => hasCompanyRef.current),
+    []
+  )
+
   const {
     register,
     handleSubmit,
     reset,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm<EditBuilderFormData>({
     resolver: zodResolver(editBuilderSchema),
@@ -142,20 +187,26 @@ export default function BuilderEditPage() {
   // ── Submit ───────────────────────────────────────────────────────────────
   const onSubmit = async (data: EditBuilderFormData) => {
     if (!builder) return
+    clearErrors()
     setSubmitting(true)
     try {
+      const companyId = builder.company_id ?? builder.company?.id ?? null
       await buildersAPI.update(
         {
           id: builder.id,
-          company_id: builder.company_id ?? builder.company?.id ?? 0,
+          company_id: companyId,
           firstname: data.firstname,
           lastname: data.lastname,
           email: data.email,
           status: Number(data.status) as BuilderStatusFilter,
-          company_name: data.company_name,
-          company_bio: data.company_bio,
-          website: data.website,
-          company_logo: logoFile ?? logoPath,
+          ...(companyId != null
+            ? {
+                company_name: data.company_name,
+                company_bio: data.company_bio,
+                website: data.website,
+                company_logo: logoFile ?? logoPath,
+              }
+            : {}),
         },
         {
           successMessage: "Company user updated.",
@@ -163,8 +214,27 @@ export default function BuilderEditPage() {
         }
       )
       navigate(returnPath)
-    } catch {
-      // Toast already shown by the API wrapper / global interceptor.
+    } catch (err) {
+      if (isValidationError(err)) {
+        const apiErrors = err.response.data.errors
+        ;(
+          [
+            "firstname",
+            "lastname",
+            "status",
+            "email",
+            "company_name",
+            "website",
+            "company_bio",
+          ] as const
+        ).forEach((key) => {
+          const message = apiErrors[key]?.[0]
+          if (message) {
+            setError(key, { type: "server", message })
+          }
+        })
+      }
+      // Non-validation errors are already toasted by the API interceptor.
     } finally {
       setSubmitting(false)
     }
@@ -216,21 +286,29 @@ export default function BuilderEditPage() {
           </div>
 
           {/* Top row: logo + name fields + status/email */}
-          <div className="grid grid-cols-1 gap-x-6 gap-y-5 p-6 md:grid-cols-[200px_1fr_1fr]">
-            <div className="md:row-span-2">
-              <CompanyLogoPicker
-                file={logoFile}
-                existingUrl={builder.company?.full_company_logo ?? null}
-                onChange={(file) => {
-                  setLogoFile(file)
-                  if (file === null) {
-                    // Mark the existing logo as removed so the update call
-                    // doesn't accidentally preserve it.
-                    setLogoPath(null)
-                  }
-                }}
-              />
-            </div>
+          <div
+            className={
+              hasCompany
+                ? "grid grid-cols-1 gap-x-6 gap-y-5 p-6 md:grid-cols-[200px_1fr_1fr]"
+                : "grid grid-cols-1 gap-x-6 gap-y-5 p-6 md:grid-cols-2"
+            }
+          >
+            {hasCompany && (
+              <div className="md:row-span-2">
+                <CompanyLogoPicker
+                  file={logoFile}
+                  existingUrl={builder.company?.full_company_logo ?? null}
+                  onChange={(file) => {
+                    setLogoFile(file)
+                    if (file === null) {
+                      // Mark the existing logo as removed so the update call
+                      // doesn't accidentally preserve it.
+                      setLogoPath(null)
+                    }
+                  }}
+                />
+              </div>
+            )}
 
             <FormControl
               label="First Name"
@@ -270,34 +348,45 @@ export default function BuilderEditPage() {
             />
           </div>
 
-          {/* Company name + website */}
-          <div className="grid grid-cols-1 gap-x-6 gap-y-5 px-6 pb-6 md:grid-cols-2">
-            <FormControl
-              label="Company Name"
-              placeholder="Company name"
-              error={errors.company_name?.message}
-              {...register("company_name")}
-            />
+          {hasCompany ? (
+            <>
+              {/* Company name + website */}
+              <div className="grid grid-cols-1 gap-x-6 gap-y-5 px-6 pb-6 md:grid-cols-2">
+                <FormControl
+                  label="Company Name"
+                  placeholder="Company name"
+                  error={errors.company_name?.message}
+                  {...register("company_name")}
+                />
 
-            <FormControl
-              label="Website URL"
-              placeholder="https://example.com"
-              error={errors.website?.message}
-              {...register("website")}
-            />
-          </div>
+                <FormControl
+                  label="Website URL"
+                  placeholder="https://example.com"
+                  error={errors.website?.message}
+                  {...register("website")}
+                />
+              </div>
 
-          {/* Company bio (full-width textarea) */}
-          <div className="px-6 pb-6">
-            <FormControl
-              variant="textarea"
-              label="Company Bio"
-              rows={3}
-              placeholder="Company bio"
-              error={errors.company_bio?.message}
-              {...register("company_bio")}
-            />
-          </div>
+              {/* Company bio (full-width textarea) */}
+              <div className="px-6 pb-6">
+                <FormControl
+                  variant="textarea"
+                  label="Company Bio"
+                  rows={3}
+                  placeholder="Company bio"
+                  error={errors.company_bio?.message}
+                  {...register("company_bio")}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="px-6 pb-6">
+              <p className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+                No company is attached to this user. Company details can be
+                linked when a project is created for the relevant company.
+              </p>
+            </div>
+          )}
         </Card>
 
         <div className="flex flex-wrap items-center gap-3">

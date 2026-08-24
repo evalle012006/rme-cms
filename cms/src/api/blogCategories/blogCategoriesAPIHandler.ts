@@ -6,6 +6,7 @@ import {
   type ApiRequestOptions,
 } from '@/api/apiService'
 import { uploadAPI } from '@/api/upload/uploadAPIHandler'
+import { STORAGE_PATHS } from '@/constants/storagePaths'
 import { BLOG_CATEGORIES_ENDPOINTS } from './blogCategoriesAPIEndpoints'
 import type { DataTablesRequest, DataTablesResponse } from '@/types/api'
 
@@ -76,7 +77,10 @@ export const blogCategoriesAPI = {
     payload: CreateBlogCategoryPayload,
     options?: ApiRequestOptions
   ): Promise<BlogCategory> => {
-    const imagePath = await uploadAPI.uploadImage(payload.image)
+    const imagePath = await uploadAPI.uploadImage(
+      payload.image,
+      STORAGE_PATHS.BLOG_CATEGORY
+    )
 
     return apiRequest<BlogCategory>(
       apiClient.post<ApiEnvelope<BlogCategory>>(BLOG_CATEGORIES_ENDPOINTS.ADD, {
@@ -96,7 +100,10 @@ export const blogCategoriesAPI = {
   ): Promise<BlogCategory> => {
     const imagePath =
       payload.image instanceof File
-        ? await uploadAPI.uploadImage(payload.image)
+        ? await uploadAPI.uploadImage(
+            payload.image,
+            STORAGE_PATHS.BLOG_CATEGORY
+          )
         : payload.image
 
     const fd = new FormData()

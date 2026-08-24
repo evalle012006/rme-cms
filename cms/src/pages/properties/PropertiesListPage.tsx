@@ -169,8 +169,8 @@ export function PropertiesListPage({
       await propertiesAPI.delete(
         { id: propertyToDelete.id },
         {
-          successMessage: 'Property deleted successfully',
-          customErrorMessage: 'Failed to delete property',
+          successMessage: 'Project deleted successfully',
+          customErrorMessage: 'Failed to delete project',
         }
       )
       setPropertyToDelete(null)
@@ -331,11 +331,11 @@ export function PropertiesListPage({
         onOpenChange={(next) => {
           if (!next) setPropertyToDelete(null)
         }}
-        title="Delete property?"
+        title="Delete project?"
         description={
           propertyToDelete?.project_name
             ? `Are you sure you want to delete "${propertyToDelete.project_name}"? This action cannot be undone.`
-            : 'Are you sure you want to delete this property? This action cannot be undone.'
+            : 'Are you sure you want to delete this project? This action cannot be undone.'
         }
         tone="warning"
         confirmLabel="Confirm"

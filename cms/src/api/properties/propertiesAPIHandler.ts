@@ -6,6 +6,7 @@ import {
   type ApiRequestOptions,
 } from '@/api/apiService'
 import { uploadAPI } from '@/api/upload/uploadAPIHandler'
+import { STORAGE_PATHS } from '@/constants/storagePaths'
 import { PROPERTIES_ENDPOINTS } from './propertiesAPIEndpoints'
 import type { DataTablesRequest, DataTablesResponse } from '@/types/api'
 import type { PropertyCategory } from '@/api/property-settings/categoriesAPIHandler'
@@ -177,7 +178,10 @@ export const propertiesAPI = {
     payload: CreatePropertyPayload,
     options?: ApiRequestOptions
   ): Promise<Property> => {
-    const logoPath = await uploadAPI.uploadImage(payload.logo)
+    const logoPath = await uploadAPI.uploadImage(
+      payload.logo,
+      STORAGE_PATHS.PROPERTY_LOGO
+    )
 
     const fd = new FormData()
     appendPropertyFormFields(fd, payload)
@@ -210,7 +214,10 @@ export const propertiesAPI = {
   ): Promise<Property> => {
     const logoPath =
       payload.logo instanceof File
-        ? await uploadAPI.uploadImage(payload.logo)
+        ? await uploadAPI.uploadImage(
+            payload.logo,
+            STORAGE_PATHS.PROPERTY_LOGO
+          )
         : payload.logo
 
     const fd = new FormData()

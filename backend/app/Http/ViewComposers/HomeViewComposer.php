@@ -10,7 +10,7 @@ class HomeViewComposer
 {
     public function compose(View $view)
     {
-        $sectionData = CmsPageSections::whereCmsPageId(CmsPages::whereName('home')->pluck('id'))
+        $sectionData = CmsPageSections::whereIn('cms_page_id', CmsPages::where('name', 'home')->select('id'))
             ->get()
             ->groupBy('section_slug')
             ->transform(function ($item) {

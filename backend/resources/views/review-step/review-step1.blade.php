@@ -1,5 +1,8 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Write a Review | ' . seoSiteName())
+@section('meta_robots', 'noindex, nofollow')
+
 @section('extra-style')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet"/>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.css" rel="stylesheet"/>
@@ -80,7 +83,7 @@
                                 {{--                        <form>--}}
                                 <div class="basic-property-form">
                                     <div class="form-row">
-                                        <label id="company_label">Who was the property company name?</label>
+                                        <label id="company_label">Who was the project company name?</label>
                                         <select class="w-100" id="company_id" name="company_id"
                                                 value="{{old('company_id')}}"
                                                 data-placement="{{old('_token') ? old('company_id') : session()->get('review-company-id')}}"></select>
@@ -361,12 +364,16 @@
                                         resolve(res);
                                     }
                                 }, error: function (error) {
-                                    const errorObj = JSON.parse(error.responseText);
-                                    if (errorObj['errors'] && errorObj['errors']['company_name']) {
-                                        reject(errorObj['errors']['company_name'][0]);
-                                    } else {
-                                        reject(error.statusText);
-                                    }
+                                    let msg = 'A company with this name already exists. Please select it from the list instead of creating a duplicate.';
+                                    try {
+                                        const errorObj = JSON.parse(error.responseText);
+                                        if (errorObj['errors'] && errorObj['errors']['company_name']) {
+                                            msg = errorObj['errors']['company_name'][0];
+                                        } else if (errorObj['message']) {
+                                            msg = errorObj['message'];
+                                        }
+                                    } catch (e) { /* keep default */ }
+                                    reject(msg);
                                 }
                             })
                         })

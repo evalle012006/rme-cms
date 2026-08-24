@@ -7,13 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use CyrildeWit\EloquentViewable\Viewable;
 use CyrildeWit\EloquentViewable\Contracts\Viewable as ViewableContract;
-use Illuminate\Support\Facades\Storage;
-
 class Review extends Model implements ViewableContract
 {
     use SoftDeletes, Viewable, Sluggable;
 
-    protected $appends = ['full_review_image'];
+    protected $appends = ['full_review_image', 'full_review_docs'];
 
     static $rules = [
         'title' => 'required',
@@ -79,7 +77,15 @@ class Review extends Model implements ViewableContract
     function getFullReviewImageAttribute()
     {
         if (!empty($this->review_image)) {
-            return url(Storage::url($this->review_image));
+            return absoluteStorageUrl($this->review_image);
+        }
+        return null;
+    }
+
+    function getFullReviewDocsAttribute()
+    {
+        if (!empty($this->review_docs)) {
+            return absoluteStorageUrl($this->review_docs);
         }
         return null;
     }

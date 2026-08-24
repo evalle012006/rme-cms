@@ -3,18 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\BaseController;
-use App\Mail\ChangeRequestUpdate;
-use App\Mail\UserCompanyAssignedMail;
 use App\Models\CompanyDetails;
 use App\Models\Properties;
 use App\Models\PropertyCategory;
 use App\Models\Review;
 use App\Models\User;
+use App\Rules\UniqueCompanyName;
+use App\Services\ResendService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -28,7 +27,7 @@ class CompanyDetailsController extends BaseController
     {
         $rules = [
             'logo' => 'required',
-            'company_name' => 'required|unique:company_details,company_name',
+            'company_name' => ['required', 'string', new UniqueCompanyName()],
             'bio' => 'required',
             'contact_number' => 'required',
             'website' => 'required',
@@ -38,6 +37,7 @@ class CompanyDetailsController extends BaseController
 
         try {
             $data = $this->validate($request, $rules);
+            $data['company_name'] = trim($data['company_name']);
             if ($request->hasFile('logo')) {
                 $file = $request->file('logo');
                 $fileLogo = $this->uploadCompanyLogo($file);
@@ -48,14 +48,17 @@ class CompanyDetailsController extends BaseController
             $company = CompanyDetails::create($data);
             return $this->formatSuccessResponse('Company Created', $company);
         } catch (ValidationException $e) {
-            return $this->apiFormatFailureResponse('false', $e->errors());
+            return $this->apiFormatFailureResponse('false', $e->errors(), 422);
         }
     }
 
     public function uploadCompanyLogo($file)
     {
         $data['logo'] = $this->saveToS3($file, self::COMPANY_LOGO_STORAGE_PATH);
-        $data['logo_thumb'] = $this->saveThumbToS3($data['logo']);
+        $thumb = $this->saveThumbToS3($data['logo']);
+        if ($thumb) {
+            $data['logo_thumb'] = $thumb;
+        }
         return $data;
     }
 
@@ -63,7 +66,7 @@ class CompanyDetailsController extends BaseController
     {
         $rules = [
             'logo' => 'required',
-            'company_name' => 'required|unique:company_details,company_name,' . $request->id,
+            'company_name' => ['required', 'string', new UniqueCompanyName($request->id)],
             'bio' => 'required',
             'contact_number' => 'required',
             'website' => 'required',
@@ -73,6 +76,7 @@ class CompanyDetailsController extends BaseController
 
         try {
             $data = $this->validate($request, $rules);
+            $data['company_name'] = trim($data['company_name']);
 
             $companyUserData = [];
             if ($request->company_user) {
@@ -142,7 +146,7 @@ class CompanyDetailsController extends BaseController
             }
             return $this->formatSuccessResponse('Company Updated', $data);
         } catch (ValidationException $e) {
-            return $this->apiFormatFailureResponse('false', $e->errors());
+            return $this->apiFormatFailureResponse('false', $e->errors(), 422);
         }
     }
 
@@ -161,7 +165,12 @@ class CompanyDetailsController extends BaseController
             $link = URL::to('/') . '/password/reset/' . $token . '?email=' . urlencode($email);
 
             $emailData['link'] = $link;
-            Mail::to($email)->send(new UserCompanyAssignedMail($emailData));
+            app(ResendService::class)->send(
+                $email,
+                'Account registered successfully',
+                'email-template.user-company-assigned',
+                ['details' => $emailData]
+            );
             return true;
         } catch (\Exception $e) {
             Log::info('RESET_PW_EMAIL_ERROR : ' . $e->getMessage());

@@ -1,14 +1,19 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Terms of Use | ' . seoSiteName())
+@section('meta_description', 'Review the terms of use that govern your access to and use of the ' . seoSiteName() . ' website and services.')
+
 @section('content')
     <div class="bg-main inner-banner"
          style="background-image: url({{$sectionData['banner']['image'] ? checkUrl($sectionData['banner']['image']) : 'images/homepage/HomepageHero.jpg'}});">
         <div class="banner-caption">
             @if($sectionData['banner']['title'])
-                <h2>{{$sectionData['banner']['title']}}</h2>
+                <h1>{{$sectionData['banner']['title']}}</h1>
             @else
-                <h2>Terms Of Use</h2>
-            @endif
+{{-- CMS fallback (kept for later restore)
+<h1>Terms Of Use</h1>
+            --}}
+@endif
             <div class="breadcrumb-wrap">
                 <a href="{{route('root')}}">Home</a> / <span>Terms Of Use</span>
             </div>
@@ -21,13 +26,16 @@
                 @if($sectionData['general']['title'])
                     <h4>{{$sectionData['general']['title']}}</h4>
                 @else
-                    <h4>General</h4>
-                @endif
+{{-- CMS fallback (kept for later restore)
+<h4>General</h4>
+                --}}
+@endif
 
                 @if($sectionData['general']['body'])
                     {!! $sectionData['general']['body'] !!}
                 @else
-                    <p>Users of ratemyestate.com.au (the Site), agree to be bound by these Terms and Conditions and any
+{{-- CMS fallback (kept for later restore)
+<p>Users of ratemyestate.com.au (the Site), agree to be bound by these Terms and Conditions and any
                         other notices and guidelines which appear on the Site, which are subject to change without
                         notice,
                         from time to time in our sole discretion. Your use of and access to the Site indicates your
@@ -70,19 +78,23 @@
                             your member profile.
                         </li>
                     </ul>
-                @endif
+                --}}
+@endif
 
 
                 @if($sectionData['copyright']['title'])
                     <h4>{{$sectionData['copyright']['title']}}</h4>
                 @else
-                    <h4>Copyright</h4>
-                @endif
+{{-- CMS fallback (kept for later restore)
+<h4>Copyright</h4>
+                --}}
+@endif
 
                 @if($sectionData['copyright']['body'])
                     {!! $sectionData['copyright']['body'] !!}
                 @else
-                    <ul>
+{{-- CMS fallback (kept for later restore)
+<ul>
                         <li>Except for company trademarks, all material contained on ratemyestate.com.au, including,
                             text,
                             design, graphics, applications, software, underlying source code and the selection of
@@ -116,18 +128,22 @@
                             the Trade Practices Act 1974 (Cth).
                         </li>
                     </ul>
-                @endif
+                --}}
+@endif
 
                 @if($sectionData['disclaimer']['title'])
-                    <h2>{{$sectionData['disclaimer']['title']}}</h2>
+                    <h4>{{$sectionData['disclaimer']['title']}}</h4>
                 @else
-                    <h2>Disclaimer</h2>
-                @endif
+{{-- CMS fallback (kept for later restore)
+<h4>Disclaimer</h4>
+                --}}
+@endif
 
                 @if($sectionData['disclaimer']['body'])
                     {!! $sectionData['disclaimer']['body'] !!}
                 @else
-                    <ol>
+{{-- CMS fallback (kept for later restore)
+<ol>
                         <li>The ratemyestate.com.au website is a public forum presenting user opinions on selected
                             products,
                             and as such the views expressed do not necessarily reflect the opinion of ratemyestate.
@@ -229,7 +245,8 @@
                         <li>If you feel that any information on the site has infringed your rights, please contact us.
                         </li>
                     </ol>
-                @endif
+                --}}
+@endif
             </div>
         </div>
     </div>

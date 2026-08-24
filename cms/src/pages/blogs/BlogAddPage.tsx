@@ -24,6 +24,8 @@ import {
   nowDatetimeLocal,
   type BlogFormData,
 } from '@/pages/blogs/blogFormShared'
+import { stashBlogPreview } from '@/pages/blogs/blogPreviewShared'
+import { imgUrl } from '@/lib/utils'
 
 const LIST_PATH = ROUTES.blogs.list
 
@@ -49,6 +51,7 @@ export default function BlogAddPage() {
   const {
     register,
     handleSubmit,
+    getValues,
     setError,
     clearErrors,
     formState: { errors },
@@ -87,6 +90,27 @@ export default function BlogAddPage() {
   const handleCancel = useCallback(() => {
     navigate(LIST_PATH)
   }, [navigate])
+
+  const handlePreview = useCallback(() => {
+    const data = getValues()
+    const category = categories.find((item) => String(item.id) === data.category_id)
+    const featureImageUrl = featureImage ? URL.createObjectURL(featureImage) : null
+    const authUser = useAuthStore.getState().user
+
+    stashBlogPreview({
+      title: data.title,
+      description,
+      blog_date: data.blog_date,
+      author_name: data.author_name,
+      status: data.status,
+      category_name: category?.name ?? '',
+      feature_image_url: featureImageUrl,
+      author_image_url:
+        imgUrl(authUser?.profile_image) ?? imgUrl(authUser?.profile_thumb_image),
+      return_to: ROUTES.blogs.add,
+    })
+    navigate(ROUTES.blogs.previewDraft)
+  }, [categories, description, featureImage, getValues, navigate])
 
   const applyServerErrors = (apiErrors: Record<string, string[]>) => {
     const fieldKeys: (keyof BlogFormData)[] = [
@@ -331,6 +355,15 @@ export default function BlogAddPage() {
               className="px-6 py-3 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? 'Creating…' : 'Create'}
+            </Button>
+            <Button
+              type="button"
+              color="secondary"
+              onClick={handlePreview}
+              disabled={fieldsDisabled}
+              className="px-6 py-3"
+            >
+              Preview
             </Button>
             <Button
               type="button"

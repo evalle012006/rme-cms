@@ -67,8 +67,8 @@ export function PropertyImportModal({
     setSubmitting(true)
     try {
       await propertiesAPI.importFile(selectedFile, {
-        successMessage: 'Properties imported successfully',
-        customErrorMessage: 'Failed to import properties',
+        successMessage: 'Projects imported successfully',
+        customErrorMessage: 'Failed to import projects',
       })
       resetState()
       onSuccess()

@@ -1,5 +1,61 @@
 @extends('layouts.app-layout')
 
+@php
+    $rmeCompanyName = $property['company']['company_name'] ?? null;
+    $rmeReviewCount = is_array($property_review) ? count($property_review) : 0;
+    $rmeSchemaReviews = [];
+    if ($rmeReviewCount > 0) {
+        foreach (array_slice(array_values($property_review), 0, 10) as $rmeReview) {
+            $rmeSchemaReviews[] = array_filter([
+                '@type' => 'Review',
+                'author' => [
+                    '@type' => 'Person',
+                    'name' => $rmeReview['users']['display_name']
+                        ?? ($rmeReview['users']['firstname'] ?? 'Anonymous'),
+                ],
+                'datePublished' => !empty($rmeReview['created_at'])
+                    ? \Carbon\Carbon::parse($rmeReview['created_at'])->toDateString() : null,
+                'name' => $rmeReview['title'] ?? null,
+                'reviewBody' => !empty($rmeReview['comment']) ? seoText($rmeReview['comment'], 300) : null,
+                'reviewRating' => !empty($rmeReview['overall_rating']) ? [
+                    '@type' => 'Rating',
+                    'ratingValue' => (string)$rmeReview['overall_rating'],
+                    'bestRating' => '5',
+                    'worstRating' => '1',
+                ] : null,
+            ]);
+        }
+    }
+@endphp
+
+@section('meta_title', $property['project_name'] . ($rmeCompanyName ? ' by ' . $rmeCompanyName : '') . ' Reviews | ' . seoSiteName())
+@section('meta_description', seoText(!empty($property['description']) ? $property['description'] : ('Read ' . $rmeReviewCount . ' verified reviews and ratings for ' . $property['project_name'] . ($rmeCompanyName ? ' by ' . $rmeCompanyName : '') . ' on ' . seoSiteName() . '.')))
+@section('og_image', $property['full_property_logo'] ?: asset('images/logo.png'))
+
+@section('structured_data')
+    {!! seoJsonLd(array_filter([
+        '@context' => 'https://schema.org',
+        '@type' => 'Product',
+        'name' => $property['project_name'],
+        'image' => $property['full_property_logo'] ?: asset('images/logo.png'),
+        'description' => !empty($property['description']) ? seoText($property['description'], 300) : null,
+        'brand' => $rmeCompanyName ? ['@type' => 'Brand', 'name' => $rmeCompanyName] : null,
+        'aggregateRating' => ($rmeReviewCount > 0 && $overall_rate > 0) ? [
+            '@type' => 'AggregateRating',
+            'ratingValue' => (string)$overall_rate,
+            'reviewCount' => (string)$rmeReviewCount,
+            'bestRating' => '5',
+            'worstRating' => '1',
+        ] : null,
+        'review' => !empty($rmeSchemaReviews) ? $rmeSchemaReviews : null,
+    ])) !!}
+    {!! seoBreadcrumbJsonLd([
+        ['name' => 'Home', 'url' => route('root')],
+        ['name' => 'Reviews', 'url' => route('property-listing')],
+        ['name' => $property['project_name'], 'url' => url()->current()],
+    ]) !!}
+@endsection
+
 @section('content')
     <div class="property-review-detail-section property-review-custom">
         <div class="container">
@@ -42,8 +98,8 @@
                                 <div class="rating-list">
                                     @foreach($ratingNumbers as $ratingNumber => $starRating)
                                         <div class="rating-list-single">
-                                            <a class="{{request()->get('filter_rating')==$ratingNumber ? 'active-rating': '' }}"
-                                               href="{{($starRating[1] == 0 || request()->get('filter_rating')==$ratingNumber) ? request()->url() : request()->url().'?filter_rating='.$ratingNumber}}">
+                                            <a class="filter-rating-link {{request()->get('filter_rating')==$ratingNumber ? 'active-rating': '' }}"
+                                               href="{{ $starRating[1] == 0 ? 'javascript:void(0)' : (request()->get('filter_rating')==$ratingNumber ? request()->fullUrlWithQuery(['filter_rating' => null]) : request()->fullUrlWithQuery(['filter_rating' => $ratingNumber])) }}">
                                                 <div class="star-counter">
                                                     <span>{{$ratingNumber}}</span><img
                                                         src="{{asset('images/rating-img-black.png')}}"/>
@@ -112,161 +168,26 @@
                     @endif
                 </div>
             </div>
-            <div class="top-10-reviews-wrap">
+            <div class="top-10-reviews-wrap" id="property-reviews-section">
                 <div class="section-title">
-                    <h5>Reviews {{count($property_review)}}</h5>
+                    <h5 id="property-reviews-count">Reviews {{count($property_review)}}</h5>
                     <div class="filter-wrap">
                         <span>Filter By:</span>
-                        @if(isset($cat))
-                            <form action="{{url('property-review/'.request()->segment(2).'/'.request()->segment(3))}}"
-                                  method="GET">
-                                <input type="text" name="filter_by" value="{{request()->input('filter_by')}}"
-                                       placeholder="Search by review">
-                                <input type="submit" name="" value="Search">
-                                @else
-                                    <form action="{{url('property-review/'.request()->segment(2))}}" method="GET">
-
-                                        <input type="text" name="filter_by" value="{{request()->input('filter_by')}}"
-                                               placeholder="Search by review">
-                                        <input type="submit" name="" value="Search">
-                                    </form>
-                        @endif
+                        <form id="property-review-filter-form"
+                              action="{{ isset($cat) ? url('property-review/'.request()->segment(2).'/'.request()->segment(3)) : url('property-review/'.request()->segment(2)) }}"
+                              method="GET">
+                            @if(request()->filled('filter_rating'))
+                                <input type="hidden" name="filter_rating" value="{{ request()->get('filter_rating') }}">
+                            @endif
+                            <input type="text" name="filter_by" value="{{request()->input('filter_by')}}"
+                                   placeholder="Search by review">
+                            <input type="submit" name="" value="Search">
+                        </form>
                     </div>
                 </div>
-                @foreach($property_review as $propReview)
-                    <div class="section-content">
-                        <div class="top-single-review">
-                            <div class="review-author">
-                                <img class="profile-photo"
-                                     src="{{$propReview['users']['profile_image'] ? url(Storage::url($propReview['users']['profile_image'])) : asset('images/author-img-grey.png')}}">
-                                <div class="author-detail">
-                                    <h5>{{$propReview['users']['display_name']}}
-                                        {{--                                        ({{$propReview['users']['firstname']. ' '. $propReview['users']['lastname']}}--}}
-                                        {{--                                        )--}}
-                                    </h5>
-                                    <span>{{$propReview['users']['reviews_count']}} {{$propReview['users']['reviews_count'] == 1 ? 'review' : 'reviews'}}</span>
-                                </div>
-                                <img class="useful-icon {{!$propReview['recommendation'] ? 'rotate-180' : ''}}" src="{{asset('images/thumbs-up.png')}}">
-                            </div>
-                            <div class="main-review-content">
-                                <ul class="rate-star-wrap overall-rate-color-{{ratingClass($propReview['overall_rating'])}}">
-                                    <li><a><img src="{{asset('images/rating-star.png')}}"></a></li>
-                                    <li><a><img src="{{asset('images/rating-star.png')}}"></a></li>
-                                    <li><a><img src="{{asset('images/rating-star.png')}}"></a></li>
-                                    <li><a><img src="{{asset('images/rating-star.png')}}"></a></li>
-                                    <li><a><img src="{{asset('images/rating-star.png')}}"></a></li>
-                                </ul>
-                                <div class="time-span">
-                                    <span>
-                                    @if(Carbon\Carbon::now()->diffInDays($propReview['created_at']) > 0)
-                                            {{Carbon\Carbon::now()->diffInDays($propReview['created_at'])}} Days Ago
-                                        @elseif(Carbon\Carbon::now()->diffInHours($propReview['created_at']) > 0)
-                                            {{Carbon\Carbon::now()->diffInHours($propReview['created_at'])}} Hours Ago
-                                        @else
-                                            {{Carbon\Carbon::now()->diffInMinutes($propReview['created_at'])}} Minutes
-                                            Ago
-                                        @endif
-                                    </span>
-                                </div>
-                                <div class="review-title">
-                                    <h4>{{$propReview['title']}}</h4>
-                                </div>
-                                <div class="review-detail-watch">
-                                    <div class="show-btn"><span>Show Review Detail <i class="fa fa-chevron-circle-down"
-                                                                                      aria-hidden="true"></i></span>
-                                    </div>
-                                    <div class="content-panel">
-                                        <div class="rated-exp">
-                                            <h6>Rated Experience</h6>
-                                            <ul>
-                                                @foreach($propReview['ratings'] as $questionList)
-                                                    <li><span>{{$questionList['review_question']['name']}}</span>
-                                                        <ul class="general-star-rating overall-rate-color-{{ratingClass($questionList['rate'])}}">
-                                                            <li><a><img
-                                                                        src="{{asset('images/rating-img.png')}}"></a>
-                                                            </li>
-                                                            <li><a><img
-                                                                        src="{{asset('images/rating-img.png')}}"></a>
-                                                            </li>
-                                                            <li><a><img
-                                                                        src="{{asset('images/rating-img.png')}}"></a>
-                                                            </li>
-                                                            <li><a><img
-                                                                        src="{{asset('images/rating-img.png')}}"></a>
-                                                            </li>
-                                                            <li><a><img
-                                                                        src="{{asset('images/rating-img.png')}}"></a>
-                                                            </li>
-                                                        </ul>
-                                                    </li>
-                                                @endforeach
-                                            </ul>
-                                            <div class="overall-rating-wrap">
-                                                <h6>Overall Ratings</h6>
-                                                <ul class="general-star-rating overall-rate-color-{{ratingClass($propReview['overall_rating'])}}">
-                                                    <li><a><img src="{{asset('images/rating-img.png')}}"></a>
-                                                    </li>
-                                                    <li><a><img src="{{asset('images/rating-img.png')}}"></a>
-                                                    </li>
-                                                    <li><a><img src="{{asset('images/rating-img.png')}}"></a>
-                                                    </li>
-                                                    <li><a><img src="{{asset('images/rating-img.png')}}"></a>
-                                                    </li>
-                                                    <li><a><img src="{{asset('images/rating-img.png')}}"></a>
-                                                    </li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        <div class="comment-tags-wrap">
-                                            <h6>Comment Tags</h6>
-                                            <div class="tags-wrap">
-                                                <ul>
-                                                    @foreach($propReview['review_tags'] as $tags)
-                                                        <li><a>{{$tags['name']}}</a></li>
-                                                    @endforeach
-                                                </ul>
-                                            </div>
-                                        </div>
-                                        @if(!empty($propReview['comment']))
-                                            <div class="comment-wrap">
-                                                <h6>Comment</h6>
-                                                <p>{{$propReview['comment']}}</p>
-                                            </div>
-                                        @endif
-                                        @if(!isset($cat))
-                                            <div class="comment-wrap">
-                                                <h6>Category</h6>
-                                                <p>{{$propReview['category']['name']}}</p>
-                                            </div>
-                                        @endif
-                                        @if(!empty($propReview['full_review_image']))
-                                            <div class="photos-wrap">
-                                                <h6>Photo</h6>
-                                                <div class="photos-row">
-                                                    <img class="review-image" src="{{$propReview['full_review_image']}}">
-                                                </div>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    {{--                                    <div class="review-footer">--}}
-                                    {{--                                        <div class="useful-wrap">--}}
-                                    {{--                                            <a href="#"><img src="{{asset('images/useful-icon.png')}}">Useful</a>--}}
-                                    {{--                                        </div>--}}
-                                    {{--                                        <div class="share-wrap">--}}
-                                    {{--                                            <a href="#"><img src="{{asset('images/share-icon-grey.png')}}">Share</a>--}}
-                                    {{--                                        </div>--}}
-                                    {{--                                        --}}{{--                                        <div class="flag">--}}
-                                    {{--                                        --}}{{--                                            <a href="#"><img src="{{asset('images/flag-icon.png')}}"></a>--}}
-                                    {{--                                        --}}{{--                                        </div>--}}
-                                    {{--                                    </div>--}}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-                @if(empty($property_review))
-                    <h4>No customer review found...</h4>
-                @endif
+                <div id="property-reviews-results">
+                    @include('partials.property-review-list')
+                </div>
             </div>
         </div>
     </div>
@@ -274,12 +195,73 @@
 
 @section('extra-script')
     <script>
-        const filterRating = {!! json_encode(request()->get('filter_rating')) !!};
-        if (filterRating) {
-            $('html, body').animate({
-                scrollTop: $(".section-title").offset().top
-            }, 500);
-        }
+        (function ($) {
+            function loadPropertyReviews(url) {
+                var $results = $('#property-reviews-results');
+                $results.css('opacity', '0.5');
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    success: function (html) {
+                        $results.html(html);
+                        var count = $results.find('.section-content').length;
+                        if ($results.find('h4').length && count === 0) {
+                            $('#property-reviews-count').text('Reviews 0');
+                        } else {
+                            $('#property-reviews-count').text('Reviews ' + count);
+                        }
+                        if (window.history && window.history.pushState) {
+                            window.history.pushState({propertyReviewAjax: true}, '', url);
+                        }
+                        var params = new URL(url, window.location.origin).searchParams;
+                        var rating = params.get('filter_rating');
+                        $('.filter-rating-link').removeClass('active-rating');
+                        if (rating) {
+                            $('.filter-rating-link').each(function () {
+                                if ($(this).attr('href').indexOf('filter_rating=' + rating) !== -1) {
+                                    $(this).addClass('active-rating');
+                                }
+                            });
+                            $('#property-review-filter-form input[name="filter_rating"]').remove();
+                            $('#property-review-filter-form').prepend(
+                                '<input type="hidden" name="filter_rating" value="' + rating + '">'
+                            );
+                        } else {
+                            $('#property-review-filter-form input[name="filter_rating"]').remove();
+                        }
+                        $('.content-panel').hide();
+                    },
+                    complete: function () {
+                        $results.css('opacity', '1');
+                    }
+                });
+            }
 
+            $('#property-review-filter-form').on('submit', function (event) {
+                event.preventDefault();
+                var $form = $(this);
+                var action = $form.attr('action');
+                var query = $form.serialize();
+                var url = action + (action.indexOf('?') === -1 ? '?' : '&') + query;
+                loadPropertyReviews(url);
+            });
+
+            $(document).on('click', '.filter-rating-link', function (event) {
+                event.preventDefault();
+                var href = $(this).attr('href');
+                if (href) {
+                    loadPropertyReviews(href);
+                }
+            });
+
+            window.addEventListener('popstate', function (event) {
+                if (event.state && event.state.propertyReviewAjax) {
+                    loadPropertyReviews(window.location.href);
+                } else {
+                    window.location.reload();
+                }
+            });
+        })(jQuery);
     </script>
 @endsection

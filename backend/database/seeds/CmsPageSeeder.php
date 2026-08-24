@@ -13,69 +13,57 @@ class CmsPageSeeder extends Seeder
      */
     public function run()
     {
-        $cmsPages = [
-            ['name' => 'home'],
-            ['name' => 'about'],
-            ['name' => 'property_guide'],
-            ['name' => 'property_coach'],
-            ['name' => 'contact'],
-            ['name' => 'review_guidelines'],
-            ['name' => 'terms_of_use'],
-            ['name' => 'privacy_policy']
+        // Each page maps to its sections as [section_name, section_slug] pairs.
+        // Sections are linked to the page's real id (looked up by name) rather
+        // than a hard-coded id, so seeding is safe regardless of existing rows
+        // or auto-increment state, and can be re-run without duplicating data.
+        $pages = [
+            'home' => $this->headings(['banner', 'review_ratio', 'why_write_review', 'recent_reviews', 'our_blogs']),
+            'about' => $this->headings(['banner', 'get_to_know', 'our_mission', 'our_platform', 'recent_reviews']),
+            'property_guide' => [['Banner', 'banner']],
+            'property_coach' => [['Banner', 'banner']],
+            'contact' => [['Banner', 'banner']],
+            'review_guidelines' => [
+                ['Banner', 'banner'],
+                ['Property, Project & Builders reviews on ratemyestate', 'reviews_on_rme'],
+                ['Our community guidelines', 'guidelines'],
+                ['Review dos and don’ts', 'reviews_dos'],
+                ['How does moderation work?', 'moderation_works'],
+                ['I wrote a review but I can\'t see it on the website - why not ?', 'wrote_a_review'],
+            ],
+            'terms_of_use' => $this->headings(['banner', 'general', 'copyright', 'disclaimer']),
+            'privacy_policy' => [
+                ['Banner', 'banner'],
+                ['Our commitment to maintaining your privacy', 'your_privacy'],
+                ['Definitions', 'definitions'],
+                ['Collecting other information on Ratemyestate visitors', 'collecting_info'],
+            ],
+            'reviews_listing' => [['Banner', 'banner']],
         ];
 
-        $home = ['banner', 'review_ratio', 'why_write_review', 'recent_reviews', 'our_blogs'];
-        $aboutUs = ['banner', 'get_to_know', 'our_mission', 'our_platform', 'recent_reviews'];
+        foreach ($pages as $name => $sections) {
+            $page = CmsPages::firstOrCreate(['name' => $name]);
 
-        // these arrays contains name on 0 and slug on 1
-        $reviewGuidelines = [
-            ['Banner', 'banner'],
-            ['Property, Project & Builders reviews on ratemyestate', 'reviews_on_rme'],
-            ['Our community guidelines', 'guidelines'],
-            ['Review dos and don’ts', 'reviews_dos'],
-            ['How does moderation work?', 'moderation_works'],
-            ['I wrote a review but I can\'t see it on the website - why not ?', 'wrote_a_review']
-        ];
+            foreach ($sections as [$sectionName, $slug]) {
+                CmsPageSections::firstOrCreate(
+                    ['cms_page_id' => $page->id, 'section_slug' => $slug],
+                    ['section_name' => $sectionName]
+                );
+            }
+        }
+    }
 
-        $termsOfUse = ['banner', 'general', 'copyright', 'disclaimer'];
-        $privacyPolicy = [
-            ['Banner', 'banner'],
-            ['Our commitment to maintaining your privacy', 'your_privacy'],
-            ['Definitions', 'definitions'],
-            ['Collecting other information on Ratemyestate visitors', 'collecting_info']
-        ];
-
-
-        $cmsPageSections = array_merge(
-        // for home page
-            array_map(function ($item) {
-                return ['cms_page_id' => 1, 'section_name' => makeHeading($item), 'section_slug' => $item];
-            }, $home),
-            // for about us page
-            array_map(function ($item) {
-                return ['cms_page_id' => 2, 'section_name' => makeHeading($item), 'section_slug' => $item];
-            }, $aboutUs),
-            // for property guide
-            [['cms_page_id' => 3, 'section_name' => 'Banner', 'section_slug' => 'banner']],
-            // for  property coach
-            [['cms_page_id' => 4, 'section_name' => 'Banner', 'section_slug' => 'banner']],
-            // for contact
-            [['cms_page_id' => 5, 'section_name' => 'Banner', 'section_slug' => 'banner']],
-            // for review guidelines
-            array_map(function ($item) {
-                return ['cms_page_id' => 6, 'section_name' => $item[0], 'section_slug' => $item[1]];
-            }, $reviewGuidelines),
-            // for terms of use
-            array_map(function ($item) {
-                return ['cms_page_id' => 7, 'section_name' => makeHeading($item), 'section_slug' => $item];
-            }, $termsOfUse),
-            // for privacy policy
-            array_map(function ($item) {
-                return ['cms_page_id' => 8, 'section_name' => $item[0], 'section_slug' => $item[1]];
-            }, $privacyPolicy)
-        );
-
-        CmsPages::insert($cmsPages);
-        CmsPageSections::insert($cmsPageSections);
+    /**
+     * Build [section_name, section_slug] pairs from a list of slugs, deriving
+     * the display name from the slug (matches the original seeder behaviour).
+     *
+     * @param array $slugs
+     * @return array
+     */
+    private function headings(array $slugs)
+    {
+        return array_map(function ($slug) {
+            return [makeHeading($slug), $slug];
+        }, $slugs);
     }
 }

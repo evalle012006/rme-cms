@@ -12,6 +12,8 @@ use App\Models\Review;
 use App\Models\ReviewTags;
 use App\Models\SelectMaster;
 use App\Models\User;
+use App\Rules\UniqueCompanyName;
+use App\Services\ResendService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -21,6 +23,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class ReviewController extends BaseController
 {
@@ -64,23 +67,16 @@ class ReviewController extends BaseController
 
     public function reviewStepTwoPage(Request $request)
     {
-        if (!$request->session()->exists('guest-login')) {
-            if (!old('_token')) {
-                $this->removeStep2SessionData(['review-image', 'review-image-system', 'review-docs', 'review-docs-system']);
-            } else {
-                $this->removeStep2SessionData();
-            }
-        }
-        // dont clear form step 2 data when previous url is review-step-2 or when guest-user is set in session
+        // Keep step-2 answers in session so Go Back / Next / validation redirects stay prefilled.
 
-        $property_id = \request()->session()->get('review-property-id');
-        $review_cat = \request()->session()->get('review-category');
+        $property_id = $request->session()->get('review-property-id');
+        $review_cat = $request->session()->get('review-category');
 
-//        if (Auth::user()) {
         if ($property_id && $review_cat) {
+            $isHomeland = $this->isHomelandCategory($review_cat);
 
             //new flow with step 1 cat selected
-            if ($review_cat != 2) {
+            if (!$isHomeland) {
                 $cat = PropertyCategory::with(['propertyAllowedRating' => function ($qry) {
                     $qry->orderBy('name', 'ASC');
                 }])
@@ -100,15 +96,31 @@ class ReviewController extends BaseController
                 $propertyRatings = $cat->toArray();
             }
 
-//            usort($propertyRatings['property_allowed_rating'], function ($a, $b) {
-//                return $a['pivot']['order'] > $b['pivot']['order'] ? 1 : -1;
-//            });
-
             $request->session()->forget('step2');
             //allow rating
-            return view('review-step.review-step2', compact('propertyRatings', 'review_cat'));
+            return view('review-step.review-step2', compact('propertyRatings', 'review_cat', 'isHomeland'));
         }
         return redirect()->route('review-step-1');
+    }
+
+    protected function isHomelandCategory($reviewCat): bool
+    {
+        if ((int) $reviewCat === 2) {
+            return true;
+        }
+
+        $category = PropertyCategory::select('id', 'slug')->find($reviewCat);
+
+        return $category && $category->slug === 'homeland';
+    }
+
+    protected function uploadedFileFromSessionPath($path): ?UploadedFile
+    {
+        if (!$path || !is_file($path)) {
+            return null;
+        }
+
+        return new UploadedFile($path, basename($path), null, null, true);
     }
 
     public function reviewStepTwoHomeLand(Request $request)
@@ -147,6 +159,9 @@ class ReviewController extends BaseController
             'suburb' => 'required',
         ], ['project_id.required' => 'Project/Estate Name is required']);
 
+        $previousProperty = $request->session()->get('review-property-id');
+        $previousCategory = $request->session()->get('review-category');
+
         if (isset($data['company_id'])) {
             $request->session()->put('review-company-id', $data['company_id']);
         }
@@ -160,6 +175,18 @@ class ReviewController extends BaseController
 
         if ($request->session()->has('review-property-id') && $request->session()->has('buyer-type')
             && $request->session()->has('review-category')) {
+            // Only reset step-2 draft when property/category actually changed
+            if ((string) $previousProperty !== (string) $data['project_id']
+                || (string) $previousCategory !== (string) $data['categories']) {
+                $this->removeStep2SessionData([
+                    'review-image',
+                    'review-image-system',
+                    'review-docs',
+                    'review-docs-system',
+                    'review-dev-page',
+                    'guest-login',
+                ]);
+            }
 
             return redirect()->route('review-step-2');
         }
@@ -181,6 +208,8 @@ class ReviewController extends BaseController
 
     public function saveReviewStepTwo(Request $request)
     {
+        $proofRequiredMessage = 'Proof of purchase is required. Please upload a document that confirms your purchase.';
+
         if ($request->review_image) {
             $name = $request->review_image->getClientOriginalName();
             Storage::disk('public_form_media')->putFileAs('', $request->review_image, $name);
@@ -189,9 +218,16 @@ class ReviewController extends BaseController
             $request->session()->put('review-image-system', public_path('review-form-media/' . $name));
         }
 
-        if ($request->review_docs) {
-            $name = $request->review_docs->getClientOriginalName();
-            Storage::disk('public_form_media')->putFileAs('', $request->review_docs, $name);
+        if ($request->hasFile('review_docs')) {
+            $request->validate([
+                'review_docs' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png,gif,bmp,svg,webp|max:10240',
+            ], [
+                'review_docs.mimes' => 'Proof of purchase must be a PDF, Word document, or image.',
+                'review_docs.max' => 'Proof of purchase must not be larger than 10MB.',
+            ]);
+
+            $name = $request->file('review_docs')->getClientOriginalName();
+            Storage::disk('public_form_media')->putFileAs('', $request->file('review_docs'), $name);
             $imagePath = url('/') . '/review-form-media/' . $name;
             $request->session()->put('review-docs', $imagePath);
             $request->session()->put('review-docs-system', public_path('review-form-media/' . $name));
@@ -209,8 +245,9 @@ class ReviewController extends BaseController
 
         $validator = Validator::make($request->all(), $rules);
         $errors = $validator->errors();
-        if (!$request->session()->exists('review-docs')) {
-            $errors->add('review_docs', 'The review docs field is required.');
+        $sessionDocPath = $request->session()->get('review-docs-system');
+        if (!$request->session()->exists('review-docs') || !$sessionDocPath || !is_file($sessionDocPath)) {
+            $errors->add('review_docs', $proofRequiredMessage);
         }
         if (!empty($errors->messages())) {
             return redirect()->back()->withErrors($errors)->withInput();
@@ -225,46 +262,72 @@ class ReviewController extends BaseController
         $request->session()->put('review-tags', $data['tags']);
         $request->session()->put('review-rating', $data['rating']);
 
-        if ($request->submit == 'submit') {
+        // Default to submit when Enter is pressed (button value may be omitted).
+        // Accept legacy name="submit" for older form posts.
+        $formAction = $request->input('form_action', $request->input('submit', 'submit'));
+
+        if ($formAction === 'next') {
+            $request->session()->put('guest-login', true);
+
             if (Auth::user()) {
+                if ($request->hasFile('review_image')) {
+                    $file = $request->file('review_image');
+                    $temp_review_image = $this->saveToS3($file, self::REVIEW_TEMP_STORAGE_PATH);
+                    $request->session()->put('review-image', $temp_review_image);
+                }
+
+                if ($request->hasFile('review_docs')) {
+                    $file = $request->file('review_docs');
+                    $temp_review_docs = $this->saveToS3($file, self::REVIEWDOCS_TEMP_STORAGE_PATH);
+                    $request->session()->put('review-docs', $temp_review_docs);
+                }
+
+                $request->session()->put('review-dev-page', true);
+                return redirect()->route('review-step-2-1');
+            }
+
+            return redirect()->route('review-step-2')->with('error', 'Login Required Before Review');
+        }
+
+        if (Auth::user()) {
+            try {
                 $data['user_id'] = Auth::id();
 
                 if ($request->session()->has('review-state')) {
-                    $data['state'] = \request()->session()->get('review-state');
+                    $data['state'] = $request->session()->get('review-state');
                 }
 
                 if ($request->session()->has('review-post-code')) {
-                    $data['post_code'] = \request()->session()->get('review-post-code');
+                    $data['post_code'] = $request->session()->get('review-post-code');
                 }
 
                 if ($request->session()->has('review-suburb')) {
-                    $data['suburb'] = \request()->session()->get('review-suburb');
+                    $data['suburb'] = $request->session()->get('review-suburb');
                 }
 
                 if ($request->session()->has('review-year-complete')) {
-                    $data['year_of_completion'] = \request()->session()->get('review-year-complete');
+                    $data['year_of_completion'] = $request->session()->get('review-year-complete');
                 }
                 if ($request->session()->has('buyer-type')) {
-                    $data['buyer_type'] = \request()->session()->get('buyer-type');
+                    $data['buyer_type'] = $request->session()->get('buyer-type');
                 }
                 if ($request->session()->has('review-category')) {
-                    $data['category_id'] = \request()->session()->get('review-category');
+                    $data['category_id'] = $request->session()->get('review-category');
                 }
                 if ($request->session()->exists('review-image')) {
-                    $sessionImg = $request->session()->get('review-image-system');
-                    $imgName = substr($sessionImg, strpos($sessionImg, '/') + 1, strlen($sessionImg));
-                    $file = new UploadedFile($sessionImg, $imgName);
-//                    $file = file_get_contents($request->session()->get('review-image'));
-                    $data['review_image'] = $this->saveToS3($file, self::REVIEW_STORAGE_PATH);
+                    $file = $this->uploadedFileFromSessionPath($request->session()->get('review-image-system'));
+                    if ($file) {
+                        $data['review_image'] = $this->saveToS3($file, self::REVIEW_STORAGE_PATH);
+                    }
                 }
 
-                if ($request->session()->exists('review-docs')) {
-                    $sessionDoc = $request->session()->get('review-docs-system');
-                    $docName = substr($sessionDoc, strpos($sessionDoc, '/') + 1, strlen($sessionDoc));
-                    $file = new UploadedFile($sessionDoc, $docName);
-//                    $file = file_get_contents($request->session()->get('review-docs'));
-                    $data['review_docs'] = $this->saveToS3($file, self::REVIEWDOCS_STORAGE_PATH);
+                $file = $this->uploadedFileFromSessionPath($request->session()->get('review-docs-system'));
+                if (!$file) {
+                    return redirect()->back()
+                        ->withErrors(['review_docs' => $proofRequiredMessage])
+                        ->withInput();
                 }
+                $data['review_docs'] = $this->saveToS3($file, self::REVIEWDOCS_STORAGE_PATH);
 
                 if ($review_id = Review::create($data)) {
                     if (count($data['tags']) > 0) {
@@ -301,58 +364,35 @@ class ReviewController extends BaseController
                     $request->session()->forget('review-is-agree');
                     $request->session()->forget('review-comment');
                     $request->session()->forget('review-recommendation');
+                    $request->session()->forget('review-tags');
+                    $request->session()->forget('review-rating');
                     $request->session()->forget('guest-user');
+                    $request->session()->forget('guest-login');
 
                     $request->session()->put('step2', true);
 
                     $categoryData = PropertyCategory::find($data['category_id']);
                     $recommendedCategory = '';
-                    if (array_search($categoryData->slug, ['homesite', 'home']) !== false) {
+                    if ($categoryData && array_search($categoryData->slug, ['homesite', 'home']) !== false) {
                         $recommendedCategory = ($categoryData->slug == 'homesite' ? 'home' : 'homesite');
                         $request->session()->put('recommended-review-category', $recommendedCategory);
                     } else {
                         $request->session()->forget('recommended-review-category');
                     }
 
-
                     $this->sendMailUponReviewCreation($review_id->id, $recommendedCategory);
-                    // send email
-//                    \Mail::to(Auth::user()->email)->send(new \App\Mail\PendingReviewMail());
-//                    // end
-//
-//                    // send email to admin
-//                    $viewData = [
-//                        'property_name' => $reviewData['property']['project_name'],
-//                        'full_name' => $reviewData['user']['firstname'] . ' ' . $reviewData['user']['lastname'],
-//                        'display_name' => $reviewData['user']['display_name']
-//                    ];
-//                    \Mail::to(Auth::user()->email)->send(new \App\Mail\ReviewSubmitted($viewData));
-                    // end
                     return redirect()->route('review-step-3');
                 }
+            } catch (\Throwable $e) {
+                Log::error('REVIEW_STEP_TWO_SUBMIT_ERROR: ' . $e->getMessage());
+                return redirect()->route('review-step-2')
+                    ->with('error', 'Unable to submit review. Please try again.')
+                    ->withInput();
             }
-            $request->session()->put('guest-login', true);
-            return redirect()->route('review-step-2')->with('error', 'Login Required Before Review');
-        } else {
-            if (Auth::user()) {
-
-                if ($request->hasFile('review_image')) {
-                    $file = $request->file('review_image');
-                    $temp_review_image = $this->saveToS3($file, self::REVIEW_TEMP_STORAGE_PATH);
-                    $request->session()->put('review-image', $temp_review_image);
-                }
-
-                if ($request->hasFile('review_docs')) {
-                    $file = $request->file('review_docs');
-                    $temp_review_docs = $this->saveToS3($file, self::REVIEWDOCS_TEMP_STORAGE_PATH);
-                    $request->session()->put('review-docs', $temp_review_docs);
-                }
-
-                $request->session()->put('review-dev-page', true);
-                return redirect()->route('review-step-2-1');
-            }
-            return redirect()->route('review-step-2')->with('error', 'Login Required Before Review');
         }
+
+        $request->session()->put('guest-login', true);
+        return redirect()->route('review-step-2')->with('error', 'Login Required Before Review');
     }
 
     public function sendMailUponReviewCreation($reviewId, $suggestedCategory)
@@ -365,18 +405,26 @@ class ReviewController extends BaseController
                 ->toArray();
 
             $adminEmail = User::whereId(1)->pluck('email')->first();
-            // send email
-            \Mail::to($reviewData['users']['email'])->send(new \App\Mail\PendingReviewMail($suggestedCategory));
-            // end
+            $mailer = app(ResendService::class);
 
-            // send email to admin
+            $mailer->send(
+                $reviewData['users']['email'],
+                'Thank you',
+                'email-template.pending-review',
+                ['suggestedCategory' => $suggestedCategory]
+            );
+
             $viewData = [
                 'property_name' => $reviewData['property']['project_name'],
                 'full_name' => $reviewData['users']['firstname'] . ' ' . $reviewData['users']['lastname'],
                 'display_name' => $reviewData['users']['display_name']
             ];
-            \Mail::to($adminEmail)->send(new \App\Mail\ReviewSubmitted($viewData));
-            // end
+            $mailer->send(
+                $adminEmail,
+                'New review submitted',
+                'email-template.review-submitted',
+                ['details' => $viewData]
+            );
         } catch (\Exception $e) {
             Log::info('EMAIL_ERROR : ' . $e->getMessage());
         }
@@ -395,17 +443,28 @@ class ReviewController extends BaseController
             'tags' => 'required|array',
             'rating' => 'required|array',
             'review_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg',
-            'review_docs' => 'required',
+            'review_docs' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png,gif,bmp,svg,webp|max:10240',
             'is_agree' => 'required',
             'state' => 'required',
             'post_code' => 'required',
             'suburb' => 'required',
-        ], ['property_id.required' => 'Project/Estate Name is required']);
+        ], [
+            'property_id.required' => 'Project/Estate Name is required',
+            'review_docs.required' => 'Proof of purchase is required. Please upload a document that confirms your purchase.',
+            'review_docs.file' => 'Proof of purchase is required. Please upload a document that confirms your purchase.',
+            'review_docs.mimes' => 'Proof of purchase must be a PDF, Word document, or image.',
+            'review_docs.max' => 'Proof of purchase must not be larger than 10MB.',
+        ]);
 
 
         if (Auth::user()) {
             $session_data = session()->all();
             $review_parent_id = $this->saveReviewForParent($session_data);
+            if (!$review_parent_id) {
+                return redirect()->route('review-step-2')
+                    ->withErrors(['review_docs' => 'Proof of purchase is required. Please upload a document that confirms your purchase.'])
+                    ->withInput();
+            }
 
             $data['user_id'] = Auth::id();
             $data['parent_id'] = $review_parent_id;
@@ -416,10 +475,8 @@ class ReviewController extends BaseController
                 $data['review_image'] = $this->saveToS3($file, self::REVIEW_STORAGE_PATH);
             }
 
-            if ($request->hasFile('review_docs')) {
-                $file = $request->file('review_docs');
-                $data['review_docs'] = $this->saveToS3($file, self::REVIEWDOCS_STORAGE_PATH);
-            }
+            $file = $request->file('review_docs');
+            $data['review_docs'] = $this->saveToS3($file, self::REVIEWDOCS_STORAGE_PATH);
 
             if ($review_id = Review::create($data)) {
                 if (count($data['tags']) > 0) {
@@ -476,6 +533,11 @@ class ReviewController extends BaseController
 
     public function saveReviewForParent($session_data)
     {
+        $file = $this->uploadedFileFromSessionPath($session_data['review-docs-system'] ?? null);
+        if (!$file) {
+            return null;
+        }
+
         $data = [];
         $data['user_id'] = Auth::id();
         $data['property_id'] = $session_data['review-property-id'];
@@ -484,13 +546,19 @@ class ReviewController extends BaseController
         $data['title'] = $session_data['review-title'];
         $data['comment'] = $session_data['review-comment'];
         $data['review_image'] = $session_data['review-image'] ?? '';
-        $data['review_docs'] = $session_data['review-docs'];
-        $data['buyer_type'] = $session_data['buyer-type'];
+        $data['review_docs'] = $this->saveToS3($file, self::REVIEWDOCS_STORAGE_PATH);
         $data['buyer_type'] = $session_data['buyer-type'];
         $data['state'] = $session_data['review-state'];
         $data['post_code'] = $session_data['review-post-code'];
         $data['suburb'] = $session_data['review-suburb'];
         $data['year_of_completion'] = $session_data['review-year-complete'];
+
+        if (!empty($session_data['review-image-system'])) {
+            $imageFile = $this->uploadedFileFromSessionPath($session_data['review-image-system']);
+            if ($imageFile) {
+                $data['review_image'] = $this->saveToS3($imageFile, self::REVIEW_STORAGE_PATH);
+            }
+        }
 
         $review = Review::create($data);
 
@@ -566,22 +634,29 @@ class ReviewController extends BaseController
 
     public function saveCompanyByReview(Request $request)
     {
-        $data = request()->validate([
-            'company_name' => 'required|unique:company_details,company_name',
-        ]);
-
-        if ($data['company_name']) {
-            $data['is_from'] = 'frontend';
-            $data['status'] = 0;
-            $company = CompanyDetails::create($data);
-            $response = [
-                'status' => 'success',
-                'id' => $company->id,
-                'text' => $company->company_name
-            ];
-            return $this->jSonFormatSuccessResponse($response);
+        try {
+            $data = $request->validate([
+                'company_name' => ['required', 'string', new UniqueCompanyName()],
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'status' => 'failure',
+                'message' => collect($e->errors())->flatten()->first()
+                    ?: 'A company with this name already exists. Please select it from the list instead of creating a duplicate.',
+                'errors' => $e->errors(),
+            ], 422);
         }
-        return $this->jSonFormatFailureResponse('company name not found');
+
+        $data['company_name'] = trim($data['company_name']);
+        $data['is_from'] = 'frontend';
+        $data['status'] = 0;
+        $company = CompanyDetails::create($data);
+        $response = [
+            'status' => 'success',
+            'id' => $company->id,
+            'text' => $company->company_name
+        ];
+        return $this->jSonFormatSuccessResponse($response);
     }
 
     public function savePropertyByReview(Request $request)

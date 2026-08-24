@@ -5,8 +5,6 @@ namespace App\Models;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
-
 class Blogs extends Model
 {
     use SoftDeletes, Sluggable;
@@ -57,7 +55,7 @@ class Blogs extends Model
     function getFullFeatureImageAttribute()
     {
         if (!empty($this->feature_image)) {
-            return url(Storage::url($this->feature_image));
+            return absoluteStorageUrl($this->feature_image);
         }
         return null;
     }

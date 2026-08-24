@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Exports\CompanyExport;
 use App\Exports\ReviewsExport;
-use App\Mail\ReportUserMail;
 use App\Models\Advertise;
 use App\Models\CompanyDetails;
 use App\Models\Properties;
@@ -13,6 +12,7 @@ use App\Models\RatingConfiguration;
 use App\Models\Review;
 use App\Models\ReviewStates;
 use App\Models\User;
+use App\Services\ResendService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -20,7 +20,6 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
@@ -48,18 +47,30 @@ class BuilderController extends BaseController
                 ->where('developer_name', $user->company_id)
                 ->orderBy('created_at', 'DESC');
 
-            // get review questions list
+            // get review questions list (fallback color matches CMS chart primary)
+            $defaultBarColor = '#0694a2';
             $reviewQuestions = RatingConfiguration::select('id', 'name', 'color_code')
                 ->get()
                 ->groupBy('name')
-                ->transform(function ($item) {
-                    return $item[0];
+                ->transform(function ($item) use ($defaultBarColor) {
+                    $row = $item[0]->toArray();
+                    if (empty($row['color_code'])) {
+                        $row['color_code'] = $defaultBarColor;
+                    }
+                    return $row;
                 })->toArray();
 
             // for showing list of all properties
             $calculatedData = $this->calculateRatings($properties->get());
             $allPropertyReviews = $calculatedData[0];
             $amenityWiseRatings = $calculatedData[1];
+
+            // ensure every rating attribute appears in the chart (0 when no data)
+            foreach (array_keys($reviewQuestions) as $question) {
+                if (!isset($amenityWiseRatings[$question])) {
+                    $amenityWiseRatings[$question] = 0;
+                }
+            }
 
             // for showing most recent 3 properties
             $latestProperties = $allPropertyReviews->take(3);
@@ -139,6 +150,15 @@ class BuilderController extends BaseController
             $states = ReviewStates::select('id', 'name')->get();
             // end
 
+            if (request()->ajax()) {
+                $target = request()->get('ajax_target', 'property_reviews');
+                if ($target === 'export') {
+                    return view('partials.builder-export-results', compact('propertyDetailExport'));
+                }
+
+                return view('partials.builder-property-reviews', compact('allPropertyReviews'));
+            }
+
             return view('builder-portal.dashboard', compact('user',
                 'company',
                 'latestProperties',
@@ -166,7 +186,12 @@ class BuilderController extends BaseController
             $reviewTags = [];
             foreach ($item->reviews as $review) {
                 $totalRating = 0;
+                $ratingCount = count($review->ratings);
                 foreach ($review->ratings as $rating) {
+                    // Guard: skip ratings whose config has been soft-deleted
+                    if (!$rating->reviewQuestion) {
+                        continue;
+                    }
                     if (!isset($amenitiesWiseReviews[$rating->reviewQuestion->name])) {
                         $amenitiesWiseReviews[$rating->reviewQuestion->name] = [];
                     }
@@ -176,75 +201,94 @@ class BuilderController extends BaseController
                 foreach ($review->reviewTags as $tag) {
                     $reviewTags[$tag->id] = $tag->name;
                 }
-                $avgOfRating = round($totalRating / count($review->ratings));
-                $avgOfReviews[] = $avgOfRating;
+                if ($ratingCount > 0) {
+                    $avgOfReviews[] = round($totalRating / $ratingCount);
+                }
                 unset($review->ratings);
             }
-            $item->overall_rating = roundOffRating(array_sum($avgOfReviews) / (count($item->reviews) > 0 ? count($item->reviews) : 1));
+            $item->overall_rating = roundOffRating(array_sum($avgOfReviews) / (count($avgOfReviews) > 0 ? count($avgOfReviews) : 1));
             $item->review_tags = $reviewTags;
             return $item;
         });
 
         foreach ($amenitiesWiseReviews as $key => $singleAmenityArr) {
-            $amenitiesWiseReviews[$key] = round((array_sum($singleAmenityArr) * 100) / (count($singleAmenityArr) * 5));
+            // Convert average stars (0-5) to progress-bar width % so 5 stars = 100%
+            $avgStars = (array_sum($singleAmenityArr)) / count($singleAmenityArr);
+            $amenitiesWiseReviews[$key] = round(($avgStars / 5) * 100);
         }
 
         return [$props, $amenitiesWiseReviews];
     }
 
+    /**
+     * Builder-scoped rating attributes chart data (same idea as CMS filterRatingChart,
+     * but limited to the authenticated builder's company properties).
+     */
     public function getAmenitiesByProject(Request $request)
     {
         $propertyId = $request->property;
         $suburb = $request->suburb;
         $state = $request->state;
         $categoryId = $request->category;
+        $companyId = Auth::user()->company_id;
 
-        $companyId = '';
-        if (!$propertyId) {
-            $companyId = Auth::user()->company_id;
-//            $companyId = 1;
-        }
-        $amenitiesWiseReviews = [];
-        $review = Review::with(['ratings'])
-            ->where('status', 1);
+        $reviewsQuery = Review::with(['ratings'])
+            ->where('status', 1)
+            ->whereHas('property', function ($qry) use ($companyId, $propertyId) {
+                $qry->where('developer_name', $companyId)
+                    ->where('status', 1);
+                if ($propertyId) {
+                    $qry->where('id', $propertyId);
+                }
+            });
 
         if ($propertyId) {
-            $review = $review->where('property_id', $propertyId);
-        } else {
-            $review = $review->whereHas('property', function ($qry) use ($companyId) {
-                $qry->where('developer_name', $companyId);
-            });
+            $reviewsQuery->where('property_id', $propertyId);
         }
 
         if ($suburb) {
-            $review = $review->where('suburb', 'LIKE', '%' . $suburb . '%');
+            $reviewsQuery->where('suburb', 'LIKE', '%' . $suburb . '%');
         }
 
         if ($state) {
-//            $review = $review->whereHas('stateName', function ($qry) use ($state) {
-//                $qry->where('name', 'LIKE', '%' . $state . '%');
-//            });
-            $review = $review->where('state', $state);
+            $reviewsQuery->where('state', $state);
         }
 
         if ($categoryId) {
-            $review = $review->where('category_id', $categoryId);
+            $reviewsQuery->where('category_id', $categoryId);
         }
 
-        $review = $review->get()
-            ->transform(function ($review) use (&$amenitiesWiseReviews) {
-                foreach ($review->ratings as $rating) {
-                    if (!isset($amenitiesWiseReviews[$rating->reviewQuestion->name])) {
-                        $amenitiesWiseReviews[$rating->reviewQuestion->name] = [];
-                    }
-                    $amenitiesWiseReviews[$rating->reviewQuestion->name][] = $rating->rate;
+        $reviews = $reviewsQuery->get();
+
+        $amenitiesWiseReviews = [];
+        foreach ($reviews as $review) {
+            foreach ($review->ratings as $rating) {
+                if (!$rating->reviewQuestion) {
+                    continue;
                 }
-            });
-        foreach ($amenitiesWiseReviews as $key => $singleAmenityArr) {
-            $amenitiesWiseReviews[$key] = round((array_sum($singleAmenityArr) * 100) / (count($singleAmenityArr) * 5));
+                $name = $rating->reviewQuestion->name;
+                if (!isset($amenitiesWiseReviews[$name])) {
+                    $amenitiesWiseReviews[$name] = [];
+                }
+                $amenitiesWiseReviews[$name][] = $rating->rate;
+            }
         }
 
-        return json_encode(['data' => $amenitiesWiseReviews, 'review_count' => count($review)]);
+        foreach ($amenitiesWiseReviews as $key => $singleAmenityArr) {
+            $avgStars = (array_sum($singleAmenityArr)) / count($singleAmenityArr);
+            $amenitiesWiseReviews[$key] = round(($avgStars / 5) * 100);
+        }
+
+        foreach (RatingConfiguration::pluck('name') as $question) {
+            if (!isset($amenitiesWiseReviews[$question])) {
+                $amenitiesWiseReviews[$question] = 0;
+            }
+        }
+
+        return response()->json([
+            'data' => $amenitiesWiseReviews,
+            'review_count' => $reviews->count(),
+        ]);
     }
 
     public function getReviewCounts(Request $request)
@@ -330,6 +374,11 @@ class BuilderController extends BaseController
                 ->orderBy('created_at', 'DESC')
                 ->paginate(3, ["*"], 'advertise');
             $propertyCategory = PropertyCategory::get()->toArray();
+
+            if (request()->ajax()) {
+                return view('partials.builder-my-property-list', compact('properties'));
+            }
+
             return view('builder-portal.my-property', compact('user', 'company', 'properties', 'pendingProperties', 'advertises', 'propertyCategory'));
         }
         return redirect('/');
@@ -351,13 +400,13 @@ class BuilderController extends BaseController
         }
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            $request->session()->put('property_create_error', 'Error while creating property');
+            $request->session()->put('property_create_error', 'Error while creating project');
         } else {
             $property = Properties::create($data);
             if ($property) {
                 $result = app('App\Http\Controllers\Admin\PropertyController')->savePropertyCategories($property->id, $data['categories']);
                 if ($result) {
-                    $request->session()->put('property_create_error', 'Error while creating property');
+                    $request->session()->put('property_create_error', 'Error while creating project');
                 }
             }
         }
@@ -381,21 +430,31 @@ class BuilderController extends BaseController
 
     public function updateCompanyLogo(Request $request)
     {
-        $data = request()->validate([
-            'id' => 'required',
-            'profile_image' => 'nullable'
+        $request->validate([
+            'id' => 'required|exists:company_details,id',
+            'profile_image' => 'required|file|mimes:jpg,jpeg,png',
         ]);
-        $company = CompanyDetails::find($request->id);
-        if ($request->hasFile('profile_image')) {
-            $data['logo'] = $this->saveToS3($request->file('profile_image'), $this->COMPANY_LOGO_STORAGE_PATH);
-            $data['logo_thumb'] = $this->saveThumbToS3($data['logo']);
-            if (!empty($company->logo)) {
-                Storage::delete($company->logo);
-            }
+
+        $company = CompanyDetails::findOrFail($request->id);
+        $previousLogo = $company->logo;
+
+        $logo = $this->saveToS3($request->file('profile_image'), $this->COMPANY_LOGO_STORAGE_PATH);
+        $logoThumb = $this->saveThumbToS3($logo);
+
+        $updateData = ['logo' => $logo];
+        if ($logoThumb) {
+            $updateData['logo_thumb'] = $logoThumb;
         }
-        $updated = $company->update($data);
+
+        $updated = $company->update($updateData);
         if ($updated) {
-            return response()->json([], 200);
+            if (!empty($previousLogo) && $previousLogo !== $logo) {
+                Storage::delete($previousLogo);
+            }
+            return response()->json([
+                'logo' => $logo,
+                'full_company_logo' => absoluteStorageUrl($logo),
+            ], 200);
         }
         return response()->json('error', 500);
     }
@@ -483,7 +542,12 @@ class BuilderController extends BaseController
                 'company_name' => Auth::user()->company->company_name
             ];
             $adminEmail = User::whereId(1)->pluck('email')->first();
-            Mail::to($adminEmail)->send(new ReportUserMail($data));
+            app(ResendService::class)->send(
+                $adminEmail,
+                'User Reported',
+                'email-template.report-user',
+                ['data' => $data]
+            );
             return $this->jSonFormatSuccessResponse(['status' => 'success']);
         } else {
             return $this->jSonFormatFailureResponse('error');

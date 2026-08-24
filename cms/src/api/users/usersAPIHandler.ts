@@ -6,6 +6,7 @@ import {
   type ApiRequestOptions,
 } from '@/api/apiService'
 import { uploadAPI } from '@/api/upload/uploadAPIHandler'
+import { STORAGE_PATHS } from '@/constants/storagePaths'
 import { USERS_ENDPOINTS } from './usersAPIEndpoints'
 import type { DataTablesRequest, DataTablesResponse } from '@/types/api'
 import type { BrandType, UserStatus } from '@/api/users/usersConstants'
@@ -49,9 +50,9 @@ export interface GetUserByIdResponse {
 }
 
 // ── Update reviewer ──────────────────────────────────────────────────────────
-// `/auth/reviewer/update` — multipart/form-data. The backend mirrors the
-// `null` / empty-string semantics of the legacy admin: nullable fields are
-// sent as the literal string "null" when blank.
+// `/auth/reviewer/update` — multipart/form-data. Blank nullable fields are
+// sent as "" so Laravel's ConvertEmptyStringsToNull middleware stores SQL NULL
+// (sending the literal "null" string would collide with users_mobile_unique).
 
 export interface UpdateReviewerPayload {
   id: number
@@ -63,8 +64,8 @@ export interface UpdateReviewerPayload {
   location: string | null
   // Numeric status the API expects. "1" = Approved, "0" = Pending.
   status: string
-  /** New upload as binary, or existing storage path when unchanged. */
-  profile_image: File | string
+  /** New upload as binary, existing storage path when unchanged, or null when cleared/absent. */
+  profile_image: File | string | null
 }
 
 // ── Create payloads ──────────────────────────────────────────────────────────
@@ -87,7 +88,18 @@ export interface CreateBuilderPayload {
   password: string
   status: UserStatus
   brand_type: BrandType
-  company_id: number
+  company_id: number | null
+}
+
+// ── Display name change request ──────────────────────────────────────────────
+// `/change-request-status` — approve (status 1) or reject (status 0).
+// On approve, `display_name` becomes the new name; both paths clear the flag.
+
+export interface ChangeRequestStatusPayload {
+  id: number
+  display_name: string
+  /** 1 = approve, 0 = reject */
+  status: 0 | 1
 }
 
 export const usersAPI = {
@@ -106,7 +118,10 @@ export const usersAPI = {
     payload: CreateReviewerPayload,
     options?: ApiRequestOptions
   ): Promise<unknown> => {
-    const profileImagePath = await uploadAPI.uploadImage(payload.profile_image)
+    const profileImagePath = await uploadAPI.uploadImage(
+      payload.profile_image,
+      STORAGE_PATHS.PROFILE
+    )
 
     const fd = new FormData()
     fd.append("firstname", payload.firstname)
@@ -131,12 +146,19 @@ export const usersAPI = {
     options?: ApiRequestOptions
   ): Promise<unknown> => {
     const fd = new FormData()
-    fd.append("firstname", payload.firstname)
+    const fullName = payload.firstname;
+    const firstname = fullName.split(' ')[0];
+    const lastname = fullName.split(' ').slice(1).join(' ');
+    
+    fd.append("firstname", firstname ?? '');
+    fd.append("lastname", lastname ?? '');
     fd.append("email", payload.email)
     fd.append("password", payload.password)
     fd.append("status", payload.status)
     fd.append("brand_type", payload.brand_type)
-    fd.append("company_id", String(payload.company_id))
+    if (payload.company_id != null) {
+      fd.append("company_id", String(payload.company_id))
+    }
     return apiRequest<unknown>(
       apiClient.post<ApiEnvelope<unknown>>(USERS_ENDPOINTS.CREATE_BUILDER, fd, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -155,9 +177,14 @@ export const usersAPI = {
     payload: UpdateReviewerPayload,
     options?: ApiRequestOptions
   ): Promise<unknown> => {
+    // Omit profile_image when null so the backend clears it
+    // (`!$request->has('profile_image')` → null).
     const profileImagePath =
       payload.profile_image instanceof File
-        ? await uploadAPI.uploadImage(payload.profile_image)
+        ? await uploadAPI.uploadImage(
+            payload.profile_image,
+            STORAGE_PATHS.PROFILE
+          )
         : payload.profile_image
 
     const fd = new FormData()
@@ -166,12 +193,13 @@ export const usersAPI = {
     fd.append("lastname", payload.lastname)
     fd.append("display_name", payload.display_name)
     fd.append("email", payload.email)
-    // Backend distinguishes "missing" from "cleared" by sending the literal
-    // string "null" for nullable fields that the user left blank.
-    fd.append("mobile", payload.mobile ?? "null")
-    fd.append("location", payload.location ?? "null")
+    // Empty string → SQL NULL via ConvertEmptyStringsToNull (not the literal "null").
+    fd.append("mobile", payload.mobile ?? "")
+    fd.append("location", payload.location ?? "")
     fd.append("status", payload.status)
-    fd.append("profile_image", profileImagePath)
+    if (profileImagePath != null) {
+      fd.append("profile_image", profileImagePath)
+    }
     return apiRequest<unknown>(
       apiClient.post<ApiEnvelope<unknown>>(USERS_ENDPOINTS.UPDATE_REVIEWER, fd, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -179,4 +207,16 @@ export const usersAPI = {
       options
     )
   },
+
+  changeRequestStatus: (
+    payload: ChangeRequestStatusPayload,
+    options?: ApiRequestOptions
+  ): Promise<unknown> =>
+    apiRequest<unknown>(
+      apiClient.post<ApiEnvelope<unknown>>(
+        USERS_ENDPOINTS.CHANGE_REQUEST_STATUS,
+        payload
+      ),
+      options
+    ),
 }

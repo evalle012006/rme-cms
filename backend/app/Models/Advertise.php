@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class Advertise extends Model
 {
@@ -32,7 +31,7 @@ class Advertise extends Model
     function getFullImagePathAttribute()
     {
         if (!empty($this->image)) {
-            return url(Storage::url($this->image));
+            return absoluteStorageUrl($this->image);
         }
         return null;
     }

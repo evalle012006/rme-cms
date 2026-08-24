@@ -1,4 +1,5 @@
 import { SelectDropdown } from '@/components/atoms/SelectDropdown'
+import { ScrollableSelectDropdown } from '@/components/atoms/ScrollableSelectDropdown'
 import { Button } from '@/components/atoms/Button'
 import { PROPERTY_REVIEWS_MODE_OPTIONS } from '@/pages/dashboard/shared/dashboardUtils'
 import type { SelectDropdownOption } from '@/components/atoms/SelectDropdown'
@@ -16,6 +17,7 @@ type PropertyReviewsFilterProps = {
   stateOptions: SelectDropdownOption[]
   suburbOptions: SelectDropdownOption[]
   loading?: boolean
+  suburbsLoading?: boolean
   onChange: (values: PropertyReviewsFilterValues) => void
   onSearch: () => void
 }
@@ -26,6 +28,7 @@ export function PropertyReviewsFilter({
   stateOptions,
   suburbOptions,
   loading = false,
+  suburbsLoading = false,
   onChange,
   onSearch,
 }: PropertyReviewsFilterProps) {
@@ -76,13 +79,15 @@ export function PropertyReviewsFilter({
           </div>
 
           <div className="w-44">
-            <SelectDropdown
-              placeholder="-- All Suburbs --"
-              options={suburbOptions}
-              value={values.suburbId}
-              onChange={(event) => update({ suburbId: event.target.value })}
+            <ScrollableSelectDropdown
+              placeholder={
+                suburbsLoading ? 'Loading suburbs...' : '-- All Suburbs --'
+              }
+              options={suburbsLoading ? [] : suburbOptions}
+              value={suburbsLoading ? '' : values.suburbId}
+              onChange={(suburbId) => update({ suburbId })}
               className="border-primary-400 bg-primary-50"
-              disabled={!values.stateId}
+              disabled={!values.stateId || suburbsLoading}
             />
           </div>
 

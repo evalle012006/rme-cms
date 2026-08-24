@@ -6,8 +6,37 @@
         .w-100 {
             width: 100%;
         }
+
+        .rating-loader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: 5;
+        }
+
+        .rating-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(6, 148, 162, 0.2);
+            border-top-color: #0694a2;
+            border-radius: 50%;
+            animation: rating-spin 0.8s linear infinite;
+        }
+
+        @keyframes rating-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 @endsection
+@section('meta_robots', 'noindex, nofollow')
 @section('content')
     <div class="my-profile-section">
         @if($user)
@@ -18,11 +47,11 @@
                     </a>
                     <div class="user-img-wrap">
                         <img id="user-profile-image"
-                             src="{{$user->company->logo ? url(Storage::url($user->company->logo)) : asset('images/user-img.png')}}"
-                             alt="file upload"/>
+                             src="{{ optional($user->company)->full_company_logo ?: asset('images/user-img.png') }}"
+                             alt="Company logo"/>
                     </div>
                     <div class="user-detail">
-                        <input type="hidden" id="hidden_id" value={{$user->company_id}} />
+                        <input type="hidden" id="hidden_id" value="{{ $user->company_id }}"/>
                         <h6>{{$user->firstname}}</h6>
                         <span>{{$user->email}}</span>
                     </div>
@@ -42,7 +71,7 @@
                             </li>
                             <li>
                                 <a href="{{ route('builder-property') }}">
-                                    <img class="side-icons" src="{{asset('images/user-icon.svg')}}">My Property</a>
+                                    <img class="side-icons" src="{{asset('images/user-icon.svg')}}">My Project</a>
                             </li>
                             <li>
                                 <a href="{{ route('company-users') }}">
@@ -123,10 +152,10 @@
 
                     <div class="latest-property-post-section">
                         <div class="profile-title">
-                            <h4>Latest Property Post</h4>
+                            <h4>Latest Project Post</h4>
                             <div class="text-right all-props">
                                 <a class="mr-30" href="{{route('property-listing')}}">Compare Reviews</a>
-                                <a href="{{url('builder/my-property')}}">View All Properties</a>
+                                <a href="{{route('builder-property')}}">View All Projects</a>
                             </div>
                         </div>
                         <div class="latest-property-post-wrap">
@@ -222,7 +251,10 @@
                                 </div>
                             </form>
                         </div>
-                        <div class="amenities-wise-reviews-wrap">
+                        <div class="amenities-wise-reviews-wrap" style="position: relative;">
+                            <div id="rating-loader" class="rating-loader" style="display:none;">
+                                <div class="rating-spinner"></div>
+                            </div>
 
                             <div class="amenities-graph">
                                 <div id="results-section">
@@ -231,7 +263,7 @@
                                             <div class="graph-title">{{$question}}</div>
                                             <div class="progressbar-wrap">
                                                 <div
-                                                    style=" width: {{isset($amenityWiseRatings[$question]) ? $amenityWiseRatings[$question] : 0.0}}%; float: left; background-color: {{$row['color_code']}};"></div>
+                                                    style="width: {{isset($amenityWiseRatings[$question]) ? $amenityWiseRatings[$question] : 0}}%; float: left; background-color: {{!empty($row['color_code']) ? $row['color_code'] : '#0694a2'}};"></div>
                                             </div>
                                         </div>
                                     @endforeach
@@ -249,13 +281,13 @@
                     </div>
                     <div class="property-wise-reviews-section" id="last-section">
                         <div class="profile-title">
-                            <h4>Property Wise Reviews</h4>
+                            <h4>Project Wise Reviews</h4>
                             <div class="text-right all-props">
                                 Total Reviews : {{$totalReviews}}
                             </div>
                         </div>
                         <div class="filter-row">
-                            <form
+                            <form id="builder-property-filter-form"
                                 action="{{route('builder-dashboard')}}"
                                 method="GET">
                                 <div class="sort-filter">
@@ -290,59 +322,17 @@
                                 </div>
                             </form>
                         </div>
-                        <div class="property-wise-reviews-wrap">
-
-                            @if(count($allPropertyReviews) ===  0)
-                                <div class="no-data"><p>No Data Found</p></div>
-                            @else
-
-                                @foreach($allPropertyReviews as $property)
-                                    <div class="property-wise-reviews-single">
-                                        <div class="property-img-wrap">
-                                            <img
-                                                src="{{$property->full_property_logo}}">
-                                        </div>
-                                        <div class="property-detail">
-                                            <div class="property-reviews">
-                                                <div class="author-btm">
-                                                    <p>
-                                                        <a href="{{url('property-review/'.$property->slug)}}">{{$property->project_name}}</a></p>
-                                                </div>
-                                                {{--                                            <div class="desc"><p>There are many variations of passages of Lorem Ipsum--}}
-                                                {{--                                                    available, but the</p></div>--}}
-                                                <div class="rating-wrap">
-                                                    <ul class="general-star-rating overall-rate-color-{{ratingClass($property->overall_rating)}}">
-                                                        @foreach(range(0,4) as $number)
-                                                            <li><a href=""><img
-                                                                        src="{{asset('images/rating-img.png')}}"></a>
-                                                            </li>
-                                                        @endforeach
-                                                    </ul>
-                                                </div>
-
-
-                                            </div>
-                                            <div class="total-reviews">
-                                                <div class="title">Total Reviews</div>
-                                                <div class="review-count">{{count($property->reviews)}}</div>
-                                            </div>
-                                            <div class="btn-wrap">
-                                                <a class="btn btn-bordered"
-                                                   href="{{url('property-review/'.$property->slug)}}">More Info</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @endif
+                        <div class="property-wise-reviews-wrap" id="builder-property-reviews-results">
+                            @include('partials.builder-property-reviews')
                         </div>
                     </div>
 
                     <div class="property-wise-reviews-section" id="last-section">
                         <div class="profile-title">
-                            <h4>Export Property Reviews</h4>
+                            <h4>Export Project Reviews</h4>
                         </div>
                         <div class="filter-row">
-                            <form
+                            <form id="builder-export-filter-form"
                                 action="{{route('builder-dashboard')}}"
                                 method="GET">
                                 <div class="sort-filter">
@@ -367,44 +357,8 @@
                                 </div>
                             </form>
                         </div>
-                        <div class="property-wise-reviews-wrap">
-                            @foreach($propertyDetailExport as $property)
-                                <div class="property-wise-reviews-single">
-                                    <div class="property-img-wrap">
-                                        <img
-                                            src="{{$property->full_property_logo}}">
-                                    </div>
-                                    <div class="property-detail">
-                                        <div class="property-reviews">
-                                            <div class="author-btm">
-                                                <p>
-                                                    <a href="{{url('property-review/'.$property->slug)}}">{{$property->project_name}}</a></p>
-                                            </div>
-                                            {{--                                            <div class="desc"><p>There are many variations of passages of Lorem Ipsum--}}
-                                            {{--                                                    available, but the</p></div>--}}
-                                            <div class="rating-wrap">
-                                                <ul class="general-star-rating overall-rate-color-{{ratingClass($property->overall_rating)}}">
-                                                    @foreach(range(0,4) as $number)
-                                                        <li><a href=""><img
-                                                                    src="{{asset('images/rating-img.png')}}"></a>
-                                                        </li>
-                                                    @endforeach
-                                                </ul>
-                                            </div>
-
-
-                                        </div>
-                                        <div class="total-reviews">
-                                            <div class="title">Total Reviews</div>
-                                            <div class="review-count">{{count($property->reviews)}}</div>
-                                        </div>
-                                        <div class="btn-wrap">
-                                            <a class="btn btn-bordered"
-                                               href="{{route('export-reviews',$property->id)}}">Export</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
+                        <div class="property-wise-reviews-wrap" id="builder-export-results">
+                            @include('partials.builder-export-results')
                         </div>
                     </div>
                 </div>
@@ -571,27 +525,78 @@
             $("#project_id").select2();
             $("#project_id_export").select2();
 
-            $('#rating-form').submit(function () {
+            function loadBuilderPartial(url, targetSelector) {
+                var $target = $(targetSelector);
+                $target.css('opacity', '0.5');
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    success: function (html) {
+                        $target.html(html);
+                        if (window.history && window.history.pushState) {
+                            var cleanUrl = url
+                                .replace(/([?&])ajax_target=[^&]*/g, '$1')
+                                .replace(/[?&]$/, '')
+                                .replace(/\?&/, '?');
+                            window.history.pushState({builderAjax: true}, '', cleanUrl);
+                        }
+                    },
+                    complete: function () {
+                        $target.css('opacity', '1');
+                    }
+                });
+            }
+
+            $('#builder-property-filter-form').on('submit', function (event) {
+                event.preventDefault();
+                var action = $(this).attr('action');
+                var query = $(this).serialize() + '&ajax_target=property_reviews';
+                var url = action + (action.indexOf('?') === -1 ? '?' : '&') + query;
+                loadBuilderPartial(url, '#builder-property-reviews-results');
+            });
+
+            $('#builder-export-filter-form').on('submit', function (event) {
+                event.preventDefault();
+                var action = $(this).attr('action');
+                var query = $(this).serialize() + '&ajax_target=export';
+                var url = action + (action.indexOf('?') === -1 ? '?' : '&') + query;
+                loadBuilderPartial(url, '#builder-export-results');
+            });
+
+            $('#rating-form').submit(function (event) {
                 event.preventDefault();
                 const property = $('#project_id').val();
                 const suburb = $('#rating_suburb').val();
                 const state = $('#rating_state').val();
                 const category = $('#rating_category').val();
+                const defaultBarColor = '#0694a2';
+                $('#rating-loader').show();
                 $.ajax({
                     url: "{{route('amenities-by-project')}}",
                     type: 'POST',
                     data: JSON.stringify({property, suburb, state, category}),
                     contentType: 'application/json; charset=utf-8',
                     dataType: 'JSON',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    complete: function () {
+                        $('#rating-loader').hide();
+                    },
                     success: function (res) {
                         if (res['data'] !== undefined) {
                             const data = res['data'];
                             let chartHtml = '';
                             Object.keys(reviewQuestions).forEach(question => {
+                                const barColor = (reviewQuestions[question] && reviewQuestions[question]['color_code'])
+                                    ? reviewQuestions[question]['color_code']
+                                    : defaultBarColor;
+                                const width = data[question] ? data[question] : 0;
                                 chartHtml += '<div class="amenities-graph-single">' +
                                     '<div class="graph-title">' + question + '</div>' +
                                     '<div class="progressbar-wrap">' +
-                                    '<div style=" width: ' + (data[question] ? data[question] : 0) + '%; float: left; background-color: ' + reviewQuestions[question]['color_code'] + ';"></div>' +
+                                    '<div style="width: ' + width + '%; float: left; background-color: ' + barColor + ';"></div>' +
                                     '</div></div>';
                             });
 
@@ -602,7 +607,7 @@
                             $("#amenity-review-count").text(res['review_count']);
                         }
                     }
-                })
+                });
             });
 
             $("#start-date").text(moment().startOf('month').format('MMMM DD, YYYY'));
@@ -688,7 +693,17 @@
                             data: fData,
                             processData: false,
                             contentType: false,
-                            success: function () {
+                            success: function (res) {
+                                if (res && res.full_company_logo) {
+                                    $("#user-profile-image").attr('src', res.full_company_logo);
+                                }
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Failed to update company logo'
+                                });
                             }
                         });
                     }

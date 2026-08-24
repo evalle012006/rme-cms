@@ -29,12 +29,15 @@ class PropertyListingController extends Controller
 
     public function propertyListingPage()
     {
-        $properties = Properties::with(['reviews' => function ($qry) {
-            $qry->select('id', 'property_id', 'title', 'comment')
-                ->orderBy('created_at', 'DESC')
-                ->where('status', 1)
-                ->with(['ratings', 'reviewTags']);
-        }])->whereHas('reviews', function ($q) {
+        $properties = Properties::with([
+            'propertyAllowedCategory',
+            'reviews' => function ($qry) {
+                $qry->select('id', 'property_id', 'title', 'comment')
+                    ->orderBy('created_at', 'DESC')
+                    ->where('status', 1)
+                    ->with(['ratings', 'reviewTags']);
+            },
+        ])->whereHas('reviews', function ($q) {
             $q->where('status', 1);
         })->where('status', 1)->orderBy('created_at', 'DESC');
 
@@ -48,7 +51,7 @@ class PropertyListingController extends Controller
         $property_category = PropertyCategory::get()->toArray();
 
 
-        return view('property-listing', compact('properties', 'cities', 'property_category', 'view_type'));
+        return $this->renderPropertyListing(compact('properties', 'cities', 'property_category', 'view_type'));
     }
 
     public function propertyListingByBrand()
@@ -270,18 +273,21 @@ class PropertyListingController extends Controller
                 'view_type' => $view_type
             ));
             $properties = $companies;
-            return view('property-listing', compact('properties', 'cities', 'property_category', 'view_type', 'cat_slug'));
+            return $this->renderPropertyListing(compact('properties', 'cities', 'property_category', 'view_type', 'cat_slug'));
         } elseif ($searchKey !== null || $filter_by !== null || isset($cat_type) || $cat_slug !== null || $searchCompany !== null) {
-            $properties = Properties::with(['reviews' => function ($qry) use ($tags, $catArray) {
-                $qry->select('id', 'property_id', 'title', 'comment')
-                    ->orderBy('created_at', 'DESC')
-                    ->where('status', 1)
-                    ->with(['ratings', 'reviewTags']);
+            $properties = Properties::with([
+                'propertyAllowedCategory',
+                'reviews' => function ($qry) use ($tags, $catArray) {
+                    $qry->select('id', 'property_id', 'title', 'comment')
+                        ->orderBy('created_at', 'DESC')
+                        ->where('status', 1)
+                        ->with(['ratings', 'reviewTags']);
 
-                if (count($catArray) > 0) {
-                    $qry->whereIn('category_id', $catArray);
-                }
-            }])->whereHas('reviews', function ($q) {
+                    if (count($catArray) > 0) {
+                        $qry->whereIn('category_id', $catArray);
+                    }
+                },
+            ])->whereHas('reviews', function ($q) {
                 $q->where('status', 1);
             })
                 ->where('status', 1);
@@ -325,9 +331,9 @@ class PropertyListingController extends Controller
                 'is_slug' => $request->is_slug,
                 'view_type' => $view_type
             ));
-            return view('property-listing', compact('properties', 'cities', 'property_category', 'view_type', 'cat_slug'));
+            return $this->renderPropertyListing(compact('properties', 'cities', 'property_category', 'view_type', 'cat_slug'));
         } else {
-            $properties = Properties::where('status', 1);
+            $properties = Properties::with('propertyAllowedCategory')->where('status', 1);
             if ($cat_slug !== null) {
                 $properties = $properties->whereHas('propertyAllowedCategory',
                     function ($query) use ($cat_slug) {
@@ -336,7 +342,7 @@ class PropertyListingController extends Controller
                 );
             }
             $properties = $properties->paginate(6);
-            return view('property-listing', compact('properties', 'cities', 'property_category', 'view_type', 'cat_slug'));
+            return $this->renderPropertyListing(compact('properties', 'cities', 'property_category', 'view_type', 'cat_slug'));
         }
     }
 
@@ -359,7 +365,7 @@ class PropertyListingController extends Controller
         $cities = Properties::select('city')->where('status', 1)->distinct()->get()->toArray();
         $property_category = PropertyCategory::get()->toArray();
         $cat_slug = $slug;
-        return view('property-listing', compact('properties', 'cities', 'property_category', 'view_type', 'cat_slug'));
+        return $this->renderPropertyListing(compact('properties', 'cities', 'property_category', 'view_type', 'cat_slug'));
     }
 
     public function getPropertyWithCompany($slug)
@@ -633,8 +639,7 @@ class PropertyListingController extends Controller
 
         $cities = Review::select('suburb')->where('status', 1)->distinct()->get()->toArray();
 
-
-        return view('property-review-detail', compact('property_review', 'cities', 'property', 'avgRateColletion', 'overall_rate', 'ratingNumbers'));
+        return $this->renderPropertyReviewDetail(compact('property_review', 'cities', 'property', 'avgRateColletion', 'overall_rate', 'ratingNumbers'));
     }
 
     public function getPropertyReviewByCatSlug($cat, $slug, Request $request)
@@ -714,8 +719,30 @@ class PropertyListingController extends Controller
         }
 
         $cities = Review::select('suburb')->where('status', 1)->distinct()->get()->toArray();
-        return view('property-review-detail', compact('property_review', 'cities', 'property', 'cat', 'avgRateColletion', 'overall_rate', 'ratingNumbers'));
+        return $this->renderPropertyReviewDetail(compact('property_review', 'cities', 'property', 'cat', 'avgRateColletion', 'overall_rate', 'ratingNumbers'));
     }
 
+    /**
+     * Return listing results partial for AJAX, or the full listing page otherwise.
+     */
+    protected function renderPropertyListing(array $data)
+    {
+        if (request()->ajax()) {
+            return view('partials.property-listing-results', $data);
+        }
 
+        return view('property-listing', $data);
+    }
+
+    /**
+     * Return property review list partial for AJAX, or the full detail page otherwise.
+     */
+    protected function renderPropertyReviewDetail(array $data)
+    {
+        if (request()->ajax()) {
+            return view('partials.property-review-list', $data);
+        }
+
+        return view('property-review-detail', $data);
+    }
 }

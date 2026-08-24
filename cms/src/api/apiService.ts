@@ -54,8 +54,8 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 // ── Response interceptor: global HTTP error handling ─────────────────────────
 // Strategy:
 //   401 → clear auth + hard redirect to login (token expired/revoked)
-//   422 → reject silently; the calling form renders inline validation errors
-//   everything else → global Sonner toast + reject
+//   422 with field errors → reject silently; forms render inline validation
+//   everything else (incl. business-rule 422s with only a message) → toast + reject
 //
 // `isRedirecting` prevents a double-redirect when multiple concurrent
 // requests all return 401 at the same time.
@@ -78,12 +78,13 @@ apiClient.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    if (status === 422 || hasFieldErrors(error.response?.data)) {
+    if (hasFieldErrors(error.response?.data)) {
       // Let the form component render field-level validation errors.
       return Promise.reject(error)
     }
 
-    // 5xx, network failure, CORS, etc. — surface a single global toast.
+    // Business-rule failures (e.g. 422 without field errors), 5xx, network,
+    // CORS, etc. — surface a single global toast.
     const message =
       error.response?.data?.message ??
       error.message ??
@@ -129,17 +130,10 @@ export async function apiRequest<T>(
   try {
     response = await request
   } catch (error) {
-    // HTTP failure path. The interceptor already toasts every non-401/422
-    // error, so we just rethrow. Callers that need inline handling
-    // (e.g. 422 form validation) can still catch and inspect.
-    if (showErrorToast && customErrorMessage && axios.isAxiosError(error)) {
-      const status = error.response?.status
-      // For statuses the interceptor swallows silently (401/422), respect
-      // that contract and stay silent. For anything else the interceptor
-      // already showed a toast; surfacing `customErrorMessage` here would
-      // double-toast. Use try/catch at the call-site if you need to override.
-      void status
-    }
+    // HTTP failure path. The interceptor already toasts non-401 errors that
+    // aren't field-validation 422s, so we just rethrow. Callers that need
+    // inline handling (e.g. form validation) can still catch and inspect.
+    // Do not re-toast here — that would duplicate the interceptor's toast.
     throw error
   }
 

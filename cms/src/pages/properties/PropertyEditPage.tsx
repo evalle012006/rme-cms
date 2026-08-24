@@ -63,7 +63,7 @@ export default function PropertyEditPage() {
   const breadcrumb = useMemo(
     () => [
       { label: 'Home', to: ROUTES.root },
-      { label: 'Property', to: returnPath },
+      { label: 'Project', to: returnPath },
       { label: 'Edit' },
     ],
     [returnPath]
@@ -130,7 +130,7 @@ export default function PropertyEditPage() {
 
   useEffect(() => {
     if (!idParam || Number.isNaN(propertyId)) {
-      toast.error('Invalid property id')
+      toast.error('Invalid project id')
       navigate(returnPath)
       return
     }
@@ -143,7 +143,7 @@ export default function PropertyEditPage() {
       categoriesAPI.getAll(),
       statesAPI.getAll(),
       propertiesAPI.getById(propertyId, {
-        customErrorMessage: 'Property not found',
+        customErrorMessage: 'Project not found',
       }),
     ])
       .then(([companyList, categoryList, loadedStates, property]) => {
@@ -179,7 +179,7 @@ export default function PropertyEditPage() {
 
   const validateLogo = useCallback(() => {
     if (!hasLogo) {
-      setLogoError('Property logo is required')
+      setLogoError('Project logo is required')
       return false
     }
     setLogoError(null)
@@ -265,8 +265,8 @@ export default function PropertyEditPage() {
           logo: logoPayload,
         },
         {
-          successMessage: 'Property updated successfully',
-          customErrorMessage: 'Failed to update property',
+          successMessage: 'Project updated successfully',
+          customErrorMessage: 'Failed to update project',
         }
       )
       navigate(returnPath)
@@ -352,7 +352,7 @@ export default function PropertyEditPage() {
     <div className="space-y-6">
       <Breadcrumb items={breadcrumb} />
 
-      <h1 className="text-xl font-semibold text-gray-800">Edit Property</h1>
+      <h1 className="text-xl font-semibold text-gray-800">Edit Project</h1>
 
       <form
         onSubmit={handleSubmit(onSubmit, onInvalid)}
@@ -360,10 +360,10 @@ export default function PropertyEditPage() {
         noValidate
       >
         <Card className="overflow-hidden p-0">
-          <SectionHeader title="Property Basic Details" />
+          <SectionHeader title="Project Basic Details" />
 
           <div className="space-y-5 px-6 py-5">
-            <FormField label="Property Logo" error={logoError ?? undefined}>
+            <FormField label="Project Logo" error={logoError ?? undefined}>
               <ImageDropzone
                 layout="banner"
                 value={logo}
@@ -453,7 +453,7 @@ export default function PropertyEditPage() {
         </Card>
 
         <Card className="overflow-hidden p-0">
-          <SectionHeader title="Property Category" />
+          <SectionHeader title="Project Category" />
 
           <div className="px-6 py-5">
             <Controller
@@ -475,7 +475,7 @@ export default function PropertyEditPage() {
         </Card>
 
         <Card className="overflow-hidden p-0">
-          <SectionHeader title="Property Location Details" />
+          <SectionHeader title="Project Location Details" />
 
           <div className="space-y-5 px-6 py-5">
             <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
@@ -587,7 +587,7 @@ export default function PropertyEditPage() {
             disabled={submitting}
             className="px-6 py-3 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Updating…' : 'Update Property'}
+            {submitting ? 'Updating…' : 'Update Project'}
           </Button>
           <Button
             type="button"

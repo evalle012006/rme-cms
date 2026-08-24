@@ -1,4 +1,5 @@
 import { apiClient, apiRequestRaw } from '@/api/apiService'
+import type { StoragePath } from '@/constants/storagePaths'
 import { UPLOAD_ENDPOINTS } from './uploadAPIEndpoints'
 
 export interface UploadImageResponse {
@@ -7,9 +8,10 @@ export interface UploadImageResponse {
 }
 
 export const uploadAPI = {
-  uploadImage: async (file: File): Promise<string> => {
+  uploadImage: async (file: File, imagePath: StoragePath): Promise<string> => {
     const fd = new FormData()
     fd.append('file', file)
+    fd.append('image_path', imagePath)
 
     const data = await apiRequestRaw<UploadImageResponse>(
       apiClient.post<UploadImageResponse>(

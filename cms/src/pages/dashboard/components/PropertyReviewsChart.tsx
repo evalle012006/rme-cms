@@ -89,7 +89,7 @@ export function PropertyReviewsChart({
   if (!data.length) {
     return (
       <div className="flex min-h-[280px] items-center justify-center text-sm text-gray-500">
-        No property review data for the selected filters.
+        No project review data for the selected filters.
       </div>
     )
   }

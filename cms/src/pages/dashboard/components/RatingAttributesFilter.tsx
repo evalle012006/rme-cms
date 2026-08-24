@@ -1,4 +1,5 @@
 import { SelectDropdown } from '@/components/atoms/SelectDropdown'
+import { ScrollableSelectDropdown } from '@/components/atoms/ScrollableSelectDropdown'
 import { Button } from '@/components/atoms/Button'
 import type { SelectDropdownOption } from '@/components/atoms/SelectDropdown'
 
@@ -16,6 +17,7 @@ type RatingAttributesFilterProps = {
   suburbOptions: SelectDropdownOption[]
   projectOptions: SelectDropdownOption[]
   loading?: boolean
+  suburbsLoading?: boolean
   onChange: (values: RatingAttributesFilterValues) => void
   onSearch: () => void
 }
@@ -27,6 +29,7 @@ export function RatingAttributesFilter({
   suburbOptions,
   projectOptions,
   loading = false,
+  suburbsLoading = false,
   onChange,
   onSearch,
 }: RatingAttributesFilterProps) {
@@ -44,6 +47,7 @@ export function RatingAttributesFilter({
           onChange={(event) =>
             update({
               companyId: event.target.value,
+              stateId: '',
               suburbId: '',
               projectId: '',
             })
@@ -67,17 +71,19 @@ export function RatingAttributesFilter({
       </div>
 
       <div className="w-44">
-        <SelectDropdown
-          placeholder="-- All Suburbs --"
-          options={suburbOptions}
-          value={values.suburbId}
-          onChange={(event) =>
+        <ScrollableSelectDropdown
+          placeholder={
+            suburbsLoading ? 'Loading suburbs...' : '-- All Suburbs --'
+          }
+          options={suburbsLoading ? [] : suburbOptions}
+          value={suburbsLoading ? '' : values.suburbId}
+          onChange={(suburbId) =>
             update({
-              suburbId: event.target.value,
+              suburbId,
               projectId: '',
             })
           }
-          disabled={!values.stateId}
+          disabled={!values.stateId || suburbsLoading}
         />
       </div>
 

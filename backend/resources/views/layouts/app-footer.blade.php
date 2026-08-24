@@ -18,8 +18,8 @@
                 <div class="quick-links-col footer-col">
                     <h6>Quick Links</h6>
                     <ul>
-                        <li><a href="#">Property Guide</a></li>
-                        <li><a href="{{route('property-coach')}}">Property Coach</a></li>
+                        <li><a href="{{route('property-guide')}}">Property Guide</a></li>
+                        <li><a href="{{route('property-blog')}}">Property Blog</a></li>
                         <li><a href="{{route('review-guideline')}}">Review Guidelines</a></li>
                         <li><a href="{{route('terms-of-use')}}">Terms Of Use</a></li>
                         <li><a href="{{route('privacy-policy')}}">Privacy Policy</a></li>
@@ -36,8 +36,8 @@
                 <div class="follow-col footer-col">
                     <h6>Follow Us</h6>
                     <ul>
-                        <li><a href="#"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
-                        <li><a href="#"><i class="fa fa-instagram" aria-hidden="true"></i></a></li>
+                        <li><a href="https://www.facebook.com/share/1Un93B9z23/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Rate My Estate on Facebook"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
+                        <li><a href="https://www.instagram.com/ratemyestate.com.au/" target="_blank" rel="noopener noreferrer" aria-label="Rate My Estate on Instagram"><i class="fa fa-instagram" aria-hidden="true"></i></a></li>
                     </ul>
                 </div>
             </div>

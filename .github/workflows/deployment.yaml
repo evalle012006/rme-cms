@@ -1,0 +1,47 @@
+
+name: Build and Deploy  (development branch)
+
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  workflow_dispatch:
+  push:
+    branches: [ development ]
+
+permissions:
+  packages: write # Grant write permissions for packages
+  contents: read  # (Optional) Allows reading repository contents
+
+env:
+  BRANCH_NAME: development
+  COMPOSE_DIR: docker-compose.yml
+  WORKDIR: /root/rate_mystate
+  BUILD_CONTEXT: .
+  REPO_SOURCE: docker-compose.yml
+  REGISTRY_HOST: ghcr.io
+  HOST: ${{ secrets.HOST }}
+  USER: ${{ secrets.USER }}
+  SSH_KEY: ${{ secrets.SSH_KEY }}
+
+jobs:
+  deploy:
+    name: "Deploy To Server"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - uses: ./.github/workflows/composite/deploy
+        with:
+          service_id: ${{ env.SERVICE_ID }}
+          workdir: ${{ env.WORKDIR }}
+          compose_dir: ${{ env.COMPOSE_DIR }}
+          repository: ${{ github.repository }}
+          repository_key: ${{ secrets.REPOSITORY_KEY }}
+          branch_name: ${{ env.BRANCH_NAME }}
+          ssh_key: ${{ env.SSH_KEY }}
+          ssh_host: ${{ env.HOST }}
+          ssh_user: ${{ env.USER }}
+          registry_host: ${{ env.REGISTRY_HOST }}
+          registry_username: ${{ github.actor }}
+          registry_password: ${{ secrets.GITHUB_TOKEN }}

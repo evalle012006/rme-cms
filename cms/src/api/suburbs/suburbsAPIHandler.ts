@@ -1,4 +1,10 @@
-import { apiClient, apiRequestRaw } from '@/api/apiService'
+import {
+  apiClient,
+  apiRequest,
+  apiRequestRaw,
+  type ApiEnvelope,
+  type ApiRequestOptions,
+} from '@/api/apiService'
 import { SUBURBS_ENDPOINTS } from './suburbsAPIEndpoints'
 
 export interface SuburbOption {
@@ -17,9 +23,30 @@ export interface FetchSuburbsResponse {
   results: SuburbOption[]
 }
 
+export interface SuburbByStateOption {
+  id: string
+  name: string
+}
+
+export interface SuburbsByStatePayload {
+  state_id: number | string
+}
+
 export const suburbsAPI = {
   fetch: (payload: FetchSuburbsPayload): Promise<FetchSuburbsResponse> =>
     apiRequestRaw(
       apiClient.post<FetchSuburbsResponse>(SUBURBS_ENDPOINTS.FETCH, payload)
+    ),
+
+  byState: (
+    payload: SuburbsByStatePayload,
+    options?: ApiRequestOptions
+  ): Promise<SuburbByStateOption[]> =>
+    apiRequest<SuburbByStateOption[]>(
+      apiClient.post<ApiEnvelope<SuburbByStateOption[]>>(
+        SUBURBS_ENDPOINTS.BY_STATE,
+        payload
+      ),
+      options
     ),
 }

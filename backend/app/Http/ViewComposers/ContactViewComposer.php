@@ -10,7 +10,7 @@ class ContactViewComposer
 {
     public function compose(View $view)
     {
-        $sectionData = CmsPageSections::whereCmsPageId(CmsPages::whereName('contact')->pluck('id'))
+        $sectionData = CmsPageSections::whereIn('cms_page_id', CmsPages::where('name', 'contact')->select('id'))
             ->get()
             ->groupBy('section_slug')
             ->transform(function ($item) {

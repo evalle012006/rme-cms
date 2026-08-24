@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import type { LucideIcon } from "lucide-react"
@@ -9,6 +10,8 @@ export type StatCardProps = Omit<ComponentProps<typeof Card>, "children"> & {
   label: string
   iconClassName?: string
   countClassName?: string
+  /** When set, the card renders as a link to this path. */
+  to?: string
 }
 
 export function StatCard({
@@ -18,12 +21,14 @@ export function StatCard({
   iconClassName,
   countClassName,
   className,
+  to,
   ...props
 }: StatCardProps) {
-  return (
+  const card = (
     <Card
       className={cn(
         "app-border rounded-card flex items-center gap-4 p-4",
+        to && "transition-colors hover:bg-gray-50",
         className
       )}
       {...props}
@@ -43,5 +48,16 @@ export function StatCard({
         </p>
       </div>
     </Card>
+  )
+
+  if (!to) return card
+
+  return (
+    <Link
+      to={to}
+      className="block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+    >
+      {card}
+    </Link>
   )
 }

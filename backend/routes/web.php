@@ -33,6 +33,9 @@ Route::get('builder/register', 'Auth\RegisterController@showBuilderRegister')->n
 Route::post('builder/register', 'Auth\RegisterController@createBuilder')->name('save-builder');
 // end
 
+// XML sitemap for search engines
+Route::get('sitemap.xml', 'SitemapController@index')->name('sitemap');
+
 Route::get('/', 'HomeController@index')->name('root');
 
 Route::get('/about', 'HomeController@aboutPage')->name('about-page');
@@ -50,15 +53,25 @@ Route::get('review-listing', 'ReviewController@reviewListing')->name('review-lis
 Route::get('/nav-review-step1', 'ReviewController@navReviewStepOne')->name('nav-review-step1');
 
 
-//socialite
+// socialite — throttled to make brute-force enumeration expensive
+Route::middleware('throttle:20,1')->group(function () {
+    // Public site (Blade / session guard)
+    // google
+    Route::get('login/google', 'Auth\LoginController@redirectToGoogleProvider')->name('socialite-google');
+    Route::get('login/google/callback', 'Auth\LoginController@handleGoogleProviderCallback');
 
-// google
-Route::get('login/google', 'Auth\LoginController@redirectToGoogleProvider')->name('socialite-google');
-Route::get('login/google/callback', 'Auth\LoginController@handleGoogleProviderCallback');
+    // facebook
+    Route::get('login/facebook', 'Auth\LoginController@redirectToFacebookProvider')->name('socialite-facebook');
+    Route::get('login/facebook/callback', 'Auth\LoginController@handleFacebookProviderCallback');
 
-// facebook
-Route::get('login/facebook', 'Auth\LoginController@redirectToFacebookProvider')->name('socialite-facebook');
-Route::get('login/facebook/callback', 'Auth\LoginController@handleFacebookProviderCallback');
+    // React CMS (Passport token, admin-only, no auto-provision)
+    Route::get('cms/auth/{provider}', 'Auth\CmsSocialLoginController@redirect')
+        ->where('provider', 'google|facebook')
+        ->name('cms.social.redirect');
+    Route::get('cms/auth/{provider}/callback', 'Auth\CmsSocialLoginController@callback')
+        ->where('provider', 'google|facebook')
+        ->name('cms.social.callback');
+});
 Route::any('/property_search', 'PropertyListingController@searchData')->name('property_search');
 Route::any('property_search/{slug}', 'PropertyListingController@searchData')->name('property_search_slug');
 
@@ -75,7 +88,8 @@ Route::group(['middleware' => 'checkAuth'], function () {
     // builder portal routes
     Route::group(['prefix' => 'builder'], function () {
         Route::get('dashboard', 'BuilderController@showDashboard')->name('builder-dashboard');
-        Route::get('my-property', 'BuilderController@myProperties')->name('builder-property');
+        Route::get('my-project', 'BuilderController@myProperties')->name('builder-property');
+        Route::permanentRedirect('my-property', '/builder/my-project');
         Route::get('company-users', 'BuilderController@getCompanyUsers')->name('company-users');
         Route::post('create-property', 'BuilderController@createProperty')->name('create-property');
         Route::post('create-advertise', 'AdvertiseController@createAdvertise')->name('create-adv');
@@ -95,7 +109,8 @@ Route::group(['middleware' => 'checkAuth'], function () {
 
 
 //blog detail
-Route::get('/property-coach', 'PropertyCoachController@propertyCoachPage')->name('property-coach');
+Route::permanentRedirect('/property-coach', '/property-blog');
+Route::get('/property-blog', 'PropertyCoachController@propertyCoachPage')->name('property-blog');
 Route::get('blog-detail/{slug}', 'PropertyCoachController@blogDetails');
 Route::get('/blog-posts/{slug?}', 'PropertyCoachController@allBlogPosts')->name('blog-posts');
 

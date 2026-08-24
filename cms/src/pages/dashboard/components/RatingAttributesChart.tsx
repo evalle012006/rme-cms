@@ -16,11 +16,14 @@ import {
 type RatingAttributesChartProps = {
   data: Record<string, number | null>
   loading?: boolean
+  /** When true, empty copy refers to the selected developer */
+  companySelected?: boolean
 }
 
 export function RatingAttributesChart({
   data,
   loading = false,
+  companySelected = false,
 }: RatingAttributesChartProps) {
   const entries = Object.entries(data)
 
@@ -91,7 +94,9 @@ export function RatingAttributesChart({
   if (!entries.length) {
     return (
       <div className="flex min-h-[280px] items-center justify-center text-sm text-gray-500">
-        No rating attribute data for the selected filters.
+        {companySelected
+          ? 'No rating attributes for this developer.'
+          : 'No rating attribute data for the selected filters.'}
       </div>
     )
   }

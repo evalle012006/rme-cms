@@ -5,6 +5,7 @@ import {
   type ApiRequestOptions,
 } from '@/api/apiService'
 import { uploadAPI } from '@/api/upload/uploadAPIHandler'
+import { STORAGE_PATHS } from '@/constants/storagePaths'
 import { AUTH_ENDPOINTS } from './authAPIEndpoints'
 import type { AuthUser } from '@/store/authStore'
 
@@ -45,7 +46,10 @@ export const authAPI = {
   updateProfile: async (payload: UpdateProfilePayload): Promise<string | null> => {
     const profileImagePath =
       payload.profile_image instanceof File
-        ? await uploadAPI.uploadImage(payload.profile_image)
+        ? await uploadAPI.uploadImage(
+            payload.profile_image,
+            STORAGE_PATHS.PROFILE
+          )
         : payload.profile_image ?? null
 
     const fd = new FormData()

@@ -46,12 +46,3 @@ export const BRAND_TYPE_OPTIONS: { value: BrandType; label: string }[] = [
   { value: BRAND_TYPE.DEVELOPER, label: "Developer" },
   { value: BRAND_TYPE.BUILDER_AND_DEVELOPER, label: "Developer and Builder" },
 ]
-
-// ── User add tab type ────────────────────────────────────────────────────────
-
-export const USER_TAB = {
-  REVIEWER: "reviewer",
-  BUILDER_DEVELOPER: "builder_developer",
-} as const
-
-export type UserTab = (typeof USER_TAB)[keyof typeof USER_TAB]

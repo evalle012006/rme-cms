@@ -1,14 +1,19 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', seoSiteName() . ' | Property & Real Estate Reviews in Australia')
+@section('meta_description', seoText($sectionData['banner']['description'] ?? 'Seek reviews and buy with confidence. Read and share honest reviews of Australian property developers, builders and new estates on ' . seoSiteName() . '.'))
+
 @section('content')
     <div class="banner-section bg-main"
-         style="background-image: url({{$sectionData['banner']['image'] ? checkUrl($sectionData['banner']['image']) : 'images/homepage/HomepageHero.jpg'}});">
+         style="background-image: url({{ $sectionData['banner']['image'] ? absoluteStorageUrl($sectionData['banner']['image']) : asset('images/homepage/HomepageHero.jpg') }});">
         <div class="banner-caption">
             @if($sectionData['banner']['title'])
-                <h2>{{$sectionData['banner']['title']}}</h2>
+                <h1>{{$sectionData['banner']['title']}}</h1>
             @else
-                <h2>Seek Reviews. Buy with <span>Confidence.</span></h2>
-            @endif
+{{-- CMS fallback (kept for later restore)
+<h1>Seek Reviews. Buy with <span>Confidence.</span></h1>
+            --}}
+@endif
             <div class="banner-srch-wrap">
                 <form action="{{route('property_search')}}">
 
@@ -28,9 +33,11 @@
                     @if($sectionData['review_ratio']['title'])
                         <h2>{{$sectionData['review_ratio']['title']}}</h2>
                     @else
-                        <h2>Buying a home doesn’t
+{{-- CMS fallback (kept for later restore)
+<h2>Buying a home doesn’t
                             have to be a mystery.</h2>
-                    @endif
+                    --}}
+@endif
                 </div>
                 <div class="section-content">
                     <div class="single-stat-col">
@@ -38,9 +45,11 @@
                             <h2>{{$sectionData['review_ratio']['other_params']['trust_online_ratio']}}<span>%</span>
                             </h2>
                         @else
-                            <h2>88<span>%</span>
+{{-- CMS fallback (kept for later restore)
+<h2>88<span>%</span>
                             </h2>
-                        @endif
+                        --}}
+@endif
                         <h5>Trust online reviews</h5>
                     </div>
                     <div class="single-stat-col">
@@ -48,8 +57,10 @@
                             <h2>{{$sectionData['review_ratio']['other_params']['validate_reviews_ratio']}}<span>%</span>
                             </h2>
                         @else
-                            <h2>89<span>%</span></h2>
-                        @endif
+{{-- CMS fallback (kept for later restore)
+<h2>89<span>%</span></h2>
+                        --}}
+@endif
 
                         <h6>Validate advise</h6>
                     </div>
@@ -60,19 +71,22 @@
             <div class="container">
                 <div class="img-wrap">
                     <img
-                        src="{{$sectionData['why_write_review']['image'] ? checkUrl($sectionData['why_write_review']['image']) :asset('images/homepage/Homepage_module2.jpg')}}">
+                        src="{{$sectionData['why_write_review']['image'] ? absoluteStorageUrl($sectionData['why_write_review']['image']) : asset('images/homepage/Homepage_module2.jpg')}}">
                 </div>
                 <div class="content-wrap">
                     @if($sectionData['why_write_review']['title'])
                         <h5>{{$sectionData['why_write_review']['title']}} </h5>
                     @else
-                        <h5>WHY WRITE A REVIEW. Be part of a community that is doing good. </h5>
-                    @endif
+{{-- CMS fallback (kept for later restore)
+<h5>WHY WRITE A REVIEW. Be part of a community that is doing good. </h5>
+                    --}}
+@endif
 
                     @if($sectionData['why_write_review']['body'])
                         {!! $sectionData['why_write_review']['body'] !!}
                     @else
-                        <ul>
+{{-- CMS fallback (kept for later restore)
+<ul>
                             <li>Voice your opinion and help others make informed decisions
                             </li>
                             <li>Reward builders and developers who performed to your expectations and beyond.
@@ -81,7 +95,8 @@
                                 experience.
                             </li>
                         </ul>
-                    @endif
+                    --}}
+@endif
                     @if(!auth()->user() || (auth()->user() && auth()->user()->hasRole('reviewer')))
                         <div class="btn-wrap">
                             <a href="{{route('review-step-1')}}" class="btn yellow-btn">Write A Review </a>
@@ -100,16 +115,20 @@
                         @if($sectionData['recent_reviews']['title'])
                             <h5>{{$sectionData['recent_reviews']['title']}}</h5>
                         @else
-                            <h5>Buy with Confidence</h5>
-                        @endif
+{{-- CMS fallback (kept for later restore)
+<h5>Buy with Confidence</h5>
+                        --}}
+@endif
 
                         @if($sectionData['recent_reviews']['body'])
                             {!! $sectionData['recent_reviews']['body'] !!}
                         @else
-                            <p>Your home is one of the most expensive assets you will own. Do your research, know who
+{{-- CMS fallback (kept for later restore)
+<p>Your home is one of the most expensive assets you will own. Do your research, know who
                                 and 
                                 what you’re dealing with.</p>
-                        @endif
+                        --}}
+@endif
 
                     </div>
                     <div class="btn-wrap">
@@ -284,60 +303,55 @@
             <div class="section-content" id="pinned-map"></div>
         </div>
     </section>
-    @if(!auth()->user() || (auth()->user() && auth()->user()->hasRole('reviewer')))
-        <div class="cat-review-section">
-            <div class="container">
-                <div class="section-title">
-{{--                    <h2>Write a Review</h2>--}}
-                    <h2>Have you just finished your build? Write a review</h2>
-                </div>
-                <form method="GET" action="{{route('home-cat-review')}}" id="formId">
-                    <div class="section-content">
-                        @foreach($property_category as $category)
-
-                            <div class="single-box">
-                                <input type="radio" name="categories" class="ads_Checkbox" id="category"
-                                       value="{{$category['id']}}">
-                                <div class="cat-content-wrap">
-                                    <div class="icon-wrap">
-                                        <img
-                                            src="{{$category['full_cat_image'] ? $category['full_cat_image'] : asset('images/cat-icon1.png')}}">
-                                    </div>
-                                    <h4>{{$category['name']}}</h4>
-                                    <div class="content-wrap">
-
-                                        <p>{{$category['description'] ? $category['description'] :  'There are many variations of passages of Lorem Ipsum available'}}</p>
-                                        <a>
-                                            <img src="{{asset('images/grey-arrow.png')}}">
-                                            <img class="hover-img" src="{{asset('images/white-arrow.png')}}">
-                                        </a>
-                                    </div>
-                                </div>
+    <div class="cat-review-section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Browse reviews by category</h2>
+            </div>
+            <div class="section-content">
+                @foreach($property_category as $category)
+                    <a class="single-box" href="{{ route('property-listing-with-slug', ['slug' => $category['slug']]) }}">
+                        <div class="cat-content-wrap">
+                            <div class="icon-wrap">
+                                <img
+                                    src="{{$category['full_cat_image'] ? $category['full_cat_image'] : asset('images/cat-icon1.png')}}">
                             </div>
-                        @endforeach
-                    </div>
-                </form>
+                            <h4>{{$category['name']}}</h4>
+                            <div class="content-wrap">
+                                <p>{{$category['description'] ? $category['description'] :  'There are many variations of passages of Lorem Ipsum available'}}</p>
+                                <span>
+                                    <img src="{{asset('images/grey-arrow.png')}}">
+                                    <img class="hover-img" src="{{asset('images/white-arrow.png')}}">
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                @endforeach
             </div>
         </div>
-    @endif
+    </div>
     <div class="our-blog-section left-space">
         <div class="section-title">
             <h6>Read our Blog</h6>
             @if($sectionData['our_blogs']['title'])
                 <h2>{{$sectionData['our_blogs']['title']}}</h2>
             @else
-                <h2>Property Coach</h2>
-            @endif
+{{-- CMS fallback (kept for later restore)
+<h2>Property Blog</h2>
+            --}}
+@endif
 
             @if($sectionData['our_blogs']['body'])
                 {!!$sectionData['our_blogs']['body']!!}
             @else
-                <p>Stay updated with the latest property news, content and insights</p>
-            @endif
+{{-- CMS fallback (kept for later restore)
+<p>Stay updated with the latest property news, content and insights</p>
+            --}}
+@endif
         </div>
         <div class="section-content">
             <div class="btn-wrap">
-                <a href="{{ route('property-coach') }}">Show all Stories</a>
+                <a href="{{ route('property-blog') }}">Show all Stories</a>
             </div>
             <div class="blog-content-wrap">
                 <div class="blog-post-slider">
@@ -372,14 +386,6 @@
     </div>
 @endsection
 @section('extra-script')
-    <script>
-        $(':radio').click(function () {
-            $('input:not(:checked)').parent().removeClass("active");
-            $('input:checked').parent().addClass("active");
-            $("#formId").submit();
-        });
-    </script>
-
     <script>
 
 

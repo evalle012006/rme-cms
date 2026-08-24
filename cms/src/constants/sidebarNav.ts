@@ -39,9 +39,9 @@ export const NAV_ITEMS: NavItemConfig[] = [
     ],
   },
   {
-    label: 'Property', icon: Home, children: [
-      { label: 'Property Approved', to: ROUTES.properties.approved },
-      { label: 'Property Pending', to: ROUTES.properties.pending },
+    label: 'Project', icon: Home, children: [
+      { label: 'Project Approved', to: ROUTES.properties.approved },
+      { label: 'Project Pending', to: ROUTES.properties.pending },
     ],
   },
   {
@@ -51,8 +51,8 @@ export const NAV_ITEMS: NavItemConfig[] = [
     ],
   },
   {
-    label: 'Property Setting', icon: Settings, children: [
-      { label: 'Property Category', to: ROUTES.propertySettings.categories.list },
+    label: 'Project Setting', icon: Settings, children: [
+      { label: 'Project Category', to: ROUTES.propertySettings.categories.list },
       { label: 'Manage Rating', to: ROUTES.propertySettings.manageRating },
     ],
   },
@@ -67,8 +67,9 @@ export const NAV_ITEMS: NavItemConfig[] = [
       { label: 'Home', to: ROUTES.cms.home },
       { label: 'About', to: ROUTES.cms.about },
       { label: 'Property Guide', to: ROUTES.cms.propertyGuide },
-      { label: 'Property Coach', to: ROUTES.cms.propertyCoach },
+      { label: 'Property Blog', to: ROUTES.cms.propertyCoach },
       { label: 'Contact', to: ROUTES.cms.contact },
+      { label: 'Reviews Listing', to: ROUTES.cms.reviewsListing },
       { label: 'Review Guidelines', to: ROUTES.cms.reviewGuidelines },
       { label: 'Terms of Use', to: ROUTES.cms.termsOfUse },
       { label: 'Privacy Policy', to: ROUTES.cms.privacyPolicy },

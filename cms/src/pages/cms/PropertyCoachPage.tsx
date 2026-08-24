@@ -5,14 +5,14 @@ import { ROUTES } from '@/constants/routes'
 const BREADCRUMB = [
   { label: 'Home', to: ROUTES.dashboard },
   { label: 'Cms', to: ROUTES.cms.home },
-  { label: 'Property Coach' },
+  { label: 'Property Blog' },
 ]
 
 export default function PropertyCoachPage() {
   return (
     <CmsPageShell
       breadcrumb={BREADCRUMB}
-      title="Property Coach page"
+      title="Property Blog page"
       config={PROPERTY_COACH_CMS_CONFIG}
     />
   )

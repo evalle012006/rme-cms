@@ -5,4 +5,5 @@ export const USERS_ENDPOINTS = {
   DELETE: '/users/delete',
   GET_BY_ID: '/user',
   UPDATE_REVIEWER: '/auth/reviewer/update',
+  CHANGE_REQUEST_STATUS: '/change-request-status',
 } as const

@@ -1,14 +1,19 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'About Us | ' . seoSiteName())
+@section('meta_description', seoText($sectionData['banner']['description'] ?? seoSiteName() . ' is a review platform built to create a community where property buyers share their story and help others make better, more confident decisions.'))
+
 @section('content')
     <div class="bg-main inner-banner"
-         style="background-image: url({{$sectionData['banner']['image'] ? checkUrl($sectionData['banner']['image']) : "images/homepage/HomepageHero.jpg"}});">
+         style="background-image: url({{ $sectionData['banner']['image'] ? absoluteStorageUrl($sectionData['banner']['image']) : asset('images/homepage/HomepageHero.jpg') }});">
         <div class="banner-caption">
             @if($sectionData['banner']['title'])
-                <h2>{{$sectionData['banner']['title']}}</h2>
+                <h1>{{$sectionData['banner']['title']}}</h1>
             @else
-                <h2>About Us</h2>
-            @endif
+{{-- CMS fallback (kept for later restore)
+<h1>About Us</h1>
+            --}}
+@endif
             <div class="breadcrumb-wrap">
                 <a href="#">Home</a> / <span>About Us</span>
             </div>
@@ -24,27 +29,33 @@
                 @if($sectionData['get_to_know']['image'])
                     <img src="{{checkUrl($sectionData['get_to_know']['image'])}}">
                 @else
-                    <img src="{{asset('images/homepage/AboutUs1.jpg')}}">
-                @endif
+{{-- CMS fallback (kept for later restore)
+<img src="{{asset('images/homepage/AboutUs1.jpg')}}">
+                --}}
+@endif
             </div>
             <div class="content-wrap">
                 <h3>Get to know </h3>
                 @if($sectionData['get_to_know']['title'])
                     <h2>{{$sectionData['get_to_know']['title']}}</h2>
                 @else
-                    <h2>About RateMyEstate</h2>
-                @endif
+{{-- CMS fallback (kept for later restore)
+<h2>About RateMyEstate</h2>
+                --}}
+@endif
 
                 @if($sectionData['get_to_know']['body'])
                     {!! $sectionData['get_to_know']['body'] !!}
                 @else
-                    <p>When it comes to buying a property you often buy with the ‘artist impression only,’ with a range
+{{-- CMS fallback (kept for later restore)
+<p>When it comes to buying a property you often buy with the ‘artist impression only,’ with a range
                         of
                         renders and images,on a promise that it’ll be luxurious orhigh end, but is it? </p>
                     <p>Are you ready to hand over hundreds of thousands and in some instances millions without knowing
                         who
                         you are buying from? </p>
-                @endif
+                --}}
+@endif
             </div>
         </div>
     </div>
@@ -59,67 +70,63 @@
 {{--                    <h2>We are competitive in Real Estate Solutions.</h2>--}}
                 @endif
             </div>
+            @php
+                $missionParams = $sectionData['our_mission']['other_params'] ?? [];
+                $missionCard1 = $missionParams['card_1'] ?? $missionParams['description_1'] ?? null;
+                $missionCard2 = $missionParams['card_2'] ?? $missionParams['description_2'] ?? null;
+                $missionCard3 = $missionParams['card_3'] ?? $missionParams['description_3'] ?? null;
+                $missionCard4 = $missionParams['card_4'] ?? $missionParams['description_4'] ?? null;
+            @endphp
             <div class="section-content">
                 <div class="single-col">
                     <div class="icon-wrap">
                         <img src="{{asset('images/start-icon1.png')}}">
                     </div>
-                    {{--                    {{json_encode($sectionData['our_mission'])}}}--}}
-                    @if($sectionData['our_mission']['other_params'])
-                        @if(isset($sectionData['our_mission']['other_params']['card_1']) && $sectionData['our_mission']['other_params']['card_1'])
-                            {!! $sectionData['our_mission']['other_params']['card_1'] !!}
-                        @else
-                            <p>Are you ready to hand over hundreds of thousands and in some instances millions without
-                                knowing
-                                who you are buying from? </p>
-                        @endisset
+                    @if($missionCard1)
+                        {!! $missionCard1 !!}
                     @else
-                        <p>Are you ready to hand over hundreds of thousands and in some instances millions without
+{{-- CMS fallback (kept for later restore)
+<p>Are you ready to hand over hundreds of thousands and in some instances millions without
                             knowing
                             who you are buying from? </p>
-                    @endif
+                    --}}
+@endif
                 </div>
                 <div class="single-col">
                     <div class="icon-wrap">
                         <img src="{{asset('images/start-icon2.png')}}">
                     </div>
-                    @if($sectionData['our_mission']['other_params'])
-                        @if(isset($sectionData['our_mission']['other_params']['card_2']) && $sectionData['our_mission']['other_params']['card_2'])
-                            {!! $sectionData['our_mission']['other_params']['card_2'] !!}
-                        @else
-                            <p>Build a property review community that helps buyers make a better buying decision</p>
-                        @endisset
+                    @if($missionCard2)
+                        {!! $missionCard2 !!}
                     @else
-                        <p>Build a property review community that helps buyers make a better buying decision</p>
-                    @endif
+{{-- CMS fallback (kept for later restore)
+<p>Build a property review community that helps buyers make a better buying decision</p>
+                    --}}
+@endif
                 </div>
                 <div class="single-col">
                     <div class="icon-wrap">
                         <img src="{{asset('images/start-icon3.png')}}">
                     </div>
-                    @if($sectionData['our_mission']['other_params'])
-                        @if(isset($sectionData['our_mission']['other_params']['card_3']) && $sectionData['our_mission']['other_params']['card_3'])
-                            {!! $sectionData['our_mission']['other_params']['card_3'] !!}
-                        @else
-                            <p>Help buyers navigate the complex homebuying journey</p>
-                        @endisset
+                    @if($missionCard3)
+                        {!! $missionCard3 !!}
                     @else
-                        <p>Help buyers navigate the complex homebuying journey</p>
-                    @endif
+{{-- CMS fallback (kept for later restore)
+<p>Help buyers navigate the complex homebuying journey</p>
+                    --}}
+@endif
                 </div>
                 <div class="single-col">
                     <div class="icon-wrap">
                         <img src="{{asset('images/start-icon4.png')}}">
                     </div>
-                    @if($sectionData['our_mission']['other_params'])
-                        @if(isset($sectionData['our_mission']['other_params']['card_4']) && $sectionData['our_mission']['other_params']['card_4'])
-                            {!! $sectionData['our_mission']['other_params']['card_4'] !!}
-                        @else
-                            <p>Become a trusted source in home purchasing journey through shared experiences.</p>
-                        @endisset
+                    @if($missionCard4)
+                        {!! $missionCard4 !!}
                     @else
-                        <p>Become a trusted source in home purchasing journey through shared experiences.</p>
-                    @endif
+{{-- CMS fallback (kept for later restore)
+<p>Become a trusted source in home purchasing journey through shared experiences.</p>
+                    --}}
+@endif
                 </div>
             </div>
         </div>
@@ -131,28 +138,34 @@
                 @if($sectionData['our_platform']['title'])
                     <h3>{{$sectionData['our_platform']['title']}}</h3>
                 @else
-                    <h3>Be Confident</h3>
-                @endif
+{{-- CMS fallback (kept for later restore)
+<h3>Be Confident</h3>
+                --}}
+@endif
 
 
                 @if($sectionData['our_platform']['body'])
                     {!! $sectionData['our_platform']['body'] !!}
                 @else
-                    <p>If you are one of the lucky people to afford a home be sure to search the reviews using
+{{-- CMS fallback (kept for later restore)
+<p>If you are one of the lucky people to afford a home be sure to search the reviews using
                         ratemyestate
                         to gauge the builder or developer you are considering to purchase from.</p>
                     <p> If you have recently bought a property be a hero and rate your builder and developer and reward
                         good
                         performances and help others with their decision.
                     </p>
-                @endif
+                --}}
+@endif
             </div>
             <div class="img-wrap">
                 @if($sectionData['our_platform']['image'])
                     <img src="{{checkUrl($sectionData['our_platform']['image'])}}">
                 @else
-                    <img src="{{asset('images/homepage/AboutUs2.jpg')}}">
-                @endif
+{{-- CMS fallback (kept for later restore)
+<img src="{{asset('images/homepage/AboutUs2.jpg')}}">
+                --}}
+@endif
             </div>
         </div>
     </div>
@@ -254,15 +267,19 @@
                         @if($sectionData['recent_reviews']['title'])
                             <h5>{{$sectionData['recent_reviews']['title']}}</h5>
                         @else
-                            <h5>Buy with Confidence</h5>
-                        @endif
+{{-- CMS fallback (kept for later restore)
+<h5>Buy with Confidence</h5>
+                        --}}
+@endif
                         @if($sectionData['recent_reviews']['body'])
                             {!! $sectionData['recent_reviews']['body'] !!}
                         @else
-                            <p>Your home is one of the most expensive assets you will own. Do your research, know who
+{{-- CMS fallback (kept for later restore)
+<p>Your home is one of the most expensive assets you will own. Do your research, know who
                                 and
                                 what you’re dealing with.</p>
-                        @endif
+                        --}}
+@endif
 
                     </div>
                     <div class="btn-wrap">

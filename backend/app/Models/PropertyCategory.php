@@ -5,8 +5,6 @@ namespace App\Models;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
-
 class PropertyCategory extends Model
 {
     use SoftDeletes, Sluggable;
@@ -45,7 +43,7 @@ class PropertyCategory extends Model
     function getFullCatImageAttribute()
     {
         if (!empty($this->image)) {
-            return url(Storage::url($this->image));
+            return absoluteStorageUrl($this->image);
         }
         return null;
     }

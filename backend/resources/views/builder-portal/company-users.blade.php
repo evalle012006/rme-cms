@@ -3,6 +3,7 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet"/>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.css" rel="stylesheet"/>
 @endsection
+@section('meta_robots', 'noindex, nofollow')
 @section('content')
     <div class="my-profile-section">
         @if($user)
@@ -13,11 +14,11 @@
                     </a>
                     <div class="user-img-wrap">
                         <img id="user-profile-image"
-                             src="{{$user->company->logo ? url(Storage::url($user->company->logo)) : asset('images/user-img.png')}}"
-                             alt="file upload"/>
+                             src="{{ optional($user->company)->full_company_logo ?: asset('images/user-img.png') }}"
+                             alt="Company logo"/>
                     </div>
                     <div class="user-detail">
-                        <input type="hidden" id="hidden_id" value={{$user->company_id}} />
+                        <input type="hidden" id="hidden_id" value="{{ $user->company_id }}"/>
                         <h6>{{$user->firstname}}</h6>
                         <span>{{$user->email}}</span>
                     </div>
@@ -37,7 +38,7 @@
                             </li>
                             <li>
                                 <a href="{{ route('builder-property') }}">
-                                    <img class="side-icons" src="{{asset('images/user-icon.svg')}}">My Property</a>
+                                    <img class="side-icons" src="{{asset('images/user-icon.svg')}}">My Project</a>
                             </li>
                             <li>
                                 <a class="active-profile-tab" href="{{ route('company-users') }}">
@@ -292,7 +293,17 @@
                             data: fData,
                             processData: false,
                             contentType: false,
-                            success: function () {
+                            success: function (res) {
+                                if (res && res.full_company_logo) {
+                                    $("#user-profile-image").attr('src', res.full_company_logo);
+                                }
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Failed to update company logo'
+                                });
                             }
                         });
                     }

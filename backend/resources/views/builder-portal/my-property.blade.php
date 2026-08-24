@@ -1,5 +1,7 @@
 @extends('layouts.app-layout')
 
+@section('meta_robots', 'noindex, nofollow')
+
 @section('content')
 
     <div class="my-profile-section">
@@ -11,11 +13,11 @@
                     </a>
                     <div class="user-img-wrap">
                         <img id="user-profile-image"
-                             src="{{$user->company->logo ? url(Storage::url($user->company->logo)) : asset('images/user-img.png')}}"
-                             alt="file upload"/>
+                             src="{{ optional($user->company)->full_company_logo ?: asset('images/user-img.png') }}"
+                             alt="Company logo"/>
                     </div>
                     <div class="user-detail">
-                        <input type="hidden" id="hidden_id" value={{$user->company_id}} />
+                        <input type="hidden" id="hidden_id" value="{{ $user->company_id }}"/>
 
                         <h6>{{$user->firstname}}</h6>
                         <span>{{$user->email}}</span>
@@ -36,7 +38,7 @@
                             </li>
                             <li>
                                 <a class="active-profile-tab" href="{{ route('builder-property') }}">
-                                    <img class="side-icons" src="{{asset('images/user-icon.svg')}}">My Property</a>
+                                    <img class="side-icons" src="{{asset('images/user-icon.svg')}}">My Project</a>
                             </li>
                             <li>
                                 <a href="{{ route('company-users') }}">
@@ -52,132 +54,14 @@
                         <div class="title">
                             <h4>My Project Reviews</h4>
                         </div>
-                        <div class="my-properties-list">
-                            @foreach($properties as $propertiesData)
-                                <div class="single-box">
-                                    <div class="single-box-height">
-                                        <div class="property-img-wrap property-logo" data-id="{{$propertiesData->id}}" data-img="{{$propertiesData->full_property_logo}}">
-                                            <img
-                                                src="{{$propertiesData->full_property_logo}}">
-                                        </div>
-                                        <div class="author-detail">
-                                            <div class="author-btm">
-                                                <p class="property-title">
-                                                    <a href="{{url('property-review/'.$propertiesData->slug)}}">{{$propertiesData->project_name}}</a>
-                                                </p>
-
-                                                <div class="main-rating-new">
-                                                    <div class="rating-info">
-                                                        <div class="rating-left">
-                                                            <div
-                                                                class="avarage-rating">{{$propertiesData->overall_rating_exp}}</div>
-                                                            <div class="rating-wrap">
-                                                                <ul class="general-star-rating overall-rate-color-{{ratingClass($propertiesData->overall_rating)}}">
-                                                                    @foreach(range(0,4) as $number)
-                                                                        <li><a href=""><img
-                                                                                    src="{{asset('images/rating-img.png')}}"></a>
-                                                                        </li>
-                                                                    @endforeach
-                                                                </ul>
-                                                            </div>
-                                                            <p>Total Reviews {{$propertiesData->review_count}}</p>
-                                                        </div>
-                                                        <div class="rating-right">
-                                                            <div class="rating-list">
-                                                                @foreach($propertiesData->rating_number as $ratingNumber => $starRating)
-                                                                    <div class="rating-list-single">
-                                                                        <div class="star-counter">
-                                                                            <span>{{$ratingNumber}}</span><img
-                                                                                src="{{asset('images/rating-img-black.png')}}"/>
-                                                                        </div>
-                                                                        <div class="star-rating-percentage">
-                                                                            <div class="star-total-percentage">
-                                                                                <div class="star-count-percentage"
-                                                                                     style="width: {{$starRating[1]}}%;">
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="star-rating-counter">
-                                                                            ({{$starRating[0]}})
-                                                                        </div>
-                                                                    </div>
-                                                                @endforeach
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="custom-rating-wrap">
-                                                        @foreach((count($propertiesData->ratings_by_title) > 3 ? array_slice($propertiesData->ratings_by_title,0,3) : $propertiesData->ratings_by_title) as $queName=>$rating)
-                                                            @if($rating > 0)
-                                                                <div class="rating-wrap-main">
-                                                                    <div class="rating-wrap-main-in">
-                                                                        <p>{{$queName}}</p>
-                                                                        <div class="rating-wrap">
-                                                                            <ul class="general-star-rating overall-rate-color-{{ratingClass($rating)}}">
-                                                                                @foreach(range(0,4) as $number)
-                                                                                    <li><a href=""><img
-                                                                                                src="{{asset('images/rating-img.png')}}"></a>
-                                                                                    </li>
-                                                                                @endforeach
-                                                                            </ul>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            @endif
-                                                        @endforeach
-                                                        @if(count($propertiesData->ratings_by_title) > 3)
-                                                            <div class="more-details-section">
-                                                                <div class="show-more"><h6>Show More</h6></div>
-                                                                <div class="content-panel">
-                                                                    @foreach(array_slice($propertiesData->ratings_by_title,3,count($propertiesData->ratings_by_title)) as $queName=>$rating)
-                                                                        @if($rating > 0)
-                                                                            <div class="rating-wrap-main">
-                                                                                <div class="rating-wrap-main-in">
-                                                                                    <p>{{$queName}}</p>
-                                                                                    <div class="rating-wrap">
-                                                                                        <ul class="general-star-rating overall-rate-color-{{ratingClass($rating)}}">
-                                                                                            @foreach(range(0,4) as $number)
-                                                                                                <li><a href=""><img
-                                                                                                            src="{{asset('images/rating-img.png')}}"></a>
-                                                                                                </li>
-                                                                                            @endforeach
-                                                                                        </ul>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        @endif
-                                                                    @endforeach
-                                                                    <h6 class="show-less">Show Less</h6>
-                                                                </div>
-                                                            </div>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="tags-wrap">
-                                            <div class="tag-title">Review Tags :</div>
-                                            <ul>
-                                                @isset($propertiesData->review_tags)
-                                                    @foreach($propertiesData->review_tags as $tag)
-                                                        <li><a href="">{{$tag}}</a></li>
-                                                    @endforeach
-                                                @endisset
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="btn-wrap">
-                                        <a class="btn" href="{{url('property-review/'.$propertiesData->slug)}}">More
-                                            Info</a>
-                                    </div>
-                                </div>
-                            @endforeach
+                        <div class="my-properties-list" id="builder-my-property-results">
+                            @include('partials.builder-my-property-list')
                         </div>
-                        {{$properties->appends(request()->input())->links()}}
 
 
                         <div class="pending-properties">
                             <div class="title">
-                                <h4>Pending Property</h4>
+                                <h4>Pending Project</h4>
                             </div>
                             <div class="pending-properties-list">
                                 <div class="pending-properties-wrap">
@@ -276,7 +160,7 @@
                         </div>
                         <div class="col-50"></div>
                         <div class="col-50">
-                            <label>Property Name</label>
+                            <label>Project Name</label>
                             <input type="text" name="project_name" placeholder="Homesite Glassed usa">
                         </div>
                         <div class="col-50">
@@ -335,7 +219,7 @@
                     </div>
                     <div class="property-map" id="pinned-map-adv">
                     </div>
-                    <button type="submit" class="btn view-detail-link">Add Property</button>
+                    <button type="submit" class="btn view-detail-link">Add Project</button>
                 </form>
             </div>
         </div>
@@ -392,7 +276,7 @@
                 <span class="close closeLogoModal">
                     <img src="{{asset('images/close-icon.png')}}" alt="">
                 </span>
-                <h4>Change Property Logo</h4>
+                <h4>Change Project Logo</h4>
             </div>
             <div class="modal-body">
                 <form action="{{route('update-property-logo')}}" method="POST" id="advertise-form"
@@ -425,6 +309,37 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet"/>
 @endsection
 @section('extra-script')
+    <script>
+        function loadBuilderMyProperties(url) {
+            var $target = $('#builder-my-property-results');
+            $target.css('opacity', '0.5');
+            $.ajax({
+                url: url,
+                type: 'GET',
+                headers: {'X-Requested-With': 'XMLHttpRequest'},
+                success: function (html) {
+                    $target.html(html);
+                    if (window.history && window.history.pushState) {
+                        window.history.pushState({builderMyPropertyAjax: true}, '', url);
+                    }
+                    if (typeof equalheight === 'function') {
+                        equalheight('.profile-right-part .my-properties .my-properties-list .single-box .single-box-height');
+                    }
+                },
+                complete: function () {
+                    $target.css('opacity', '1');
+                }
+            });
+        }
+
+        $(document).on('click', '#builder-my-property-results .pagination a', function (event) {
+            event.preventDefault();
+            var href = $(this).attr('href');
+            if (href && href !== '#') {
+                loadBuilderMyProperties(href);
+            }
+        });
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.2/jquery.validate.min.js"></script>
@@ -500,6 +415,18 @@
                 text: msg
             });
             @endif
+            // Accept website URLs with or without http(s):// (matches placeholder format)
+            $.validator.addMethod("flexibleUrl", function (value, element) {
+                if (this.optional(element)) {
+                    return true;
+                }
+                var url = $.trim(value);
+                if (!/^https?:\/\//i.test(url)) {
+                    url = 'http://' + url;
+                }
+                return $.validator.methods.url.call(this, url, element);
+            }, "Please enter a valid URL.");
+
             $("#property-form").validate({
                 rules: {
                     project_name: 'required',
@@ -508,7 +435,7 @@
                         email: true
                     },
                     website_url: {
-                        url: true
+                        flexibleUrl: true
                     },
                     lat: 'required',
                     long: 'required',
@@ -521,6 +448,9 @@
                     email: {
                         required: 'Email is required',
                         email: 'Enter valid email address'
+                    },
+                    website_url: {
+                        flexibleUrl: 'Please enter a valid URL.'
                     },
                     'categories[]': {
                         required: 'You must select one category'
@@ -596,7 +526,17 @@
                             data: fData,
                             processData: false,
                             contentType: false,
-                            success: function () {
+                            success: function (res) {
+                                if (res && res.full_company_logo) {
+                                    $("#user-profile-image").attr('src', res.full_company_logo);
+                                }
+                            },
+                            error: function () {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Failed to update company logo'
+                                });
                             }
                         });
                     }

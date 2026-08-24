@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -12,15 +12,9 @@ import { FormControl } from "@/components/atoms/FormControl"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 
-import {
-  BRAND_TYPE_OPTIONS,
-  USER_STATUS_OPTIONS,
-  USER_TAB,
-  type UserTab,
-} from "@/api/users/usersConstants"
+import { USER_STATUS_OPTIONS } from "@/api/users/usersConstants"
 import { usersAPI } from "@/api/users/usersAPIHandler"
 import { isValidationError } from "@/api/apiService"
-import { companiesAPI, type Company } from "@/api/companies/companiesAPIHandler"
 import { ROUTES } from "@/constants/routes"
 
 // ── Breadcrumb ───────────────────────────────────────────────────────────────
@@ -31,62 +25,16 @@ const BREADCRUMB = [
 ]
 
 // ── Page ─────────────────────────────────────────────────────────────────────
+// Users → Add creates reviewers only. Builder/Developer accounts are created
+// via Company Users → Add Company User.
 export default function UserAddPage() {
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<UserTab | null>(null)
-
   const handleCancel = useCallback(() => navigate(ROUTES.users.list), [navigate])
 
   return (
     <div className="space-y-6">
       <Breadcrumb items={BREADCRUMB} />
-
-      <UserTabs active={activeTab} onChange={setActiveTab} />
-
-      {activeTab === USER_TAB.REVIEWER && (
-        <ReviewerForm onCancel={handleCancel} />
-      )}
-
-      {activeTab === USER_TAB.BUILDER_DEVELOPER && (
-        <BuilderDeveloperForm onCancel={handleCancel} />
-      )}
-    </div>
-  )
-}
-
-// ── Tab switcher ─────────────────────────────────────────────────────────────
-function UserTabs({
-  active,
-  onChange,
-}: {
-  active: UserTab | null
-  onChange: (tab: UserTab) => void
-}) {
-  const tabs: { value: UserTab; label: string }[] = [
-    { value: USER_TAB.REVIEWER, label: "Reviewer" },
-    { value: USER_TAB.BUILDER_DEVELOPER, label: "Builder/Developer" },
-  ]
-
-  return (
-    <div className="flex flex-wrap gap-4">
-      {tabs.map((tab) => {
-        const isActive = active === tab.value
-        return (
-          <button
-            key={tab.value}
-            type="button"
-            onClick={() => onChange(tab.value)}
-            className={cn(
-              "min-w-48 rounded-card border px-5 py-3.5 text-left text-sm font-medium transition-colors",
-              isActive
-                ? "border-primary-500 bg-primary-500 text-white shadow-sm"
-                : "border-gray-200 bg-white text-gray-800 hover:border-primary-300"
-            )}
-          >
-            {tab.label}
-          </button>
-        )
-      })}
+      <ReviewerForm onCancel={handleCancel} />
     </div>
   )
 }
@@ -115,7 +63,7 @@ const reviewerSchema = z.object({
     .min(1, "Mobile is required")
     .regex(/^[0-9+\-\s()]+$/, "Enter a valid mobile number"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  location: z.string().min(1, "Location is required"),
+  location: z.string().min(1, "Suburb is required"),
 })
 
 type ReviewerFormData = z.infer<typeof reviewerSchema>
@@ -308,8 +256,8 @@ function ReviewerForm({ onCancel }: { onCancel: () => void }) {
               />
 
               <FormControl
-                label="Location"
-                placeholder="Location"
+                label="Suburb"
+                placeholder="Suburb"
                 error={errors.location?.message}
                 {...register("location")}
               />
@@ -429,209 +377,6 @@ function ProfileImagePicker({
 
       {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
-  )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Builder/Developer form
-// ─────────────────────────────────────────────────────────────────────────────
-
-const builderSchema = z.object({
-  firstname: z.string().min(1, "Name is required"),
-  email: z.string().min(1, "Email is required").email("Enter a valid email"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  status: z.string().min(1, "Status is required"),
-  brand_type: z.string().min(1, "Brand type is required"),
-  company_id: z.string().min(1, "Company is required"),
-})
-
-type BuilderFormData = z.infer<typeof builderSchema>
-
-function BuilderDeveloperForm({ onCancel }: { onCancel: () => void }) {
-  const [companies, setCompanies] = useState<Company[]>([])
-  const [companiesLoading, setCompaniesLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-
-  const {
-    register,
-    handleSubmit,
-    setError,
-    clearErrors,
-    formState: { errors },
-  } = useForm<BuilderFormData>({
-    resolver: zodResolver(builderSchema),
-    defaultValues: {
-      firstname: "",
-      email: "",
-      password: "",
-      status: "",
-      brand_type: "",
-      company_id: "",
-    },
-  })
-
-  useEffect(() => {
-    let mounted = true
-    companiesAPI
-      .getAll()
-      .then((list) => {
-        if (!mounted) return
-        setCompanies(list ?? [])
-      })
-      .catch(() => {})
-      .finally(() => mounted && setCompaniesLoading(false))
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  const companyOptions = useMemo(
-    () =>
-      companies.map((c) => ({
-        value: String(c.id),
-        label: c.company_name,
-      })),
-    [companies]
-  )
-
-  const applyServerErrors = (apiErrors: Record<string, string[]>) => {
-    const fieldKeys: (keyof BuilderFormData)[] = [
-      "firstname",
-      "email",
-      "password",
-      "status",
-      "brand_type",
-      "company_id",
-    ]
-    fieldKeys.forEach((key) => {
-      const message = apiErrors[key]?.[0]
-      if (message) {
-        setError(key, { type: "server", message })
-      }
-    })
-  }
-
-  const onSubmit = async (data: BuilderFormData) => {
-    clearErrors()
-    setSubmitting(true)
-    try {
-      await usersAPI.createBuilder(
-        {
-          firstname: data.firstname,
-          email: data.email,
-          password: data.password,
-          status: data.status as Parameters<
-            typeof usersAPI.createBuilder
-          >[0]["status"],
-          brand_type: data.brand_type as Parameters<
-            typeof usersAPI.createBuilder
-          >[0]["brand_type"],
-          company_id: Number(data.company_id),
-        },
-        {
-          successMessage: "User created successfully",
-          customErrorMessage: "Failed to create user",
-        }
-      )
-      onCancel()
-    } catch (err) {
-      if (isValidationError(err)) {
-        applyServerErrors(err.response.data.errors)
-      }
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-      <Card className="overflow-hidden p-0">
-        <FormSectionHeader title="Add User Detail" />
-
-        <div className="grid grid-cols-1 gap-x-6 gap-y-5 p-6 md:grid-cols-2">
-          <FormControl
-            label="Name"
-            placeholder="Name"
-            error={errors.firstname?.message}
-            {...register("firstname")}
-          />
-
-          <FormControl
-            label="Email"
-            type="email"
-            placeholder="name@example.com"
-            error={errors.email?.message}
-            {...register("email")}
-          />
-
-          <FormControl
-            variant="password"
-            label="Password"
-            placeholder="••••••••"
-            error={errors.password?.message}
-            {...register("password")}
-          />
-
-          <FormControl
-            variant="select"
-            label="Status"
-            error={errors.status?.message}
-            defaultValue=""
-            {...register("status")}
-          >
-            <option value="" disabled>
-              Select status
-            </option>
-            {USER_STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </FormControl>
-
-          <FormControl
-            variant="select"
-            label="Brand Type"
-            error={errors.brand_type?.message}
-            defaultValue=""
-            {...register("brand_type")}
-          >
-            <option value="" disabled>
-              Select brand type
-            </option>
-            {BRAND_TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </FormControl>
-        </div>
-      </Card>
-
-      <Card className="overflow-hidden p-0">
-        <div className="p-6">
-          <FormControl
-            variant="select"
-            label="Company"
-            error={errors.company_id?.message}
-            defaultValue=""
-            disabled={companiesLoading}
-            {...register("company_id")}
-          >
-            <option value="" disabled>
-              {companiesLoading ? "Loading companies…" : "Select company"}
-            </option>
-            {companyOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </FormControl>
-        </div>
-      </Card>
-
-      <FormActions submitting={submitting} onCancel={onCancel} />
-    </form>
   )
 }
 

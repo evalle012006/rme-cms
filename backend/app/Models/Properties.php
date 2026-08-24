@@ -5,8 +5,6 @@ namespace App\Models;
 use Cviebrock\EloquentSluggable\Sluggable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
-
 class Properties extends Model
 {
     use SoftDeletes, Sluggable;
@@ -75,7 +73,7 @@ class Properties extends Model
     function getFullPropertyLogoAttribute()
     {
         if (!empty($this->logo) && $this->logo) {
-            return url(Storage::url($this->logo));
+            return absoluteStorageUrl($this->logo);
         }
         return null;
     }

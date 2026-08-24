@@ -9,7 +9,9 @@ use App\Models\Rating;
 use App\Models\Review;
 use App\Models\ReviewTags;
 use App\Models\User;
-use App\Notifications\SendVerifyAccountEmail;
+use App\Rules\UniqueCompanyName;
+use App\Services\ResendService;
+use App\Services\SocialFacebookAccountService;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -22,6 +24,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class RegisterController extends Controller
 {
@@ -109,7 +112,12 @@ class RegisterController extends Controller
 
         event(new Registered($user));
         $verifyUrl = $this->getVerificationUrl($user);
-        $user->notify(new SendVerifyAccountEmail($verifyUrl));
+        app(ResendService::class)->send(
+            $user->email,
+            'Verify your ratemyestate.com.au account',
+            'email-template.verify',
+            ['url' => $verifyUrl]
+        );
 
         $request->session()->put('user_saved', true);
         // create review if exists in cookie
@@ -132,13 +140,15 @@ class RegisterController extends Controller
         if (!old('_token')) {
             session()->forget(['company-logo', 'company-logo-system']);
         }
-        return view('auth.builder-register');
+
+        return view('auth.builder-register', [
+            'oauthBuilderProfile' => session('oauth_builder_profile'),
+        ]);
     }
 
     public function createBuilder(Request $request)
     {
         if ($request->hasFile('company_logo') && $request->file('company_logo')) {
-//            dd('in');
             $name = $request->file('company_logo')->getClientOriginalName();
             Storage::disk('public_form_media')->putFileAs('', $request->company_logo, $name);
             $imagePath = url('/') . '/review-form-media/' . $name;
@@ -146,23 +156,60 @@ class RegisterController extends Controller
             $request->session()->put('company-logo-system', public_path('review-form-media/' . $name));
         }
 
-        $rules = [
-            'company_name' => 'required|unique:company_details,company_name',
-            'email' => 'required|email|unique:users,email',
-            'website_url' => 'required|url',
-            'password' => 'required|confirmed|min:6',
-            'password_confirmation' => 'required',
-            'company_logo' => 'nullable',
-            'agreement' => 'required'
-        ];
-        $data = $request->all();
+        $oauthProfile = $request->session()->get('oauth_builder_profile');
+        $isOAuthSignup = !empty($oauthProfile);
 
-        $validator = Validator::make($data, $rules, ['email.unique' => 'The email has already been used.']);
+        $data = $request->all();
+        if ($isOAuthSignup) {
+            $data['email'] = $oauthProfile['email'];
+        }
+        if (isset($data['company_name'])) {
+            $data['company_name'] = trim($data['company_name']);
+        }
+        if (($data['company_id'] ?? null) === '' || ($data['company_id'] ?? null) === 'null') {
+            $data['company_id'] = null;
+        }
+
+        // Prefer explicit mode; otherwise infer from company_id vs company_name.
+        $mode = $data['company_mode'] ?? null;
+        if (!in_array($mode, ['existing', 'new'], true)) {
+            $mode = !empty($data['company_id']) ? 'existing' : 'new';
+        }
+        $isExistingCompany = $mode === 'existing';
+
+        $rules = [
+            'email' => 'required|email|unique:users,email',
+            'company_logo' => 'nullable',
+            'agreement' => 'required',
+        ];
+
+        if ($isExistingCompany) {
+            $rules['company_id'] = [
+                'required',
+                Rule::exists('company_details', 'id')->where(function ($query) {
+                    $query->where('status', 1)
+                        ->where('id', '<>', 3)
+                        ->whereNull('deleted_at');
+                }),
+            ];
+            $rules['website_url'] = 'nullable|url';
+        } else {
+            $rules['company_name'] = ['required', 'string', new UniqueCompanyName()];
+            $rules['website_url'] = 'required|url';
+        }
+
+        if (!$isOAuthSignup) {
+            $rules['password'] = 'required|confirmed|min:6';
+            $rules['password_confirmation'] = 'required';
+        }
+
+        $validator = Validator::make($data, $rules, [
+            'email.unique' => 'The email has already been used.',
+            'company_id.required' => 'Please select a company from the list, or add a new one.',
+            'company_id.exists' => 'Please select a valid company from the list.',
+        ]);
 
         $errors = $validator->errors();
-//        if (!$request->session()->exists('company-logo')) {
-//            $errors->add('company-logo', 'The company logo field is required.');
-//        }
         if (!empty($errors->messages())) {
             return redirect()->back()->withErrors($errors)->withInput();
         }
@@ -180,56 +227,112 @@ class RegisterController extends Controller
                 $data['profile_image'] = $this->saveToS3($file, 'profile-image/');
             }
 
-            $user = User::create([
-                'firstname' => $data['company_name'],
-                'lastname' => $data['company_name'],
-                'display_name' => $data['company_name'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-                'status' => 1,
-                'profile_image' => isset($data['profile_image']) ? $data['profile_image'] : ''
-            ]);
-            $user->assignRole('builder');
+            $adminEmail = User::whereId(1)->pluck('email')->first();
 
-            $companyData = [
-                'company_name' => $data['company_name'],
-                'website' => $data['website_url']
-            ];
+            if ($isExistingCompany) {
+                $company = CompanyDetails::where('id', $data['company_id'])
+                    ->where('status', 1)
+                    ->where('id', '<>', 3)
+                    ->firstOrFail();
 
-            if ($file) {
-                $fileLogo = app('App\Http\Controllers\Admin\CompanyDetailsController')->uploadCompanyLogo($file);
-                $companyData = array_merge($companyData, $fileLogo);
-            }
+                $displayName = $company->company_name;
 
-//            if ($request->session()->exists('company-logo')) {
-//                $sessionImg = $request->session()->get('company-logo-system');
-//                $imgName = substr($sessionImg, strpos($sessionImg, '/') + 1, strlen($sessionImg));
-//                $file = new UploadedFile($sessionImg, $imgName);
-//                $fileLogo = app('App\Http\Controllers\Admin\CompanyDetailsController')->uploadCompanyLogo($file);
-//                $companyData = array_merge($companyData, $fileLogo);
-//            }
+                $userData = [
+                    'firstname' => $displayName,
+                    'lastname' => $displayName,
+                    'display_name' => $displayName,
+                    'email' => $data['email'],
+                    'status' => 1,
+                    'profile_image' => isset($data['profile_image']) ? $data['profile_image'] : '',
+                    'company_id' => $company->id,
+                ];
 
-            $company = CompanyDetails::create($companyData);
+                // Access requests stay pending until admin approval.
+                if (!$isOAuthSignup) {
+                    $userData['password'] = Hash::make($data['password']);
+                }
 
-            if ($user && $company) {
-//                event(new Registered($user));
-//                $verifyUrl = $this->getVerificationUrl($user);
-//                $user->notify(new SendVerifyAccountEmail($verifyUrl));
-                $adminEmail = User::whereId(1)->pluck('email')->first();
+                $user = User::create($userData);
+                $user->assignRole('builder');
 
-                \Mail::to($adminEmail)->send(new \App\Mail\CompanyRegistered($company->company_name));
+                if ($adminEmail) {
+                    app(ResendService::class)->send(
+                        $adminEmail,
+                        'Builder Company Access Request',
+                        'email-template.builder-company-access-request',
+                        [
+                            'company_name' => $company->company_name,
+                            'user_email' => $user->email,
+                        ]
+                    );
+                }
+            } else {
+                $userData = [
+                    'firstname' => $data['company_name'],
+                    'lastname' => $data['company_name'],
+                    'display_name' => $data['company_name'],
+                    'email' => $data['email'],
+                    'status' => 1,
+                    'profile_image' => isset($data['profile_image']) ? $data['profile_image'] : '',
+                ];
 
-                $request->session()->put('user_saved', true);
+                if ($isOAuthSignup) {
+                    $userData['email_verified_at'] = Carbon::now();
+                } else {
+                    $userData['password'] = Hash::make($data['password']);
+                }
+
+                $user = User::create($userData);
+                $user->assignRole('builder');
+
+                $companyData = [
+                    'company_name' => $data['company_name'],
+                    'website' => $data['website_url'],
+                ];
+
+                if ($file) {
+                    $fileLogo = app('App\Http\Controllers\Admin\CompanyDetailsController')->uploadCompanyLogo($file);
+                    $companyData = array_merge($companyData, $fileLogo);
+                }
+
+                $company = CompanyDetails::create($companyData);
+
+                if ($adminEmail) {
+                    app(ResendService::class)->send(
+                        $adminEmail,
+                        'New Company Registered',
+                        'email-template.company-registered',
+                        ['company_name' => $company->company_name]
+                    );
+                }
+
                 $user->company_id = $company->id;
                 $user->save();
             }
+
+            $request->session()->put('user_saved', true);
+            $request->session()->put(
+                'user_saved_mode',
+                $isExistingCompany ? 'existing' : 'new'
+            );
+
+            if ($isOAuthSignup) {
+                app(SocialFacebookAccountService::class)->linkAccountToUser(
+                    $user,
+                    $oauthProfile['provider_user_id'],
+                    $oauthProfile['provider']
+                );
+                $request->session()->forget('oauth_builder_profile');
+            }
+
             DB::commit();
             return redirect(route('show-builder'));
         } catch (\Exception $e) {
             DB::rollBack();
             Log::info($e->getMessage());
             $request->session()->forget('user_saved');
-            return redirect()->back();
+            $request->session()->forget('user_saved_mode');
+            return redirect()->back()->withInput();
         }
     }
 
@@ -240,7 +343,12 @@ class RegisterController extends Controller
             request()->session()->forget('login_cred');
             $user = User::whereEmail($email)->first();
             $verifyUrl = $this->getVerificationUrl($user);
-            $user->notify(new SendVerifyAccountEmail($verifyUrl));
+            app(ResendService::class)->send(
+                $user->email,
+                'Verify your ratemyestate.com.au account',
+                'email-template.verify',
+                ['url' => $verifyUrl]
+            );
         }
         return redirect()->back();
     }
@@ -287,12 +395,14 @@ class RegisterController extends Controller
                 $insertData['review_image'] = $this->saveToS3($file, 'review-logo/');
             }
 
-            if ($reviewData['review-docs']) {
-                $cookieDoc = $reviewData['review-docs-system'];
-                $docName = substr($cookieDoc, strpos($cookieDoc, '/') + 1, strlen($cookieDoc));
-                $file = new UploadedFile($cookieDoc, $docName);
-                $insertData['review_docs'] = $this->saveToS3($file, 'review-docs/');
+            $cookieDoc = $reviewData['review-docs-system'] ?? null;
+            if (empty($reviewData['review-docs']) || !$cookieDoc || !is_file($cookieDoc)) {
+                Log::error('REGISTER_REVIEW_MISSING_DOCS: proof of purchase is required for guest review submission');
+                return false;
             }
+            $docName = basename($cookieDoc);
+            $file = new UploadedFile($cookieDoc, $docName, null, null, true);
+            $insertData['review_docs'] = $this->saveToS3($file, 'review-docs/');
 
             $insertData['is_agree'] = $reviewData['review-is-agree'];
             $review_id = Review::create($insertData);

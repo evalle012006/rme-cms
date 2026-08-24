@@ -1,4 +1,8 @@
 @extends('layouts.app-layout')
+
+@section('meta_title', 'My Reviews | ' . seoSiteName())
+@section('meta_robots', 'noindex, nofollow')
+
 @section('extra-style')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet"/>
     <style>
@@ -55,72 +59,8 @@
                     </div>
                 </div>
                 <div class="profile-content">
-                    <div class="personal-reviews-wrap">
-                        @foreach($user_review as $userReview)
-                            <div class="single-review">
-                                <div class="img-wrap">
-                                    {{--                                    <a href="{{url('review/'.$userReview['slug'])}}"><img--}}
-                                    {{--                                            src="{{$userReview['full_review_image'] ? $userReview['full_review_image']: 'images/property-review-img-1.png'}}"></a>--}}
-                                    <a href="{{$userReview->status ? url('review/'.$userReview['slug']) : "#"}}">
-                                        <img
-                                            src="{{isset($userReview->property) && isset($userReview->property->full_property_logo) ? $userReview->property->full_property_logo: 'images/property-review-img-1.png'}}"></a>
-                                </div>
-                                <div class="review-detail-content">
-                                    <div class="author-top">
-                                        <div class="rating-wrap fix-width-120">
-                                            <ul class="general-star-rating overall-rate-color-{{ratingClass($userReview->avg_rating)}}">
-                                                <li><a><img src="{{asset('images/rating-img.png')}}"></a></li>
-                                                <li><a><img src="{{asset('images/rating-img.png')}}"></a></li>
-                                                <li><a><img src="{{asset('images/rating-img.png')}}"></a></li>
-                                                <li><a><img src="{{asset('images/rating-img.png')}}"></a></li>
-                                                <li><a><img src="{{asset('images/rating-img.png')}}"></a></li>
-                                            </ul>
-                                        </div>
-                                        @if($userReview->status===0)
-                                            <div class="setting-icon">
-                                                <div class="btn-wrap">
-                                                    <a class="btn" href="javascript:void(0)" id="modalBtn"
-                                                       data-review="{{$userReview}}">
-                                                        Edit
-                                                    </a>
-                                                    <a class="btn pending-btn" href="#">
-                                                        Pending
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        @endif
-                                        <div class="views-count">
-                                            <ul>
-                                                {{--                                                <li class="views-number">{{views($userReview)->count()}} views</li>--}}
-                                                {{--                                                <li class="useful-number"> 90 useful</li>--}}
-                                                {{--                                                <li class="share-number"> 18 share</li>--}}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="author-btm">
-                                        <p>{{$userReview->title}}</p>
-                                        <a href="{{url('property-review/'.$userReview['property']['slug'])}}">{{$userReview['property']['project_name']}}</a>
-                                        @if($userReview['property']['company'])
-                                            by <a
-                                                href="{{url('property/'.$userReview['property']['company']['slug'])}}">{{$userReview['property']['company']['company_name']}}</a>
-                                            </p>
-                                        @endif
-
-                                    </div>
-                                    <div class="tags-wrap">
-                                        <ul>
-                                            @foreach($userReview->reviewTags as $reviewTag)
-                                                <li><a href="#">{{$reviewTag->name}}</a></li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                        {{$user_review->links()}}
-                        @if(!(count($user_review) > 0))
-                            <div class="fa-2x"> No Reviews Found..</div>
-                        @endif
+                    <div class="personal-reviews-wrap" id="my-review-results">
+                        @include('partials.my-review-list')
                     </div>
                 </div>
             </div>
@@ -171,19 +111,62 @@
     <script>
         $(document).ready(function () {
 
+            function loadMyReviews(url) {
+                var $results = $('#my-review-results');
+                $results.css('opacity', '0.5');
+                $.ajax({
+                    url: url,
+                    type: 'GET',
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    success: function (html) {
+                        $results.html(html);
+                        if (window.history && window.history.pushState) {
+                            window.history.pushState({myReviewAjax: true}, '', url);
+                        }
+                    },
+                    complete: function () {
+                        $results.css('opacity', '1');
+                    }
+                });
+            }
+
+            $('#review_form').on('submit', function (event) {
+                event.preventDefault();
+                var action = $(this).attr('action');
+                var query = $(this).serialize();
+                var url = action + (action.indexOf('?') === -1 ? '?' : '&') + query;
+                loadMyReviews(url);
+            });
+
             $('#search_review').keypress(function (event) {
                 var keycode = (event.keyCode ? event.keyCode : event.which);
                 if (keycode == '13') {
+                    event.preventDefault();
                     $("#review_form").submit();
+                }
+            });
+
+            $(document).on('click', '#my-review-results .pagination a', function (event) {
+                event.preventDefault();
+                var href = $(this).attr('href');
+                if (href && href !== '#') {
+                    loadMyReviews(href);
+                }
+            });
+
+            window.addEventListener('popstate', function (event) {
+                if (event.state && event.state.myReviewAjax) {
+                    loadMyReviews(window.location.href);
+                } else {
+                    window.location.reload();
                 }
             });
 
             // show add user modal
             var modal = document.getElementById("reviewModal");
-            var btn = document.getElementById("modalBtn");
             var span = document.getElementsByClassName("close")[0];
 
-            btn.onclick = function () {
+            $(document).on('click', '#modalBtn', function () {
                 modal.style.display = "block";
                 var reviewData = $(this).data('review');
                 var selectedTags = reviewData['review_tags'].map(item => {
@@ -195,11 +178,13 @@
                 $("#review_comment").val(reviewData['comment']);
                 $("#review_id").val(reviewData['id']);
                 $("body").addClass("popup-show");
-            }
+            });
 
-            span.onclick = function () {
-                modal.style.display = "none";
-                $("body").removeClass("popup-show");
+            if (span) {
+                span.onclick = function () {
+                    modal.style.display = "none";
+                    $("body").removeClass("popup-show");
+                }
             }
             $("#review-form").validate({
                 rules: {

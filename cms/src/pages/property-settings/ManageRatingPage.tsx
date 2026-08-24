@@ -14,7 +14,7 @@ import { ROUTES } from '@/constants/routes'
 
 const BREADCRUMB = [
   { label: 'Home', to: ROUTES.root },
-  { label: 'Property Category', to: ROUTES.propertySettings.categories.list },
+  { label: 'Project Category', to: ROUTES.propertySettings.categories.list },
   { label: 'Rating' },
 ]
 

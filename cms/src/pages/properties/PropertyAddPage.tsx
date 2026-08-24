@@ -64,7 +64,7 @@ export default function PropertyAddPage() {
   const breadcrumb = useMemo(
     () => [
       { label: 'Home', to: ROUTES.root },
-      { label: 'Property', to: returnPath },
+      { label: 'Project', to: returnPath },
       { label: 'Add' },
     ],
     [returnPath]
@@ -141,7 +141,7 @@ export default function PropertyAddPage() {
 
   const validateLogo = useCallback(() => {
     if (!logo) {
-      setLogoError('Property logo is required')
+      setLogoError('Project logo is required')
       return false
     }
     setLogoError(null)
@@ -226,8 +226,8 @@ export default function PropertyAddPage() {
           logo,
         },
         {
-          successMessage: 'Property created successfully',
-          customErrorMessage: 'Failed to create property',
+          successMessage: 'Project created successfully',
+          customErrorMessage: 'Failed to create project',
         }
       )
       navigate(returnPath)
@@ -250,19 +250,19 @@ export default function PropertyAddPage() {
     <div className="space-y-6">
       <Breadcrumb items={breadcrumb} />
 
-      <h1 className="text-xl font-semibold text-gray-800">Add Property</h1>
+      <h1 className="text-xl font-semibold text-gray-800">Add Project</h1>
 
       <form
         onSubmit={handleSubmit(onSubmit, onInvalid)}
         className="space-y-6"
         noValidate
       >
-        {/* ── Section: Property Basic Details ─────────────────────────────── */}
+        {/* ── Section: Project Basic Details ─────────────────────────────── */}
         <Card className="overflow-hidden p-0">
-          <SectionHeader title="Property Basic Details" />
+          <SectionHeader title="Project Basic Details" />
 
           <div className="space-y-5 px-6 py-5">
-            <FormField label="Property Logo" error={logoError ?? undefined}>
+            <FormField label="Project Logo" error={logoError ?? undefined}>
               <ImageDropzone
                 layout="banner"
                 value={logo}
@@ -343,9 +343,9 @@ export default function PropertyAddPage() {
           </div>
         </Card>
 
-        {/* ── Section: Property Category ──────────────────────────────────── */}
+        {/* ── Section: Project Category ──────────────────────────────────── */}
         <Card className="overflow-hidden p-0">
-          <SectionHeader title="Property Category" />
+          <SectionHeader title="Project Category" />
 
           <div className="px-6 py-5">
             <Controller
@@ -366,9 +366,9 @@ export default function PropertyAddPage() {
           </div>
         </Card>
 
-        {/* ── Section: Property Location Details ─────────────────────────── */}
+        {/* ── Section: Project Location Details ─────────────────────────── */}
         <Card className="overflow-hidden p-0">
-          <SectionHeader title="Property Location Details" />
+          <SectionHeader title="Project Location Details" />
 
           <div className="space-y-5 px-6 py-5">
             <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
@@ -482,7 +482,7 @@ export default function PropertyAddPage() {
             disabled={submitting}
             className="px-6 py-3 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting ? 'Adding…' : 'Add Property'}
+            {submitting ? 'Adding…' : 'Add Project'}
           </Button>
           <Button
             type="button"

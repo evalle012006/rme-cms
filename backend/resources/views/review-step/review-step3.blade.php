@@ -1,5 +1,8 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Review Submitted | ' . seoSiteName())
+@section('meta_robots', 'noindex, nofollow')
+
 @section('content')
     <div class="bg-main inner-banner" style="background-image: url(images/about-banner.jpg);">
         <div class="banner-caption">
@@ -47,8 +50,8 @@
                                 @endif
                                 <h6>Share your Reviews </h6>
                                 <ul>
-                                    <li><a href="#"><i class="fa fa-google" aria-hidden="true"></i></a></li>
-                                    <li><a href="#"><i class="fa fa-instagram" aria-hidden="true"></i></a></li>
+                                    <li><a href="https://www.facebook.com/share/1Un93B9z23/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Share on Facebook"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
+                                    <li><a href="https://www.instagram.com/ratemyestate.com.au/" target="_blank" rel="noopener noreferrer" aria-label="Rate My Estate on Instagram"><i class="fa fa-instagram" aria-hidden="true"></i></a></li>
                                 </ul>
                                 <a href="{{url('/')}}" class="btn yellow-btn m-t-15">Back to Website</a>
                             </div>

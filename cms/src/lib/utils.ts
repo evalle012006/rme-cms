@@ -10,7 +10,9 @@ export function cn(...inputs: ClassValue[]): string {
 export function imgUrl(path: string | null | undefined): string | null {
   if (!path) return null
   if (path.startsWith('http')) return path
-  return `${import.meta.env.VITE_IMG_URL}/${path}`
+  const base = import.meta.env.VITE_IMG_URL.replace(/\/$/, '')
+  const filePath = path.replace(/^\/+/, '')
+  return `${base}/${filePath}`
 }
 
 // Formats an ISO date string or Date object to Australian locale (01 Jan 2024).

@@ -67,12 +67,68 @@ function getPropertyCategory()
     return \App\Models\PropertyCategory::get()->toArray();
 }
 
+/**
+ * Display label for a listing card category badge (property assignment, not URL slug).
+ */
+function listingCategoryBadgeLabel($propertiesData, $cat_slug = null, $property_category = [])
+{
+    if (!empty($propertiesData->is_company)) {
+        if (empty($cat_slug) || empty($property_category)) {
+            return null;
+        }
+        foreach ($property_category as $category) {
+            if (($category['slug'] ?? null) === $cat_slug) {
+                return $category['name'] ?? null;
+            }
+        }
+        return null;
+    }
+
+    $allowed = $propertiesData->propertyAllowedCategory ?? null;
+    if (!$allowed || (is_countable($allowed) && count($allowed) === 0)) {
+        return null;
+    }
+
+    if (!empty($cat_slug)) {
+        foreach ($allowed as $category) {
+            if (($category->slug ?? null) === $cat_slug) {
+                return $category->name ?? null;
+            }
+        }
+    }
+
+    $first = $allowed instanceof \Illuminate\Support\Collection ? $allowed->first() : (is_array($allowed) ? reset($allowed) : null);
+    return $first->name ?? null;
+}
+
 function getCMSpageContent($id)
 {
     $cms_page = \App\Models\CmsPages::where('id', '=', $id)
         ->first()->toArray();
 
     return $cms_page['description'];
+}
+
+/**
+ * Absolute public URL for a stored path. Guarantees a single slash between base and path.
+ */
+function absoluteStorageUrl($path)
+{
+    if (!$path) {
+        return null;
+    }
+
+    if (filter_var($path, FILTER_VALIDATE_URL)) {
+        return $path;
+    }
+
+    $filePath = ltrim($path, '/');
+    $base = rtrim(env('AWS_IMAGE_URL') ?: env('AWS_URL') ?: '', '/');
+    if ($base && config('filesystems.default') === 's3') {
+        return $base . '/' . $filePath;
+    }
+
+    return url(\Illuminate\Support\Facades\Storage::url($filePath));
 }
 
 function checkUrl($url)
@@ -83,12 +139,21 @@ function checkUrl($url)
 
     if (filter_var($url, FILTER_VALIDATE_URL)) {
         return $url;
-    } else {
-        if (App::environment() == 'local') {
-            return ('storage/' . $url);
-        }
-        return (env('AWS_IMAGE_URL') . $url);
     }
+
+    // Local disk: serve via public/storage symlink
+    if (App::environment() == 'local' && config('filesystems.default') !== 's3') {
+        return 'storage/' . ltrim($url, '/');
+    }
+
+    // Prefer explicit image base URL, then S3 disk URL from config
+    $base = rtrim(env('AWS_IMAGE_URL') ?: env('AWS_URL') ?: '', '/');
+    if ($base) {
+        return $base . '/' . ltrim($url, '/');
+    }
+
+    // Same resolution used by models (Storage::url) — works for s3 and public disks
+    return \Illuminate\Support\Facades\Storage::url(ltrim($url, '/'));
 }
 
 // converts string to heading. eg. my_reviews => My reviews

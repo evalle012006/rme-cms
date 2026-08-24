@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import ScrollToTop from '@/components/ScrollToTop'
 import AuthLayout from '@/components/layouts/AuthLayout'
@@ -11,6 +11,7 @@ import UserAddPage from '@/pages/users/UserAddPage'
 import UserEditPage from '@/pages/users/UserEditPage'
 import BuilderApprovedPage from '@/pages/builders/BuilderApprovedPage'
 import BuilderPendingPage from '@/pages/builders/BuilderPendingPage'
+import BuilderAddPage from '@/pages/builders/BuilderAddPage'
 import BuilderEditPage from '@/pages/builders/BuilderEditPage'
 import ReviewApprovedPage from '@/pages/reviews/ReviewApprovedPage'
 import ReviewPendingPage from '@/pages/reviews/ReviewPendingPage'
@@ -22,6 +23,7 @@ import AboutPage from '@/pages/cms/AboutPage'
 import PropertyGuidePage from '@/pages/cms/PropertyGuidePage'
 import PropertyCoachPage from '@/pages/cms/PropertyCoachPage'
 import ContactPage from '@/pages/cms/ContactPage'
+import ReviewsListingPage from '@/pages/cms/ReviewsListingPage'
 import ReviewGuidelinesPage from '@/pages/cms/ReviewGuidelinesPage'
 import TermsOfUsePage from '@/pages/cms/TermsOfUsePage'
 import PrivacyPolicyPage from '@/pages/cms/PrivacyPolicyPage'
@@ -49,7 +51,31 @@ import BlogCategoryEditPage from './pages/blogCategories/BlogCategoryEditPage'
 import BlogsListPage from './pages/blogs/BlogsListPage'
 import BlogAddPage from './pages/blogs/BlogAddPage'
 import BlogEditPage from './pages/blogs/BlogEditPage'
+import BlogPreviewPage from './pages/blogs/BlogPreviewPage'
 import { ROUTES } from '@/constants/routes'
+
+function RedirectLegacyProjectEdit() {
+  const { id } = useParams()
+  return (
+    <Navigate
+      to={{ pathname: ROUTES.properties.edit(id ?? ''), search: window.location.search }}
+      replace
+    />
+  )
+}
+
+function RedirectLegacyProjectCategoryEdit() {
+  const { id } = useParams()
+  return (
+    <Navigate
+      to={{
+        pathname: ROUTES.propertySettings.categories.edit(id ?? ''),
+        search: window.location.search,
+      }}
+      replace
+    />
+  )
+}
 
 export default function App() {
   return (
@@ -78,6 +104,8 @@ export default function App() {
 
             <Route path={ROUTES.builder.approved} element={<BuilderApprovedPage />} />
             <Route path={ROUTES.builder.pending} element={<BuilderPendingPage />} />
+            {/* Company Users → Add Company User */}
+            <Route path={ROUTES.builder.add} element={<BuilderAddPage />} />
             <Route path={ROUTES.builder.editPattern} element={<BuilderEditPage />} />
 
             <Route path={ROUTES.reviews.approved} element={<ReviewApprovedPage />} />
@@ -88,7 +116,9 @@ export default function App() {
             <Route path={ROUTES.cms.about} element={<AboutPage />} />
             <Route path={ROUTES.cms.propertyGuide} element={<PropertyGuidePage />} />
             <Route path={ROUTES.cms.propertyCoach} element={<PropertyCoachPage />} />
+            <Route path="/cms/property-coach" element={<Navigate to={ROUTES.cms.propertyCoach} replace />} />
             <Route path={ROUTES.cms.contact} element={<ContactPage />} />
+            <Route path={ROUTES.cms.reviewsListing} element={<ReviewsListingPage />} />
             <Route path={ROUTES.cms.reviewGuidelines} element={<ReviewGuidelinesPage />} />
             <Route path={ROUTES.cms.termsOfUse} element={<TermsOfUsePage />} />
             <Route path={ROUTES.cms.privacyPolicy} element={<PrivacyPolicyPage />} />
@@ -112,11 +142,21 @@ export default function App() {
             <Route path={ROUTES.properties.pending} element={<PropertyPendingPage />} />
             <Route path={ROUTES.properties.add} element={<PropertyAddPage />} />
             <Route path={ROUTES.properties.editPattern} element={<PropertyEditPage />} />
+            {/* Legacy /property/* → /project/* */}
+            <Route path="/property/approve" element={<Navigate to={ROUTES.properties.approved} replace />} />
+            <Route path="/property/pending" element={<Navigate to={ROUTES.properties.pending} replace />} />
+            <Route path="/property/add" element={<Navigate to={ROUTES.properties.add} replace />} />
+            <Route path="/property/edit/:id" element={<RedirectLegacyProjectEdit />} />
 
             <Route path={ROUTES.propertySettings.categories.list} element={<PropertyCategoriesPage />} />
             <Route path={ROUTES.propertySettings.categories.add} element={<CategoryAddPage />} />
             <Route path={ROUTES.propertySettings.categories.editPattern} element={<CategoryEditPage />} />
             <Route path={ROUTES.propertySettings.manageRating} element={<ManageRatingPage />} />
+            {/* Legacy /property-category/* → /project-category/* */}
+            <Route path="/property-category" element={<Navigate to={ROUTES.propertySettings.categories.list} replace />} />
+            <Route path="/property-category/add" element={<Navigate to={ROUTES.propertySettings.categories.add} replace />} />
+            <Route path="/property-category/edit/:id" element={<RedirectLegacyProjectCategoryEdit />} />
+            <Route path="/property-category/manage-rating" element={<Navigate to={ROUTES.propertySettings.manageRating} replace />} />
 
             <Route path={ROUTES.blogs.categories.list} element={<BlogCategoriesPage />} />
             <Route path={ROUTES.blogs.categories.add} element={<BlogCategoryAddPage />} />
@@ -125,6 +165,8 @@ export default function App() {
             <Route path={ROUTES.blogs.list} element={<BlogsListPage />} />
             <Route path={ROUTES.blogs.add} element={<BlogAddPage />} />
             <Route path={ROUTES.blogs.editPattern} element={<BlogEditPage />} />
+            <Route path={ROUTES.blogs.previewDraft} element={<BlogPreviewPage />} />
+            <Route path={ROUTES.blogs.previewPattern} element={<BlogPreviewPage />} />
 
             <Route path={ROUTES.root} element={<Navigate to={ROUTES.dashboard} replace />} />
           </Route>

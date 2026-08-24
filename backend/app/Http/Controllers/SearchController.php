@@ -97,6 +97,19 @@ class SearchController extends Controller
                 ->count();
         }
 
+        if ($request->ajax()) {
+            $section = $request->get('section');
+            if ($section === 'properties') {
+                return view('partials.search-properties', compact('properties', 'totalProperties'));
+            }
+            if ($section === 'reviews') {
+                return view('partials.search-reviews', compact('reviews', 'totalReviews'));
+            }
+            if ($section === 'blogs') {
+                return view('partials.search-blogs', compact('blogs', 'totalBlogs'));
+            }
+        }
+
         return view('search.search-result', compact('q', 'blogs', 'reviews', 'properties', 'totalBlogs', 'totalProperties', 'totalReviews'));
     }
 }

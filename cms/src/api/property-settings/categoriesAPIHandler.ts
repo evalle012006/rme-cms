@@ -6,6 +6,7 @@ import {
   type ApiRequestOptions,
 } from '@/api/apiService'
 import { uploadAPI } from '@/api/upload/uploadAPIHandler'
+import { STORAGE_PATHS } from '@/constants/storagePaths'
 import { CATEGORIES_ENDPOINTS } from './categoriesAPIEndpoints'
 import type { DataTablesRequest, DataTablesResponse } from '@/types/api'
 import type { Rating } from '@/api/ratings/ratingsAPIHandler'
@@ -105,7 +106,10 @@ export const categoriesAPI = {
     payload: CreatePropertyCategoryPayload,
     options?: ApiRequestOptions
   ): Promise<PropertyCategory> => {
-    const imagePath = await uploadAPI.uploadImage(payload.image)
+    const imagePath = await uploadAPI.uploadImage(
+      payload.image,
+      STORAGE_PATHS.PROPERTY_CAT
+    )
 
     return apiRequest<PropertyCategory>(
       apiClient.post<ApiEnvelope<PropertyCategory>>(CATEGORIES_ENDPOINTS.ADD, {
@@ -127,7 +131,10 @@ export const categoriesAPI = {
   ): Promise<PropertyCategory> => {
     const imagePath =
       payload.image instanceof File
-        ? await uploadAPI.uploadImage(payload.image)
+        ? await uploadAPI.uploadImage(
+            payload.image,
+            STORAGE_PATHS.PROPERTY_CAT
+          )
         : payload.image
 
     return apiRequest<PropertyCategory>(

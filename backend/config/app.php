@@ -125,6 +125,10 @@ return [
 
     'google_analytics_track_id' => env('GOOGLE_ANALYTICS_TRACK_ID'),
 
+    // Public social profile URLs, surfaced in Organization JSON-LD (schema.org sameAs).
+    'facebook_url' => env('FACEBOOK_PAGE_URL'),
+    'instagram_url' => env('INSTAGRAM_PAGE_URL'),
+
     /*
     |--------------------------------------------------------------------------
     | Autoloaded Service Providers

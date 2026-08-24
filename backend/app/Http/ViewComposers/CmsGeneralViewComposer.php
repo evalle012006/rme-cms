@@ -16,12 +16,13 @@ class CmsGeneralViewComposer
             'property-guide' => 'property_guide',
             'property-coach' => 'property_coach',
             'contact' => 'contact',
+            'property-listing' => 'reviews_listing',
             'review-guideline' => 'review_guidelines',
             'term-of-use' => 'terms_of_use',
             'privacy-policy' => 'privacy_policy'
         ];
-        $sectionData = CmsPageSections::whereCmsPageId(CmsPages::whereName($viewToPage[$view->name()])
-            ->pluck('id'))
+        $sectionData = CmsPageSections::whereIn('cms_page_id', CmsPages::where('name', $viewToPage[$view->name()])
+            ->select('id'))
             ->get()
             ->groupBy('section_slug')
             ->transform(function ($item) {

@@ -4,7 +4,7 @@ import { ROUTES } from '@/constants/routes'
 
 const BREADCRUMB = [
   { label: 'Home', to: ROUTES.root },
-  { label: 'Property' },
+  { label: 'Project' },
 ]
 
 export default function PropertyPendingPage() {
@@ -16,7 +16,7 @@ export default function PropertyPendingPage() {
       statusTone="pending"
       flipStatusTo={PROPERTY_STATUS.APPROVED}
       flipConfirmMessage="Are you sure you want to change the status?"
-      flipSuccessMessage="Property approved."
+      flipSuccessMessage="Project approved."
     />
   )
 }

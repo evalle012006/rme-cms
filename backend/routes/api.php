@@ -121,6 +121,7 @@ Route::group(['namespace' => 'Admin', 'middleware' => 'auth:api'], function () {
     Route::post('review-update/{id}', 'ReviewController@updateReview');
     Route::delete('review/delete/{id}', 'ReviewController@deleteReview');
     Route::post('get-suburbs', 'ReviewController@getSuburbs');
+    Route::post('suburbs-by-state', 'ReviewController@getSuburbsByState');
 
     Route::get('buyer-type-get', 'ReviewController@getBuyerTypes');
 

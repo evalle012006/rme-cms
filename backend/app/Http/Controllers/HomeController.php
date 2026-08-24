@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\ChnageRequestAdmin;
 use App\Models\Blogs;
 use App\Models\Properties;
 use App\Models\PropertyCategory;
@@ -11,9 +10,9 @@ use App\Models\ReviewStates;
 use App\Models\Suburbs;
 use App\Models\Tags;
 use App\Models\User;
+use App\Services\ResendService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 
@@ -207,7 +206,7 @@ class HomeController extends Controller
                 }
             );
         }
-        $user_review = $user_review->paginate(6);
+        $user_review = $user_review->paginate(6)->appends(request()->query());
         $user_review->getCollection()->transform(function ($item) {
             $totalRating = 0;
             foreach ($item->ratings as $rating) {
@@ -216,6 +215,10 @@ class HomeController extends Controller
             $item->avg_rating = roundOffRating($totalRating / count($item->ratings));
             return $item;
         });
+        if ($request->ajax()) {
+            return view('partials.my-review-list', compact('user_review'));
+        }
+
         return view('profile.my-review', compact('user', 'user_review'));
     }
 
@@ -290,7 +293,12 @@ class HomeController extends Controller
                 'display_name' => $user->display_name,
                 'full_name' => $user->firstname . ' ' . $user->lastname
             ];
-            Mail::to($adminEmail)->send(new ChnageRequestAdmin($details));
+            app(ResendService::class)->send(
+                $adminEmail,
+                'Display name change request',
+                'email-template.change-request-admin',
+                ['details' => $details]
+            );
             return Redirect::to("my-profile")->with('request_placed',
                 'Great! Request has been placed to change display name.');
         }

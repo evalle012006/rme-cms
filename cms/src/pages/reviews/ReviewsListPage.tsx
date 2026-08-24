@@ -175,6 +175,16 @@ export function ReviewsListPage({
         cellClassName: "font-medium text-gray-700",
       },
       {
+        key: "project",
+        header: "Project",
+        cell: (row) => row.property?.project_name || "—",
+      },
+      {
+        key: "company",
+        header: "Company",
+        cell: (row) => row.property?.company?.company_name || "—",
+      },
+      {
         key: "status",
         header: "Status",
         width: "160px",
@@ -229,7 +239,7 @@ export function ReviewsListPage({
         ),
       },
     ],
-    [statusLabel, statusTone]
+    [statusLabel, statusTone, statusFilter]
   )
 
   const handlePerPageChange = (newPerPage: number) => {

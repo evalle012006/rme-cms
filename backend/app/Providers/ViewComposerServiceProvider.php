@@ -19,6 +19,7 @@ class ViewComposerServiceProvider extends ServiceProvider
         view()->composer("property-guide", "App\Http\ViewComposers\CmsGeneralViewComposer");
         view()->composer("property-coach", "App\Http\ViewComposers\CmsGeneralViewComposer");
         view()->composer("contact", "App\Http\ViewComposers\CmsGeneralViewComposer");
+        view()->composer("property-listing", "App\Http\ViewComposers\CmsGeneralViewComposer");
         view()->composer("review-guideline", "App\Http\ViewComposers\CmsGeneralViewComposer");
         view()->composer("term-of-use", "App\Http\ViewComposers\CmsGeneralViewComposer");
         view()->composer("privacy-policy", "App\Http\ViewComposers\CmsGeneralViewComposer");

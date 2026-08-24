@@ -1,5 +1,8 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Write a Review | ' . seoSiteName())
+@section('meta_robots', 'noindex, nofollow')
+
 @section('extra-style')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet"/>
     <style>
@@ -41,14 +44,14 @@
                 </div>
                 <div class="review-form-section">
                     <div class="form-wrap">
-                        <form method="post" action="{{route('review-save-two')}}" enctype=multipart/form-data>
+                        <form method="post" action="{{route('review-save-two')}}" enctype="multipart/form-data" id="review-step-two-form">
                             @csrf
                             <input type="hidden" name="property_id"
                                    value="{{ request()->session()->get('review-property-id') }}">
                             <div class="form-row">
                                 <label>Title of Review</label>
                                 <input type="text" name="title" placeholder="Please Enter the title" maxlength="150"
-                                       value="{{old('_token') ? old('title') : request()->session()->get('review-title')}}">
+                                       value="{{ old('title', request()->session()->get('review-title')) }}">
                                 <span class="text-danger">{{ $errors->first('title') }}</span>
                             </div>
                             <div class="form-row rate-exp-wrap">
@@ -154,28 +157,18 @@
                             </div>
                             <div class="recom-row radio-container form-row">
                                 <label>Would you recommend this company?</label>
+                                @php
+                                    $recommendationValue = old('recommendation', session()->get('review-recommendation', '1'));
+                                @endphp
                                 <div class="form-field">
                                     <input type="radio" name="recommendation" value="1" class="btn"
-                                           @if(!old('token') && !session()->exists('review-recommendation'))
-                                           checked=checked
-                                           @elseif((old('_token') && old('recommendation')=="1") || (session()->exists('review-recommendation') && session()->get('review-recommendation')=="1"))
-                                           checked=checked
-                                        @endif
+                                           @if((string)$recommendationValue === '1') checked="checked" @endif
                                     >
                                     <span>Yes</span>
                                 </div>
                                 <div class="form-field">
                                     <input type="radio" name="recommendation" value="0" class="btn yellow-btn"
-                                           @if((old('_token')))
-                                           @if(old('recommendation')=="0")
-                                           checked=checked
-                                           @endif
-                                           @elseif(session()->exists('review-recommendation') && session()->get('review-recommendation')=="0")
-                                           checked=checked
-
-                                        @endif
-
-                                        {{--                                           @if(!old('recommendation') ?? !request()->session()->get('review-recommendation')) checked @endif--}}
+                                           @if((string)$recommendationValue === '0') checked="checked" @endif
                                     >
                                     <span>No</span>
                                 </div>
@@ -197,22 +190,22 @@
                                 <p>please comment on the reason for your ratings - what was good or what could be
                                     improved</p>
                                 <textarea placeholder="Type your Commnet" name="comment"
-                                          maxlength="300">{{ old('_token') ? old('comment') : session()->get('review-comment') }}</textarea>
+                                          maxlength="300">{{ old('comment', session()->get('review-comment')) }}</textarea>
                             </div>
                             <div class="form-row">
-                                <label>Proof of purchase</label>
+                                <label>Proof of purchase <span class="text-danger">*</span></label>
                                 <p>Please upload a document which confirms your purchase; this should be name of the purchaser/ reviewer, the property being purchased and the company to which you bought/ built. We ask for this in order to verify your purchase. eg. sales advice or this could be the first page contract. This is not being published.</p>
                                 <img class="image-preview" id="session-doc"
                                      alt="document">
                                 <p id="doc-name"></p>
                                 <div class="upload-photo">
                                     <a href="javascript:;" class="btn yellow-btn">Upload Document
-                                        <input type="file" class="btn yellow-btn" name="review_docs"
-                                               accept=".doc , .docx, .pdf , .jpg" onchange="onUploadDoc(this)">
+                                        <input type="file" class="btn yellow-btn" name="review_docs" id="review_docs"
+                                               accept=".doc,.docx,.pdf,image/*" onchange="onUploadDoc(this)"
+                                               @if(!session()->exists('review-docs')) required @endif>
                                     </a>
                                 </div>
-                                <span
-                                    class="text-danger">{{ old('_token') ? $errors->first('review_docs') : '' }}</span>
+                                <span class="text-danger" id="review-docs-error">{{ $errors->first('review_docs') }}</span>
                             </div>
                             <div class="form-row">
                                 <label>Upload photo</label>
@@ -220,9 +213,9 @@
                                 <div class="user-img-wrap">
                                     @if(session()->exists('review-image'))
                                         <img id="session-image" class="image-preview"
-                                             src={{session()->get('review-image')}} alt='image'>
+                                             src="{{ session()->get('review-image') }}" alt="image">
                                     @endif
-                                    <img id="user-profile-image" claas="image-preview">
+                                    <img id="user-profile-image" class="image-preview">
                                 </div>
                                 <div class="upload-photo">
                                     <a href="javascript:;" class="btn yellow-btn">Upload Photo
@@ -235,11 +228,7 @@
                             <div class="form-row privacy-policy-wrap">
                                 <label>
                                     <input type="checkbox" name="is_agree"
-                                           @if(old('_token'))
-                                           @if( old('is_agree')=='on')
-                                           checked="checked"
-                                           @endif
-                                           @elseif(session()->get('review-is-agree') && session()->get('review-is-agree') =='on')
+                                           @if(old('is_agree', session()->get('review-is-agree')) == 'on')
                                            checked="checked"
                                         @endif/>
                                     <span>I agree to the ratemyestate <a href="{{route('terms-of-use')}}">Terms and Conditions</a> and <a
@@ -253,13 +242,10 @@
                             </div>
                             <div class="form-row form-footer">
                                 <a href="{{route('nav-review-step1')}}" class="btn btn-back">Go Back</a>
-                                {{--                                <button class="btn">Preview</button>--}}
-                                <input type="submit" name="submit" value="submit" class="btn yellow-btn">
-                                @if($review_cat == 2)
-                                    <input type="submit" name="submit" value="next" class="btn">
+                                <button type="submit" name="form_action" value="submit" class="btn yellow-btn">Submit</button>
+                                @if(!empty($isHomeland) || (isset($review_cat) && (int)$review_cat === 2))
+                                    <button type="submit" name="form_action" value="next" class="btn">Next</button>
                                 @endif
-
-
                             </div>
 
                         </form>
@@ -332,7 +318,8 @@
         Swal.fire({
             title: '<strong>Account Required</strong>',
             html:
-                '<a href="{{route('login')}}">LOGIN</a> ',
+                '<a href="{{route('login')}}">LOGIN</a>' +
+                '<p style="margin-top:15px;">Does not have an account? <a href="{{route('register')}}" style="color:#07AFA9;font-weight:600;text-decoration:underline;">Click here to Signup</a></p>',
             showCloseButton: true,
             showConfirmButton: false
         });
@@ -415,6 +402,8 @@
                 const imageTypes = ['image/jpg', 'image/jpeg', 'image/png'];
                 $('#doc-name').text(input.files[0].name);
                 jQuery('#session-doc').show();
+                $('#review-docs-error').text('');
+                input.removeAttribute('required');
                 if (imageTypes.includes(fileType)) {
                     var reader = new FileReader();
                     reader.onload = function (e) {
@@ -429,11 +418,14 @@
         }
 
         $(function () {
+            const proofRequiredMessage = 'Proof of purchase is required. Please upload a document that confirms your purchase.';
+            let hasSessionProof = false;
 
             // set document image if any
 
             const reviewDoc = {!! json_encode(session()->get('review-docs')) !!};
             if (reviewDoc) {
+                hasSessionProof = true;
                 const docName = reviewDoc.substr(reviewDoc.lastIndexOf('/') + 1, reviewDoc.length);
                 const docType = reviewDoc.substr(reviewDoc.lastIndexOf('.') + 1, reviewDoc.length);
                 $('#doc-name').text(docName);
@@ -448,6 +440,20 @@
                 $('#doc-name').text('');
             }
             // end
+
+            $('#review-step-two-form').on('submit', function (e) {
+                const input = document.getElementById('review_docs');
+                const hasSelectedFile = input && input.files && input.files.length > 0;
+                if (!hasSelectedFile && !hasSessionProof) {
+                    e.preventDefault();
+                    $('#review-docs-error').text(proofRequiredMessage);
+                    if (input) {
+                        input.setAttribute('required', 'required');
+                        input.focus();
+                    }
+                    return false;
+                }
+            });
 
             {{--const oldImg = {!! json_encode(old('review_image')) !!};--}}
             const guestData = {!! json_encode(session()->all()) !!};
@@ -495,13 +501,7 @@
                         return markup;
                     },
                 });
-                let selectedTags = {};
-                const formToken = {!! old('_token') ? json_encode(old('_token')) : '[]' !!};
-                if (formToken.length > 0) {
-                    selectedTags = {!! old('tags') ? json_encode(old('tags')) : '[]' !!};
-                } else {
-                    selectedTags = {!! session()->get('review-tags') ? json_encode(session()->get('review-tags')) : "[]" !!}
-                }
+                let selectedTags = {!! json_encode(old('tags', session()->get('review-tags', []))) !!};
                 $("#tags").val(selectedTags);
                 $('#tags').trigger('change');
 

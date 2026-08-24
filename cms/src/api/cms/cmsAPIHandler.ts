@@ -5,6 +5,7 @@ import {
   type ApiRequestOptions,
 } from '@/api/apiService'
 import { uploadAPI } from '@/api/upload/uploadAPIHandler'
+import { STORAGE_PATHS } from '@/constants/storagePaths'
 import { imgUrl } from '@/lib/utils'
 import { CMS_ENDPOINTS } from './cmsAPIEndpoints'
 
@@ -105,7 +106,9 @@ export const cmsAPI = {
         if (value === undefined || value === null) return null
 
         const resolvedValue =
-          value instanceof File ? await uploadAPI.uploadImage(value) : value
+          value instanceof File
+            ? await uploadAPI.uploadImage(value, STORAGE_PATHS.CMS_PAGE)
+            : value
 
         return [key, resolvedValue] as const
       })

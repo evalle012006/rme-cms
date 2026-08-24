@@ -26,6 +26,7 @@ class DashboardController extends BaseController
         $companyCount = CompanyDetails::where('status', 1)->count();
         $propertyCount = Properties::where('status', 1)->count();
         $reviewCount = Review::where('status', 1)->count();
+        $pendingReviewCount = Review::where('status', 0)->count();
         $reviewerCount = User::where('status', 1)->whereHas('roles', function ($qry) {
             $qry->where('name', 'reviewer');
         })->count();
@@ -83,8 +84,8 @@ class DashboardController extends BaseController
         foreach ($propertyCategories as $question) {
             if (!isset($amenitiesWiseReviews[$question])) $amenitiesWiseReviews[$question] = 0;
         }
-        // get list of properties
-        $properties = Properties::select('id', 'project_name as name')->where('status', 1)->get();
+        // get list of properties (include developer_name so CMS can scope by company)
+        $properties = Properties::select('id', 'project_name as name', 'developer_name')->where('status', 1)->get();
         // end
 
         // get list of companies
@@ -122,6 +123,7 @@ class DashboardController extends BaseController
                 'company' => $companyCount,
                 'property' => $propertyCount,
                 'review' => $reviewCount,
+                'pending_review' => $pendingReviewCount,
                 'reviewer' => $reviewerCount,
             ],
             'chart1' => [
@@ -362,6 +364,13 @@ class DashboardController extends BaseController
         foreach ($amenitiesWiseReviews as $key => $singleAmenityArr) {
             $amenitiesWiseReviews[$key] = roundOffRating((array_sum($singleAmenityArr)) / count($singleAmenityArr));
         }
+
+        // No approved review ratings for this filter — return empty so the CMS
+        // can show an explicit empty state (do not pad attributes to 0).
+        if (empty($amenitiesWiseReviews)) {
+            return $this->formatSuccessResponse('success', (object) []);
+        }
+
         $propertyCategories = RatingConfiguration::pluck('name');
         foreach ($propertyCategories as $question) {
             if (!isset($amenitiesWiseReviews[$question])) $amenitiesWiseReviews[$question] = 0;

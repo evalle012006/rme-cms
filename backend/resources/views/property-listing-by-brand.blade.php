@@ -1,15 +1,43 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', $company->company_name . ' Reviews & Ratings | ' . seoSiteName())
+@section('meta_description', seoText($company->bio ?: ('Read ' . $totalReviews . ' verified reviews and ratings for ' . $company->company_name . ' on ' . seoSiteName() . '. See what real buyers say before you decide.')))
+@section('og_image', $company->full_company_logo ?: asset('images/logo.png'))
+
+@section('structured_data')
+    {!! seoJsonLd(array_filter([
+        '@context' => 'https://schema.org',
+        '@type' => 'Organization',
+        'name' => $company->company_name,
+        'url' => url()->current(),
+        'logo' => $company->full_company_logo ?: null,
+        'description' => $company->bio ? seoText($company->bio, 300) : null,
+        'aggregateRating' => ($totalReviews > 0 && $avg_of_all > 0) ? [
+            '@type' => 'AggregateRating',
+            'ratingValue' => (string)$avg_of_all,
+            'reviewCount' => (string)$totalReviews,
+            'bestRating' => '5',
+            'worstRating' => '1',
+        ] : null,
+    ])) !!}
+    {!! seoBreadcrumbJsonLd([
+        ['name' => 'Home', 'url' => route('root')],
+        ['name' => 'Reviews', 'url' => route('property-listing')],
+        ['name' => $company->company_name, 'url' => url()->current()],
+    ]) !!}
+@endsection
+
 @section('content')
     <div class="review-detail-content-wrap property-detail-wrap">
         <div class="container">
             <div class="featured-review-box">
                 <div class="logo-wrap">
                     <img
-                        src="{{$company->full_company_logo ? $company->full_company_logo : asset('images/homepage/HomepageHero.jpg')}}">
+                        src="{{$company->full_company_logo ? $company->full_company_logo : asset('images/homepage/HomepageHero.jpg')}}"
+                        alt="{{$company->company_name}} logo">
                 </div>
                 <div class="review-content">
-                    <h3>{{$company->company_name}}</h3>
+                    <h1>{{$company->company_name}}</h1>
                     <div class="review-count">Reviews {{$totalReviews}} <span class="level">Excellent</span></div>
                     <div class="rating-wrap">
                         <ul class="general-star-rating overall-rate-color-{{ratingClass($avg_of_all)}}">

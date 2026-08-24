@@ -10,7 +10,7 @@ class AboutViewComposer
 {
     public function compose(View $view)
     {
-        $sectionData = CmsPageSections::whereCmsPageId(CmsPages::whereName('about')->pluck('id'))
+        $sectionData = CmsPageSections::whereIn('cms_page_id', CmsPages::where('name', 'about')->select('id'))
             ->get()
             ->groupBy('section_slug')
             ->transform(function ($item) {

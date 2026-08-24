@@ -1,5 +1,8 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Write a Review | ' . seoSiteName())
+@section('meta_robots', 'noindex, nofollow')
+
 @section('extra-style')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet"/>
     <style>
@@ -41,7 +44,7 @@
                             @csrf
 
                             <div class="form-row">
-                                <label>Who was the property company name?</label>
+                                <label>Who was the project company name?</label>
                                 <select class="w-100" id="company_id"></select>
                             </div>
                             <div class="form-row">
@@ -257,8 +260,9 @@
                                           maxlength="300">{{ old('comment') }}</textarea>
                             </div>
                             <div class="form-row">
-                                <label>Upload your Proof of Purchase</label>
-                                <input type="file" name="review_docs" accept=".doc , .docx, .pdf , .jpg">
+                                <label>Upload your Proof of Purchase <span class="text-danger">*</span></label>
+                                <p>A proof of purchase document is required to submit your review. This is not published.</p>
+                                <input type="file" name="review_docs" accept=".doc,.docx,.pdf,image/*" required>
                                 <span class="text-danger">{{ $errors->first('review_docs') }}</span>
                             </div>
                             <div class="form-row">
@@ -291,10 +295,8 @@
                                     class="text-danger">{{ $errors->first('is_agree') ? 'You must agree term and condition' : '' }}</span>
                             </div>
                             <div class="form-row form-footer">
-{{--                                <a href="{{route('nav-review-step1')}}" class="btn">Go Back</a>--}}
-                                {{--                                <button class="btn">Preview</button>--}}
-                                <input type="submit" name="submit" value="submit" class="btn">
-
+                                <a href="{{ route('review-step-2') }}" class="btn btn-back">Go Back</a>
+                                <button type="submit" name="form_action" value="submit" class="btn yellow-btn">Submit</button>
                             </div>
 
                         </form>
@@ -314,7 +316,8 @@
         Swal.fire({
             title: '<strong>Login Required</strong>',
             html:
-                '<a href="{{route('login')}}">LOGIN</a> ',
+                '<a href="{{route('login')}}">LOGIN</a>' +
+                '<p style="margin-top:15px;">Does not have an account? <a href="{{route('register')}}" style="color:#07AFA9;font-weight:600;text-decoration:underline;">Click here to Signup</a></p>',
             showCloseButton: true,
             showConfirmButton: false
         })
@@ -528,7 +531,11 @@
                                     $('#company_id').append(newOption).trigger('change');
                                 }
                             }, error: function (error) {
-                                Swal.fire('Error', error.responseJSON.message, 'error')
+                                var payload = error.responseJSON || {};
+                                var msg = (payload.errors && payload.errors.company_name && payload.errors.company_name[0])
+                                    || payload.message
+                                    || 'A company with this name already exists. Please select it from the list instead of creating a duplicate.';
+                                Swal.fire('Error', msg, 'error');
                             }
                         })
                     }

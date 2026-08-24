@@ -56,7 +56,7 @@ class PropertyController extends BaseController
             if ($property_cat) {
                 return $this->formatSuccessResponse('success', $property, 201);
             }
-            return $this->formatFailureResponse('property category not saved');
+            return $this->formatFailureResponse('project category not saved');
         } catch (ValidationException $e) {
             return $this->apiFormatFailureResponse('failure', $e->errors());
         }
@@ -79,7 +79,7 @@ class PropertyController extends BaseController
             if ($property_cat) {
                 return $this->formatSuccessResponse('success', $property, 201);
             }
-            return $this->formatFailureResponse('property category not saved');
+            return $this->formatFailureResponse('project category not saved');
         } catch (ValidationException $e) {
             return $this->apiFormatFailureResponse('failure', $e->errors());
         }
@@ -121,7 +121,7 @@ class PropertyController extends BaseController
         if (!is_null($property)) {
             return $this->formatSuccessResponse('success', $property);
         }
-        return $this->formatFailureResponse('property not found');
+        return $this->formatFailureResponse('project not found');
     }
 
     public function importProperty(Request $request)

@@ -28,6 +28,7 @@ export const ROUTES = {
   builder: {
     approved: '/builder/approved',
     pending: '/builder/pending',
+    add: '/builder/add',
     edit: (id: string | number) => `/builder/edit/${id}`,
     editPattern: '/builder/edit/:id',
   },
@@ -55,11 +56,11 @@ export const ROUTES = {
   },
 
   properties: {
-    approved: '/property/approve',
-    pending: '/property/pending',
-    add: '/property/add',
-    edit: (id: string | number) => `/property/edit/${id}`,
-    editPattern: '/property/edit/:id',
+    approved: '/project/approve',
+    pending: '/project/pending',
+    add: '/project/add',
+    edit: (id: string | number) => `/project/edit/${id}`,
+    editPattern: '/project/edit/:id',
   },
 
   
@@ -70,12 +71,12 @@ export const ROUTES = {
 
   propertySettings: {
     categories: {
-      list: '/property-category',
-      add: '/property-category/add',
-      edit: (id: string | number) => `/property-category/edit/${id}`,
-      editPattern: '/property-category/edit/:id',
+      list: '/project-category',
+      add: '/project-category/add',
+      edit: (id: string | number) => `/project-category/edit/${id}`,
+      editPattern: '/project-category/edit/:id',
     },
-    manageRating: '/property-category/manage-rating',
+    manageRating: '/project-category/manage-rating',
   },
 
   blogs: {
@@ -89,6 +90,9 @@ export const ROUTES = {
     add: '/blogs/add',
     edit: (id: string | number) => `/blogs/edit/${id}`,
     editPattern: '/blogs/edit/:id',
+    previewDraft: '/blogs/preview',
+    preview: (id: string | number) => `/blogs/preview/${id}`,
+    previewPattern: '/blogs/preview/:id',
   },
 
 
@@ -96,8 +100,9 @@ export const ROUTES = {
     home: '/cms/home',
     about: '/cms/about',
     propertyGuide: '/cms/property-guide',
-    propertyCoach: '/cms/property-coach',
+    propertyCoach: '/cms/property-blog',
     contact: '/cms/contact',
+    reviewsListing: '/cms/reviews-listing',
     reviewGuidelines: '/cms/review-guidelines',
     termsOfUse: '/cms/terms-of-use',
     privacyPolicy: '/cms/privacy-policy',

@@ -12,6 +12,8 @@ return [
     |
     */
 
+    // Browsers reject Access-Control-Allow-Origin: * when credentials are enabled.
+    // List explicit frontend origins instead.
     'supportsCredentials' => true,
     'allowedOrigins' => ['*'],
     'allowedHeaders' => ['*'],

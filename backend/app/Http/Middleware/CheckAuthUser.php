@@ -18,7 +18,15 @@ class CheckAuthUser
     {
         if (!Auth::user()) {
             return redirect('/');
-        } else if (!Auth::user()->email_verified_at) {
+        }
+
+        if ((string) Auth::user()->status === '4') {
+            Auth::logout();
+            $request->session()->put('account_suspended', true);
+            return redirect('/login');
+        }
+
+        if (!Auth::user()->email_verified_at) {
             // logout user if is not verified
             Auth::logout();
             return redirect('/');

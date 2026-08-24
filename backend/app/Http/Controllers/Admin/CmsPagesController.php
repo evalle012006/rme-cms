@@ -15,7 +15,7 @@ class CmsPagesController extends BaseController
     {
         $page = $request->page;
         try {
-            $pageData = CmsPageSections::whereCmsPageId(CmsPages::whereName($page)->pluck('id'))
+            $pageData = CmsPageSections::whereIn('cms_page_id', CmsPages::where('name', $page)->select('id'))
                 ->get()
                 ->groupBy('section_slug')
                 ->transform(function ($item) {

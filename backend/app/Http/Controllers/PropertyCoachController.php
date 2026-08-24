@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BlogCategory;
 use App\Models\Blogs;
 use Illuminate\Http\Request;
 
@@ -11,8 +10,6 @@ class PropertyCoachController extends Controller
     public function propertyCoachPage()
     {
         $recent_blogs = Blogs::with('blogCategories')->where('status', 0)->latest()->take(4)->get()->toArray();
-
-        $categories = BlogCategory::latest()->take(4)->get()->toArray();
 
         $recent_finance = Blogs::with('blogCategories')->whereHas('blogCategories', function ($q) {
             $q->where('blog_category_id', 1);
@@ -30,17 +27,21 @@ class PropertyCoachController extends Controller
             $q->where('blog_category_id', 4);
         })->where(['status' => 0])->latest()->take(3)->get()->toArray();
 
-
-        return view('property-coach', compact('recent_blogs',
-            'categories', 'recent_finance',
-            'recent_building', 'recent_investment',
+        return view('property-coach', compact(
+            'recent_blogs',
+            'recent_finance',
+            'recent_building',
+            'recent_investment',
             'recent_buying'
         ));
     }
 
     public function blogDetails($slug)
     {
-        $blog_detail = Blogs::where('slug', $slug)->first();
+        $blog_detail = Blogs::with(['blogCategories', 'user'])
+            ->where('slug', $slug)
+            ->where('status', 0)
+            ->first();
         if ($blog_detail) {
             $recent_blogs = Blogs::with('blogCategories')->where('status', 0)->latest()->take(4)->get()->toArray();
             return view('blog-detail', compact('blog_detail', 'recent_blogs'));
@@ -60,6 +61,11 @@ class PropertyCoachController extends Controller
             );
         }
         $blog_posts = $blog_posts->paginate(6);
+
+        if (request()->ajax()) {
+            return view('partials.blog-posts-list', compact('blog_posts'));
+        }
+
         return view('blog-posts', compact('blog_posts'));
     }
 }

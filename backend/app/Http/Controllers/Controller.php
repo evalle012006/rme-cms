@@ -31,17 +31,19 @@ class Controller extends BaseController
 
     function saveThumbToS3($path, $width = 300, $height = 200)
     {
-        if (config('filesystems.default') !== 's3') {
-            $url = url(Storage::url($path));
-        } else {
-            $url = Storage::url($path);
+        // Prefer reading bytes from storage — fetching via public URL often fails
+        // (private buckets / CORS) and was blocking company logo DB updates.
+        try {
+            $contents = Storage::get($path);
+            $img = Image::make($contents)->resize($width, $height)->stream();
+            $date = now()->format('Y/m/d');
+            $thumbPath = str_replace($date, $date . '/thumb', $path);
+            Storage::put($thumbPath, $img, 'public');
+            return $thumbPath;
+        } catch (\Exception $e) {
+            Log::error('SAVE_THUMB_ERROR: ' . $e->getMessage());
+            return null;
         }
-
-        $img = Image::make($url)->resize($width, $height)->stream();
-        $date = now()->format('Y/m/d');
-        $thumbPath = str_replace($date, $date . '/thumb', $path);
-        Storage::put($thumbPath, $img, 'public');
-        return $thumbPath;
     }
 
 }

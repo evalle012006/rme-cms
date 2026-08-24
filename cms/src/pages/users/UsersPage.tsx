@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/atoms/Button"
 import { Breadcrumb } from "@/components/atoms/Breadcrumb"
@@ -10,49 +10,14 @@ import type {
   DataTablesRequest,
   SortDir,
 } from "@/types/api"
+import { DisplayNameChangeRequestModal } from "./DisplayNameChangeRequestModal.tsx"
 
 const BREADCRUMB = [
   { label: "Home", to: ROUTES.root },
   { label: "Users" },
 ]
 
-// ── Column config ────────────────────────────────────────────────────────────
-// `key` is also the DataTables.net `name` field — keep them in sync with the
-// backend's expected column names.
-
-const columns: DataTableColumn<User>[] = [
-  {
-    key: "id",
-    header: "ID",
-    width: "80px",
-    cellClassName: "font-medium text-gray-700",
-  },
-  {
-    key: "email",
-    header: "Email",
-    sortable: true,
-  },
-  {
-    key: "change_request",
-    header: "Change Requests",
-    width: "220px",
-    cell: (row) => row.has_change_request,
-  },
-  {
-    key: "action",
-    header: "Action",
-    width: "120px",
-    cell: (row) => (
-      <Link to={ROUTES.users.edit(row.id)}>
-        <Button color="primary" size="sm" className="h-auto py-1.5">
-          Edit
-        </Button>
-      </Link>
-    ),
-  },
-]
-
-// Column metadata for DataTables.net request. Mirrors the `columns` array above.
+// Column metadata for DataTables.net request. Mirrors the `columns` array.
 const COLUMN_META: Pick<DataTablesColumnRequest, "name" | "searchable" | "orderable">[] = [
   { name: "id",             searchable: true,  orderable: false },
   { name: "email",          searchable: true,  orderable: true  },
@@ -70,6 +35,8 @@ export default function UsersPage() {
   const [sortDir, setSortDir] = useState<SortDir | undefined>(undefined)
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [requestModalOpen, setRequestModalOpen] = useState(false)
 
   // Increments per request; sent back as-is by the backend so we can detect
   // stale responses and ignore them.
@@ -117,6 +84,61 @@ export default function UsersPage() {
   useEffect(() => {
     fetchUsers()
   }, [fetchUsers])
+
+  const openRequestModal = useCallback((user: User) => {
+    setSelectedUser(user)
+    setRequestModalOpen(true)
+  }, [])
+
+  const closeRequestModal = useCallback(() => {
+    setRequestModalOpen(false)
+    setSelectedUser(null)
+  }, [])
+
+  const columns: DataTableColumn<User>[] = useMemo(
+    () => [
+      {
+        key: "id",
+        header: "ID",
+        width: "80px",
+        cellClassName: "font-medium text-gray-700",
+      },
+      {
+        key: "email",
+        header: "Email",
+        sortable: true,
+      },
+      {
+        key: "change_request",
+        header: "Change Requests",
+        width: "220px",
+        cell: (row) =>
+          row.has_change_request ? (
+            <Button
+              color="primary"
+              size="sm"
+              className="h-auto py-1.5"
+              onClick={() => openRequestModal(row)}
+            >
+              See request
+            </Button>
+          ) : null,
+      },
+      {
+        key: "action",
+        header: "Action",
+        width: "120px",
+        cell: (row) => (
+          <Link to={ROUTES.users.edit(row.id)}>
+            <Button color="primary" size="sm" className="h-auto py-1.5">
+              Edit
+            </Button>
+          </Link>
+        ),
+      },
+    ],
+    [openRequestModal]
+  )
 
   const handlePerPageChange = (newPerPage: number) => {
     setPerPage(newPerPage)
@@ -168,6 +190,13 @@ export default function UsersPage() {
         onPerPageChange={handlePerPageChange}
         onSearchChange={handleSearchChange}
         onSortChange={handleSortChange}
+      />
+
+      <DisplayNameChangeRequestModal
+        user={selectedUser}
+        open={requestModalOpen}
+        onClose={closeRequestModal}
+        onSuccess={fetchUsers}
       />
     </div>
   )

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Storage;
 
 class PropertyGallery extends Model
 {
@@ -18,7 +17,7 @@ class PropertyGallery extends Model
 
     function getFullPropertyImageAttribute() {
         if(!empty($this->name)){
-            return url(Storage::url($this->name));
+            return absoluteStorageUrl($this->name);
         }
         return null;
     }

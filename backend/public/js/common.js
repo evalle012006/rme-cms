@@ -156,7 +156,7 @@ jQuery(document).ready(function ($) {
         }
     });
 
-    $('.property-wise-reviews-single .show-more').click(function () {
+    $(document).on('click', '.property-wise-reviews-single .show-more', function () {
         var contentPanel = $(this).parents('.property-wise-reviews-single').next().find('.content-panel');
         if (contentPanel.is(':hidden') == true) {
             contentPanel.slideDown(50);
@@ -169,7 +169,7 @@ jQuery(document).ready(function ($) {
         }, 50);
     });
 
-    $('.review-detail-watch .show-btn').click(function () {
+    $(document).on('click', '.review-detail-watch .show-btn', function () {
 
         $('.review-detail-watch .show-btn').removeClass('on');
         $('.content-panel').slideUp('normal');
@@ -181,11 +181,9 @@ jQuery(document).ready(function ($) {
 
     });
 
-    $('.review-detail-watch .show-btn').mouseover(function () {
+    $(document).on('mouseover', '.review-detail-watch .show-btn', function () {
         $(this).addClass('over');
-
-//ON MOUSEOUT REMOVE THE OVER CLASS
-    }).mouseout(function () {
+    }).on('mouseout', '.review-detail-watch .show-btn', function () {
         $(this).removeClass('over');
     });
     $('.content-panel').hide();
@@ -234,7 +232,7 @@ jQuery(document).ready(function ($) {
     }
 
     /* 29-07-2020 */
-    jQuery('.view-rating').on('click', function () {
+    jQuery(document).on('click', '.view-rating', function () {
         const display = jQuery(this).parents('.single-box-height').find('.properties-rating-list').css('display');
         if (display === 'none') {
             jQuery(this).parents('.single-box-height').find('.properties-rating-list').slideDown(50);

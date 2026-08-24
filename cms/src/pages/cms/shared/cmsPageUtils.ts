@@ -60,6 +60,28 @@ function sectionSlugCandidates(config: CmsPageSectionConfig): string[] {
 
   if (config.key === 'recentReview') slugs.add('recent_reviews')
 
+  // Legacy / generated slugs that may exist alongside the short DB/Blade slugs
+  if (config.key === 'propertyProjectBuilders') {
+    slugs.add('reviews_on_rme')
+    slugs.add('property_project_and_builders_reviews_on_ratemyestate')
+  }
+  if (config.key === 'communityGuidelines') {
+    slugs.add('guidelines')
+    slugs.add('our_community_guidelines')
+  }
+  if (config.key === 'reviewDosDonts') {
+    slugs.add('reviews_dos')
+    slugs.add('review_dos_and_donts')
+  }
+  if (config.key === 'moderation') {
+    slugs.add('moderation_works')
+    slugs.add('how_does_moderation_work')
+  }
+  if (config.key === 'reviewNotVisible') {
+    slugs.add('wrote_a_review')
+    slugs.add('i_wrote_a_review_but_i_cant_see_it_on_the_website_why_not')
+  }
+
   return [...slugs]
 }
 
@@ -200,10 +222,10 @@ function mapMissionSection(section?: CmsPageSection): MissionSectionValues {
   return {
     title: section.title ?? '',
     descriptions: [
-      otherParams.description_1 ?? section.description ?? '',
-      otherParams.description_2 ?? '',
-      otherParams.description_3 ?? '',
-      otherParams.description_4 ?? '',
+      otherParams.card_1 ?? otherParams.description_1 ?? section.description ?? '',
+      otherParams.card_2 ?? otherParams.description_2 ?? '',
+      otherParams.card_3 ?? otherParams.description_3 ?? '',
+      otherParams.card_4 ?? otherParams.description_4 ?? '',
     ] as [string, string, string, string],
   }
 }
@@ -274,10 +296,10 @@ export function buildCmsSavePayload(
         title: missionValues.title,
         body: missionValues.descriptions[0],
         other_params: JSON.stringify({
-          description_1: missionValues.descriptions[0],
-          description_2: missionValues.descriptions[1],
-          description_3: missionValues.descriptions[2],
-          description_4: missionValues.descriptions[3],
+          card_1: missionValues.descriptions[0],
+          card_2: missionValues.descriptions[1],
+          card_3: missionValues.descriptions[2],
+          card_4: missionValues.descriptions[3],
         }),
       }
     }
@@ -433,7 +455,7 @@ export const REVIEW_GUIDELINES_CMS_CONFIG: CmsPageConfig = {
       id: 15,
       key: 'propertyProjectBuilders',
       apiSection: 'Property, Project & Builders reviews on ratemyestate',
-      apiSlug: 'property_project_and_builders_reviews_on_ratemyestate',
+      apiSlug: 'reviews_on_rme',
       uiTitle: 'Property, Project & Builders reviews on ratemyestate section',
       type: 'titleDescription',
     },
@@ -441,7 +463,7 @@ export const REVIEW_GUIDELINES_CMS_CONFIG: CmsPageConfig = {
       id: 16,
       key: 'communityGuidelines',
       apiSection: 'Our community guidelines',
-      apiSlug: 'our_community_guidelines',
+      apiSlug: 'guidelines',
       uiTitle: 'Our community guidelines section',
       type: 'titleDescription',
     },
@@ -449,7 +471,7 @@ export const REVIEW_GUIDELINES_CMS_CONFIG: CmsPageConfig = {
       id: 17,
       key: 'reviewDosDonts',
       apiSection: "Review dos and don'ts",
-      apiSlug: 'review_dos_and_donts',
+      apiSlug: 'reviews_dos',
       uiTitle: "Review dos and don'ts section",
       type: 'titleDescription',
     },
@@ -457,7 +479,7 @@ export const REVIEW_GUIDELINES_CMS_CONFIG: CmsPageConfig = {
       id: 18,
       key: 'moderation',
       apiSection: 'How does moderation work?',
-      apiSlug: 'how_does_moderation_work',
+      apiSlug: 'moderation_works',
       uiTitle: 'How does moderation work? section',
       type: 'titleDescription',
     },
@@ -465,7 +487,7 @@ export const REVIEW_GUIDELINES_CMS_CONFIG: CmsPageConfig = {
       id: 19,
       key: 'reviewNotVisible',
       apiSection: "I wrote a review but I can't see it on the website - why not ?",
-      apiSlug: 'i_wrote_a_review_but_i_cant_see_it_on_the_website_why_not',
+      apiSlug: 'wrote_a_review',
       uiTitle: "I wrote a review but I can't see it on the website - why not ? section",
       type: 'titleDescription',
     },
@@ -510,6 +532,20 @@ export const TERMS_OF_USE_CMS_CONFIG: CmsPageConfig = {
   ],
 }
 
+export const REVIEWS_LISTING_CMS_CONFIG: CmsPageConfig = {
+  page: 'reviews_listing',
+  sections: [
+    {
+      id: 28,
+      key: 'banner',
+      apiSection: 'Banner',
+      apiSlug: 'banner',
+      uiTitle: 'Banner section',
+      type: 'banner',
+    },
+  ],
+}
+
 export const PRIVACY_POLICY_CMS_CONFIG: CmsPageConfig = {
   page: 'privacy_policy',
   sections: [
@@ -525,7 +561,7 @@ export const PRIVACY_POLICY_CMS_CONFIG: CmsPageConfig = {
       id: 25,
       key: 'privacyCommitment',
       apiSection: 'Our commitment to maintaining your privacy',
-      apiSlug: 'our_commitment_to_maintaining_your_privacy',
+      apiSlug: 'your_privacy',
       uiTitle: 'Our commitment to maintaining your privacy section',
       type: 'titleDescription',
     },
@@ -541,7 +577,7 @@ export const PRIVACY_POLICY_CMS_CONFIG: CmsPageConfig = {
       id: 27,
       key: 'collectingInfo',
       apiSection: 'Collecting other information on Ratemyestate visitors',
-      apiSlug: 'collecting_other_information_on_ratemyestate_visitors',
+      apiSlug: 'collecting_info',
       uiTitle: 'Collecting other information on Ratemyestate visitors section',
       type: 'titleDescription',
     },

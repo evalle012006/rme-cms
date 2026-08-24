@@ -6,6 +6,7 @@ import {
   type ApiRequestOptions,
 } from '@/api/apiService'
 import { uploadAPI } from '@/api/upload/uploadAPIHandler'
+import { STORAGE_PATHS } from '@/constants/storagePaths'
 import { BUILDERS_ENDPOINTS } from './buildersAPIEndpoints'
 import type { DataTablesRequest, DataTablesResponse } from '@/types/api'
 
@@ -59,15 +60,15 @@ export interface ChangeBuilderStatusPayload {
 
 export interface UpdateBuilderPayload {
   id: number
-  company_id: number
+  company_id: number | null
   firstname: string
   lastname: string
   email: string
   status: BuilderStatusFilter
-  company_name: string
-  company_bio: string
-  website: string
-  company_logo: File | string | null
+  company_name?: string
+  company_bio?: string
+  website?: string
+  company_logo?: File | string | null
 }
 
 export const buildersAPI = {
@@ -113,23 +114,33 @@ export const buildersAPI = {
     payload: UpdateBuilderPayload,
     options?: ApiRequestOptions
   ): Promise<unknown> => {
+    const hasCompany = payload.company_id != null
     const companyLogoPath =
-      payload.company_logo instanceof File
-        ? await uploadAPI.uploadImage(payload.company_logo)
-        : payload.company_logo
+      hasCompany && payload.company_logo instanceof File
+        ? await uploadAPI.uploadImage(
+            payload.company_logo,
+            STORAGE_PATHS.COMPANY_LOGO
+          )
+        : hasCompany
+          ? (payload.company_logo ?? null)
+          : null
 
     const fd = new FormData()
     fd.append("id", String(payload.id))
-    fd.append("company_id", String(payload.company_id))
+    if (hasCompany) {
+      fd.append("company_id", String(payload.company_id))
+    }
     fd.append("firstname", payload.firstname)
     fd.append("lastname", payload.lastname)
     fd.append("email", payload.email)
     fd.append("status", String(payload.status))
-    fd.append("company_name", payload.company_name)
-    fd.append("company_bio", payload.company_bio)
-    fd.append("website", payload.website)
-    if (companyLogoPath !== null && companyLogoPath !== undefined) {
-      fd.append("company_logo", companyLogoPath)
+    if (hasCompany) {
+      fd.append("company_name", payload.company_name ?? "")
+      fd.append("company_bio", payload.company_bio ?? "")
+      fd.append("website", payload.website ?? "")
+      if (companyLogoPath !== null && companyLogoPath !== undefined) {
+        fd.append("company_logo", companyLogoPath)
+      }
     }
     return apiRequest<unknown>(
       apiClient.post<ApiEnvelope<unknown>>(BUILDERS_ENDPOINTS.UPDATE, fd, {

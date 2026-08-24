@@ -1,14 +1,19 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Privacy Policy | ' . seoSiteName())
+@section('meta_description', 'Read the ' . seoSiteName() . ' privacy policy to understand how we collect, use and protect your personal information.')
+
 @section('content')
     <div class="bg-main inner-banner"
          style="background-image: url({{$sectionData['banner']['image'] ? checkUrl($sectionData['banner']['image']) : 'images/homepage/HomepageHero.jpg'}});">
         <div class="banner-caption">
             @if($sectionData['banner']['title'])
-                <h2>{{$sectionData['banner']['title']}}</h2>
+                <h1>{{$sectionData['banner']['title']}}</h1>
             @else
-                <h2>Privacy Policy</h2>
-            @endif
+{{-- CMS fallback (kept for later restore)
+<h1>Privacy Policy</h1>
+            --}}
+@endif
             <div class="breadcrumb-wrap">
                 <a href="{{route('root')}}">Home</a> / <span>Privacy Policy</span>
             </div>
@@ -17,12 +22,19 @@
     <div class="general-content-section custom-content-section">
         <div class="container">
             <div class="content-wrap">
-                <h4>Our commitment to maintaining your privacy</h4>
+                @if($sectionData['your_privacy']['title'])
+                    <h4>{{$sectionData['your_privacy']['title']}}</h4>
+                @else
+{{-- CMS fallback (kept for later restore)
+<h4>Our commitment to maintaining your privacy</h4>
+                --}}
+@endif
 
                 @if($sectionData['your_privacy']['body'])
                     {!! $sectionData['your_privacy']['body'] !!}
                 @else
-                    <p>Our Privacy Statement has been created we value our users and recognise their right to keep
+{{-- CMS fallback (kept for later restore)
+<p>Our Privacy Statement has been created we value our users and recognise their right to keep
                         Personal
                         Information private. Ratemyestate collects Personal Information and Personal Data from Site
                         visitors
@@ -34,13 +46,22 @@
                         and as described in this Privacy Statement. This Privacy Statement has been prepared by
                         Ratemyestate. Ratemyestate owns and operates the website located at <a href="#">www.Ratemyestate.com.au</a>
                         (“the Site”) across desktop, mobile, tablet and apps and including any subdomains</p>
-                @endif
+                --}}
+@endif
 
-                <h4>Definitions</h4>
+                @if($sectionData['definitions']['title'])
+                    <h4>{{$sectionData['definitions']['title']}}</h4>
+                @else
+{{-- CMS fallback (kept for later restore)
+<h4>Definitions</h4>
+                --}}
+@endif
+
                 @if($sectionData['definitions']['body'])
                     {!! $sectionData['definitions']['body'] !!}
                 @else
-                    <p>Where used in this Privacy Statement, the terms “Personal Information”, and “Australian Privacy
+{{-- CMS fallback (kept for later restore)
+<p>Where used in this Privacy Statement, the terms “Personal Information”, and “Australian Privacy
                         Principle(s)” has the meaning attributed to those terms in the Privacy Act (Cth) 1988 (“Privacy
                         Act”).In this Privacy Statement:</p>
                     <ul>
@@ -67,14 +88,22 @@
                         </li>
                         <li><strong>“Personal Data</strong> has the meaning attributed to that term in the GDPR;</li>
                     </ul>
-                @endif
+                --}}
+@endif
 
+                @if($sectionData['collecting_info']['title'])
+                    <h4>{{$sectionData['collecting_info']['title']}}</h4>
+                @else
+{{-- CMS fallback (kept for later restore)
+<h4>Collecting other information on Ratemyestate visitors</h4>
+                --}}
+@endif
 
-                <h4>Collecting other information on Ratemyestate visitors</h4>
                 @if($sectionData['collecting_info']['body'])
                     {!! $sectionData['collecting_info']['body'] !!}
                 @else
-                    <p>Ratemyestate collects non-Personal Information on Site visits by users including, without
+{{-- CMS fallback (kept for later restore)
+<p>Ratemyestate collects non-Personal Information on Site visits by users including, without
                         limitation,
                         which sections of the Site are most frequently visited, how often, and for how long. This data
                         is
@@ -127,7 +156,8 @@
                         <li>How long these unique visitors (on average) spend on the Site when they do visit; and</li>
                         <li>Common entry and exit points into the Site</li>
                     </ul>
-                @endif
+                --}}
+@endif
             </div>
         </div>
     </div>

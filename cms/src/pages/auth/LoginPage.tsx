@@ -11,7 +11,6 @@ import { useAuthStore } from '@/store/authStore'
 import { authAPI } from '@/api/auth/authAPIHandler'
 import { ROUTES } from '@/constants/routes'
 
-// ── Form schema ───────────────────────────────────────────────────────────────
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
   password: z.string().min(1, 'Password is required'),
@@ -19,7 +18,6 @@ const schema = z.object({
 
 type LoginFormData = z.infer<typeof schema>
 
-// ── Component ─────────────────────────────────────────────────────────────────
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const login = useAuthStore((s) => s.login)
@@ -75,7 +73,7 @@ export default function LoginPage() {
         />
 
         <Button
-          size = "lg"
+          size="lg"
           type="submit"
           color="primary"
           disabled={loading}
@@ -83,7 +81,6 @@ export default function LoginPage() {
         >
           {loading ? 'Signing in…' : 'Sign in'}
         </Button>
-
       </form>
     </div>
   )

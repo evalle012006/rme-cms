@@ -1,9 +1,12 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Recent Project Reviews | ' . seoSiteName())
+@section('meta_description', 'Browse the latest verified property and real estate reviews from Australian buyers on ' . seoSiteName() . '.')
+
 @section('content')
     <div class="bg-main inner-banner" style="background-image: url({{asset('images/homepage/HomepageHero.jpg')}});">
         <div class="banner-caption">
-            <h2>Review Listing</h2>
+            <h1>Review Listing</h1>
             <div class="breadcrumb-wrap">
                 <a href="{{route('root')}}">Home</a> / <span>Review Listing</span>
             </div>

@@ -3,16 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\BaseController;
-use App\Mail\ChangeRequestUpdate;
 use App\Models\CompanyDetails;
 use App\Models\ContactUs;
 use App\Models\User;
+use App\Rules\UniqueCompanyName;
+use App\Services\ResendService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use phpseclib\Crypt\Hash;
@@ -51,12 +53,19 @@ class UserController extends BaseController
             'firstname'     => 'required',
             'lastname'      => 'required',
             'display_name'  => 'nullable|string|max:255', // FIX RME-105: added display_name
-            'mobile'        => 'required|unique:users,mobile',
+            // Registration / admin create may omit mobile; unique only when provided.
+            'mobile'        => 'nullable|unique:users,mobile',
             'location'      => 'required',
             'status'        => 'required',
         ];
         try {
-            $data = $this->validate($request, $rules);
+            $data = $this->validate($request, $rules, [], [
+                'location' => 'Suburb',
+            ]);
+
+            if (!array_key_exists('mobile', $data) || $data['mobile'] === '' || $data['mobile'] === 'null') {
+                $data['mobile'] = null;
+            }
 
             if ($request->hasFile('profile_image')) {
                 $file = $request->file('profile_image');
@@ -64,12 +73,17 @@ class UserController extends BaseController
 //                $data['profile_thumb_image'] = $this->saveThumbToS3($data['profile_image']);]
             }
             $data['password'] = bcrypt($request->password);
+            // Mirror email_verified_at from status so an Approved reviewer created
+            // in the admin can log in immediately (web login blocks unverified users).
+            $data['email_verified_at'] = $data['status'] === '1'
+                ? Carbon::now()->format('Y-m-d H:i:s')
+                : null;
             $user = User::create($data);
             $user->assignRole('reviewer');
 
             // FIX RME-106: wrapped in try/catch so mail failure doesn't 500 the response
             try {
-                $user->sendEmailVerificationNotification();
+                $this->sendVerificationEmail($user);
             } catch (\Exception $e) {
                 Log::error('REVIEWER_SIGNUP_VERIFICATION_EMAIL_ERROR: ' . $e->getMessage());
             }
@@ -89,17 +103,30 @@ class UserController extends BaseController
             'firstname' => 'required',
             'lastname' => 'required',
             'display_name' => 'required',
-//            'mobile' => 'required|unique:users,mobile,' . $request->id,
-            'mobile' => 'nullable',
+            // Null allowed (e.g. users who registered without a phone); unique when set.
+            'mobile' => 'nullable|unique:users,mobile,'.$request->id,
 //            'location' => 'required',
             'location' => 'nullable',
             'status' => 'required|in:1,2,3,4', // 1=Approved,2=Pending,3=Rejected,4=Suspended
         ];
 
         try {
-            $data = $this->validate($request, $rules);
+            $data = $this->validate($request, $rules, [], [
+                'location' => 'Suburb',
+            ]);
             if (!$request->has('profile_image')) {
                 $data['profile_image'] = null;
+            }
+
+            // FormData cannot send real null; clients may send "" or the literal
+            // "null". Coerce both to SQL NULL so users_mobile_unique is not hit.
+            foreach (['mobile', 'location'] as $nullableField) {
+                if (!array_key_exists($nullableField, $data)) {
+                    continue;
+                }
+                if ($data[$nullableField] === null || $data[$nullableField] === '' || $data[$nullableField] === 'null') {
+                    $data[$nullableField] = null;
+                }
             }
 
             $user = User::find($request->id);
@@ -120,12 +147,23 @@ class UserController extends BaseController
                 $sendMail = true;
             }
 
+            // Keep email_verified_at in sync with status so approving a reviewer
+            // unlocks login (and non-approved statuses re-lock it), mirroring builder flow.
+            $data['email_verified_at'] = $data['status'] === '1'
+                ? Carbon::now()->format('Y-m-d H:i:s')
+                : null;
+
             $user->update($data);
 
             if ($sendMail) {
                 // FIX RME-106: wrapped in try/catch
                 try {
-                    Mail::to($user->email)->send(new ChangeRequestUpdate('approved'));
+                    app(ResendService::class)->send(
+                        $user->email,
+                        'Request approved',
+                        'email-template.change-request-update',
+                        ['status' => 'approved']
+                    );
                 } catch (\Exception $e) {
                     Log::error('REVIEWER_UPDATE_MAIL_ERROR: ' . $e->getMessage());
                 }
@@ -139,6 +177,11 @@ class UserController extends BaseController
 
     public function builderSignup(Request $request)
     {
+        // Empty / "null" strings from FormData would fail exists:; treat as omitted.
+        if ($request->input('company_id') === '' || $request->input('company_id') === 'null') {
+            $request->merge(['company_id' => null]);
+        }
+
         $rules = [
             'firstname'  => 'required',
             'lastname'   => 'nullable|string|max:255',
@@ -146,7 +189,7 @@ class UserController extends BaseController
             'password'   => 'required',
             'status'     => 'required',
             'brand_type' => 'required',
-            'company_id' => 'required',
+            'company_id' => 'nullable|exists:company_details,id',
         ];
 
         try {
@@ -157,7 +200,7 @@ class UserController extends BaseController
             $userInsert['email']             = $data['email'];
             $userInsert['status']            = $data['status'];
             $userInsert['brand_type']        = $data['brand_type'];
-            $userInsert['company_id']        = $data['company_id'];
+            $userInsert['company_id']        = $data['company_id'] ?? null;
             $userInsert['password']          = bcrypt($request->password);
             // Mirror email_verified_at from status so the builder list
             // (which filters on email_verified_at, not status) reflects
@@ -169,7 +212,7 @@ class UserController extends BaseController
             $user->assignRole('builder');
 
             try {
-                $user->sendEmailVerificationNotification();
+                $this->sendVerificationEmail($user);
             } catch (\Exception $e) {
                 Log::error('BUILDER_SIGNUP_VERIFICATION_EMAIL_ERROR: ' . $e->getMessage());
             }
@@ -245,7 +288,13 @@ class UserController extends BaseController
                     if ($updated) {
                         // FIX RME-106: wrapped in try/catch
                         try {
-                            Mail::to($user->email)->send(new ChangeRequestUpdate($data['status'] == 1 ? 'approved' : 'rejected'));
+                            $status = $data['status'] == 1 ? 'approved' : 'rejected';
+                            app(ResendService::class)->send(
+                                $user->email,
+                                'Request ' . $status,
+                                'email-template.change-request-update',
+                                ['status' => $status]
+                            );
                         } catch (\Exception $e) {
                             Log::error('CHANGE_REQUEST_MAIL_ERROR: ' . $e->getMessage());
                         }
@@ -299,7 +348,11 @@ class UserController extends BaseController
                 if ($data['status']) {
                     // FIX RME-106: wrapped in try/catch
                     try {
-                        \Mail::to($user->email)->send(new \App\Mail\BuilderApproved());
+                        app(ResendService::class)->send(
+                            $user->email,
+                            'Your account has been approved',
+                            'email-template.builder-approved'
+                        );
                     } catch (\Exception $e) {
                         Log::error('BUILDER_STATUS_CHANGE_MAIL_ERROR: ' . $e->getMessage());
                     }
@@ -336,15 +389,30 @@ class UserController extends BaseController
     public function updateBuilder(Request $request)
     {
         $data = $request->all();
+        if (isset($data['company_name'])) {
+            $data['company_name'] = trim($data['company_name']);
+        }
+        if (($data['company_id'] ?? null) === '' || ($data['company_id'] ?? null) === 'null') {
+            $data['company_id'] = null;
+            $request->merge(['company_id' => null]);
+        }
+
+        // Users created without a company can still update profile fields.
+        // Company fields stay required when a company_id is present.
+        $hasCompany = !empty($data['company_id']);
         $rules = [
             'id' => 'required|exists:users,id',
-            'company_id' => 'required|exists:company_details,id',
+            'company_id' => 'nullable|exists:company_details,id',
             'firstname' => 'required',
             'lastname' => 'required',
         ];
+        if ($hasCompany) {
+            $rules['company_name'] = ['required', 'string', new UniqueCompanyName($request->company_id)];
+        }
+
         $validator = Validator::make($data, $rules);
         if ($validator->fails()) {
-            return $this->formatFailureResponse('Errors with inputs', 400);
+            return $this->apiFormatFailureResponse('false', $validator->errors(), 422);
         } else {
             DB::beginTransaction();
             try {
@@ -360,25 +428,37 @@ class UserController extends BaseController
                 User::where('id', $data['id'])->update($userUpdateData);
                 $user = User::find($data['id']);
 
-                $companyUpdateData = [
-                    'website' => $data['website'],
-                    'company_name' => $data['company_name'],
-                    'bio' => $data['company_bio'] ? $data['company_bio'] : null
-                ];
                 if ($data['status']) {
                     // FIX RME-106: wrapped in try/catch
                     try {
-                        \Mail::to($user->email)->send(new \App\Mail\BuilderApproved());
+                        app(ResendService::class)->send(
+                            $user->email,
+                            'Your account has been approved',
+                            'email-template.builder-approved'
+                        );
                     } catch (\Exception $e) {
                         Log::error('UPDATE_BUILDER_MAIL_ERROR: ' . $e->getMessage());
                     }
                 }
-                if ($request->hasFile('company_logo')) {
-                    $file = $request->file('company_logo');
-                    $fileLogo = app('App\Http\Controllers\Admin\CompanyDetailsController')->uploadCompanyLogo($file);
-                    $companyUpdateData = array_merge($companyUpdateData, $fileLogo);
+
+                if ($hasCompany) {
+                    $companyUpdateData = [
+                        'website' => $data['website'] ?? null,
+                        'company_name' => $data['company_name'],
+                        'bio' => !empty($data['company_bio']) ? $data['company_bio'] : null
+                    ];
+                    // CMS pre-uploads to S3 and sends a storage path string; legacy
+                    // admin clients may still send a multipart file.
+                    if ($request->hasFile('company_logo')) {
+                        $file = $request->file('company_logo');
+                        $fileLogo = app('App\Http\Controllers\Admin\CompanyDetailsController')->uploadCompanyLogo($file);
+                        $companyUpdateData = array_merge($companyUpdateData, $fileLogo);
+                    } elseif ($request->filled('company_logo') && is_string($request->input('company_logo'))) {
+                        $companyUpdateData['logo'] = $request->input('company_logo');
+                    }
+                    CompanyDetails::where('id', $data['company_id'])->update($companyUpdateData);
                 }
-                CompanyDetails::where('id', $data['company_id'])->update($companyUpdateData);
+
                 DB::commit();
                 return $this->formatSuccessResponse('Success', []);
             } catch (\Exception $e) {
@@ -413,5 +493,30 @@ class UserController extends BaseController
         $user->save();
 
         return $this->formatSuccessResponse('Profile Updated', $user);
+    }
+
+    /**
+     * Send account verification email via Resend.
+     *
+     * @param User $user
+     * @return void
+     */
+    private function sendVerificationEmail(User $user)
+    {
+        $verifyUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            Carbon::now()->addMinutes(Config::get('auth.verification.expire', 60)),
+            [
+                'id' => $user->id,
+                'hash' => sha1($user->email),
+            ]
+        );
+
+        app(ResendService::class)->send(
+            $user->email,
+            'Verify your ratemyestate.com.au account',
+            'email-template.verify',
+            ['url' => $verifyUrl]
+        );
     }
 }

@@ -1,15 +1,29 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', $company->company_name . ' - ' . reverseSlug($category_slug) . ' Reviews | ' . seoSiteName())
+@section('meta_description', seoText($company->bio ?: ('Read ' . $totalReviews . ' verified ' . strtolower(reverseSlug($category_slug)) . ' reviews for ' . $company->company_name . ' on ' . seoSiteName() . '.')))
+@section('og_image', $company->full_company_logo ?: asset('images/logo.png'))
+
+@section('structured_data')
+    {!! seoBreadcrumbJsonLd([
+        ['name' => 'Home', 'url' => route('root')],
+        ['name' => 'Reviews', 'url' => route('property-listing')],
+        ['name' => reverseSlug($category_slug), 'url' => route('property-listing-with-slug', ['slug' => $category_slug])],
+        ['name' => $company->company_name, 'url' => url()->current()],
+    ]) !!}
+@endsection
+
 @section('content')
     <div class="review-detail-content-wrap property-detail-wrap">
         <div class="container">
             <div class="featured-review-box">
                 <div class="logo-wrap">
                     <img
-                        src="{{$company->full_company_logo ? $company->full_company_logo : asset('images/homepage/HomepageHero.jpg')}}">
+                        src="{{$company->full_company_logo ? $company->full_company_logo : asset('images/homepage/HomepageHero.jpg')}}"
+                        alt="{{$company->company_name}} logo">
                 </div>
                 <div class="review-content">
-                    <h3>{{$company->company_name}}</h3>
+                    <h1>{{$company->company_name}}</h1>
                     <div class="review-count">Reviews {{$totalReviews}} <span class="level">Excellent</span></div>
                     <div class="rating-wrap">
                         <ul class="general-star-rating overall-rate-color-{{ratingClass($avg_of_all)}}">

@@ -10,7 +10,7 @@ class PropertyGuideViewComposer
 {
     public function compose(View $view)
     {
-        $sectionData = CmsPageSections::whereCmsPageId(CmsPages::whereName('property_guide')->pluck('id'))
+        $sectionData = CmsPageSections::whereIn('cms_page_id', CmsPages::where('name', 'property_guide')->select('id'))
             ->get()
             ->groupBy('section_slug')
             ->transform(function ($item) {

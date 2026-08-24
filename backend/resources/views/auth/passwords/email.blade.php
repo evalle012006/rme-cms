@@ -1,5 +1,8 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Forgot Password | ' . seoSiteName())
+@section('meta_robots', 'noindex, nofollow')
+
 @section('content')
     <div class="forgot-pwd-wrap">
         <div class="container">

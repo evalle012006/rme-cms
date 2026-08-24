@@ -180,7 +180,7 @@ export const DEFAULT_PROPERTY_REVIEWS_FILTERS = {
 
 function resolveOptionName(
   id: string,
-  items: Array<{ id: number; name: string }> | undefined
+  items: Array<{ id: number | string; name: string }> | undefined
 ): string | null {
   if (!id || !items?.length) return null
   return items.find((item) => String(item.id) === id)?.name ?? null
@@ -194,8 +194,8 @@ export function buildPropertyReviewsOptionsPayload(
     suburbId: string
   },
   lookup?: {
-    states?: Array<{ id: number; name: string }>
-    suburbs?: Array<{ id: number; name: string }>
+    states?: Array<{ id: number | string; name: string }>
+    suburbs?: Array<{ id: number | string; name: string }>
   }
 ) {
   const payload: {

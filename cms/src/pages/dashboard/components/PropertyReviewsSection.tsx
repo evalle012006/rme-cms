@@ -5,7 +5,6 @@ import {
   type DashboardCompany,
   type DashboardPropertyBar,
   type DashboardState,
-  type DashboardSuburb,
 } from '@/api/dashboard/dashboardAPIHandler'
 import { DashboardSectionCard } from '@/pages/dashboard/shared/DashboardSectionCard'
 import {
@@ -14,6 +13,7 @@ import {
   formatPropertyReviewsExportFilters,
   toSelectOptions,
 } from '@/pages/dashboard/shared/dashboardUtils'
+import { useSuburbsByState } from '@/pages/dashboard/shared/useSuburbsByState'
 import type { SelectDropdownOption } from '@/components/atoms/SelectDropdown'
 import {
   PropertyReviewsFilter,
@@ -43,10 +43,11 @@ export function PropertyReviewsSection({
     toSelectOptions(initialStates)
   )
   const [states, setStates] = useState<DashboardState[]>(initialStates)
-  const [suburbs, setSuburbs] = useState<DashboardSuburb[]>([])
-  const [suburbOptions, setSuburbOptions] = useState<SelectDropdownOption[]>([])
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
+  const { suburbOptions, loading: suburbsLoading } = useSuburbsByState(
+    filters.stateId
+  )
 
   useEffect(() => {
     if (hasSearched) return
@@ -57,11 +58,20 @@ export function PropertyReviewsSection({
     setStates(initialStates)
   }, [initialData, initialCompanies, initialStates, hasSearched])
 
+  const suburbLookup = useMemo(
+    () =>
+      suburbOptions.map((option) => ({
+        id: option.value,
+        name: option.label,
+      })),
+    [suburbOptions]
+  )
+
   const fetchChart = async (
     nextFilters: PropertyReviewsFilterValues,
     lookup: {
       states: DashboardState[]
-      suburbs: DashboardSuburb[]
+      suburbs: Array<{ id: string; name: string }>
     }
   ) => {
     setLoading(true)
@@ -83,15 +93,6 @@ export function PropertyReviewsSection({
         setStates(nextStates)
         setStateOptions(toSelectOptions(nextStates))
       }
-
-      const nextSuburbs = res.suburbs ?? res.options?.suburb
-      if (nextSuburbs?.length) {
-        setSuburbs(nextSuburbs)
-        setSuburbOptions(toSelectOptions(nextSuburbs))
-      } else {
-        setSuburbs([])
-        setSuburbOptions([])
-      }
     } catch {
       setChartData([])
     } finally {
@@ -111,7 +112,7 @@ export function PropertyReviewsSection({
 
   return (
     <DashboardSectionCard
-      title="Property Reviews"
+      title="Project Reviews"
       exportSubtitle={exportSubtitle}
       data-dashboard-export="property-reviews"
     >
@@ -122,8 +123,11 @@ export function PropertyReviewsSection({
           stateOptions={stateOptions}
           suburbOptions={suburbOptions}
           loading={loading}
+          suburbsLoading={suburbsLoading}
           onChange={setFilters}
-          onSearch={() => void fetchChart(filters, { states, suburbs })}
+          onSearch={() =>
+            void fetchChart(filters, { states, suburbs: suburbLookup })
+          }
         />
       </div>
 

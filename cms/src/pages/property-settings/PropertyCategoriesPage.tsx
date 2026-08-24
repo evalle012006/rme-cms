@@ -12,7 +12,7 @@ import { ROUTES } from '@/constants/routes'
 
 const BREADCRUMB = [
   { label: 'Home', to: ROUTES.root }, 
-  { label: 'Property Category' }
+  { label: 'Project Category' }
 ]
 
 const COLUMN_META: Pick<DataTablesColumnRequest, 'name' | 'searchable' | 'orderable'>[] = [

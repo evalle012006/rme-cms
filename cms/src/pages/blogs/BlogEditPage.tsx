@@ -23,7 +23,10 @@ import {
   toDatetimeLocalValue,
   type BlogFormData,
 } from '@/pages/blogs/blogFormShared'
+import { stashBlogPreview } from '@/pages/blogs/blogPreviewShared'
 import { BlogEditSkeleton } from '@/pages/blogs/components/BlogEditSkeleton'
+import { useAuthStore } from '@/store/authStore'
+import { imgUrl } from '@/lib/utils'
 
 const LIST_PATH = ROUTES.blogs.list
 
@@ -68,6 +71,7 @@ export default function BlogEditPage() {
     register,
     handleSubmit,
     reset,
+    getValues,
     setError,
     clearErrors,
     formState: { errors },
@@ -229,6 +233,44 @@ export default function BlogEditPage() {
     validateFeatureImage()
     validateDescription()
   }
+
+  const handlePreview = useCallback(() => {
+    const data = getValues()
+    const category = categories.find((item) => String(item.id) === data.category_id)
+    const featureImageUrl = featureImage
+      ? URL.createObjectURL(featureImage)
+      : featureImageCleared
+        ? null
+        : existingFeatureImageUrl
+    const authUser = useAuthStore.getState().user
+    const authorImageUrl =
+      original?.user?.full_profile_image ??
+      imgUrl(original?.user?.profile_image) ??
+      imgUrl(authUser?.profile_image) ??
+      imgUrl(authUser?.profile_thumb_image)
+
+    stashBlogPreview({
+      title: data.title,
+      description,
+      blog_date: data.blog_date,
+      author_name: data.author_name,
+      status: data.status,
+      category_name: category?.name ?? '',
+      feature_image_url: featureImageUrl,
+      author_image_url: authorImageUrl,
+      return_to: original ? ROUTES.blogs.edit(original.id) : LIST_PATH,
+    })
+    navigate(ROUTES.blogs.previewDraft)
+  }, [
+    categories,
+    description,
+    existingFeatureImageUrl,
+    featureImage,
+    featureImageCleared,
+    getValues,
+    navigate,
+    original,
+  ])
 
   const fieldsDisabled = loading || submitting
 
@@ -392,6 +434,15 @@ export default function BlogEditPage() {
                   className="px-6 py-3 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {submitting ? 'Updating…' : 'Update'}
+                </Button>
+                <Button
+                  type="button"
+                  color="secondary"
+                  onClick={handlePreview}
+                  disabled={fieldsDisabled}
+                  className="px-6 py-3"
+                >
+                  Preview
                 </Button>
                 <Button
                   type="button"

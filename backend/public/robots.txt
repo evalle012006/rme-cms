@@ -1,2 +1,20 @@
 User-agent: *
-Disallow:
+Allow: /
+
+# Private / non-indexable areas
+Disallow: /builder/
+Disallow: /my-profile
+Disallow: /my-review
+Disallow: /review-step-1
+Disallow: /review-step-2
+Disallow: /review-step-3
+Disallow: /review-step-2-1
+Disallow: /nav-review-step1
+Disallow: /review-listing
+Disallow: /login
+Disallow: /register
+Disallow: /password/
+Disallow: /search
+Disallow: /home
+
+Sitemap: https://ratemyestate.com.au/sitemap.xml

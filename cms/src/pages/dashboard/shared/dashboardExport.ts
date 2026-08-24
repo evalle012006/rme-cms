@@ -65,7 +65,7 @@ export type DashboardExportSnapshot = {
 const EXPORT_SECTIONS = [
   {
     key: 'property-reviews',
-    title: 'Property Reviews',
+    title: 'Project Reviews',
   },
   {
     key: 'review-count',

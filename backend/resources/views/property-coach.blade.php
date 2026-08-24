@@ -1,17 +1,22 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Property Blog - Real Estate Advice & Guides | ' . seoSiteName())
+@section('meta_description', seoText($sectionData['banner']['description'] ?? 'Get expert property advice, buying guides and finance tips from the ' . seoSiteName() . ' Property Blog.'))
+
 @section('content')
     <div class="bg-main inner-banner"
-         style="background-image: url({{$sectionData['banner']['image'] ? checkUrl($sectionData['banner']['image']) :"images/homepage/HomepageHero.jpg"}});">
+         style="background-image: url({{ $sectionData['banner']['image'] ? absoluteStorageUrl($sectionData['banner']['image']) : asset('images/homepage/HomepageHero.jpg') }});">
         <div class="banner-caption">
             @if($sectionData['banner']['title'])
-                <h2>{{$sectionData['banner']['title']}}</h2>
+                <h1>{{$sectionData['banner']['title']}}</h1>
             @else
-                <h2>Property Coach</h2>
-            @endif
-            {{--            <h2>Property Coach</h2>--}}
+{{-- CMS fallback (kept for later restore)
+<h1>Property Blog</h1>
+            --}}
+@endif
+            {{--            <h2>Property Blog</h2>--}}
             <div class="breadcrumb-wrap">
-                <a href="{{route('root')}}">Home</a> / <span>Property Coach</span>
+                <a href="{{route('root')}}">Home</a> / <span>Property Blog</span>
             </div>
         </div>
     </div>
@@ -29,8 +34,7 @@
                     <div class="posts-wrap">
                         @if($recent_blogs)
                             @foreach($recent_blogs as $recentBlogs)
-                                <div class="single-post-wrap build-cat">
-                                    <div class="post-cat">{{$recentBlogs['blog_categories'][0]['name']}}</div>
+                                <div class="single-post-wrap">
                                     <div class="img-wrap">
                                         <img src="{{$recentBlogs['full_feature_image']}}">
                                     </div>
@@ -46,31 +50,6 @@
                             @endforeach
                         @endif
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="categories-section">
-        <div class="container">
-            <div class="section-title">
-                <h3>Categories</h3>
-                <div class="btn-wrap">
-                    <a href="{{ url('blog-posts') }}">Show All Blogs</a>
-                </div>
-            </div>
-            <div class="section-content">
-                <div class="category-img-wrap section-content-slider">
-                    @if($categories)
-                        @foreach($categories as $cat)
-                            <div class="single-cat-post">
-                                <img src="{{$cat['full_blog_category_image']}}">
-                                <div class="cat-name">
-                                    <a href="{{url('blog-posts/'.$cat['slug'])}}">{{$cat['name']}}</a>
-                                </div>
-                            </div>
-                        @endforeach
-                    @endif
                 </div>
             </div>
         </div>

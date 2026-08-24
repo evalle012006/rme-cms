@@ -132,7 +132,7 @@ export default function CategoryEditPage() {
 
     { label: 'Home', to: ROUTES.root },
 
-    { label: 'Property Category', to: ROUTES.propertySettings.categories.list },
+    { label: 'Project Category', to: ROUTES.propertySettings.categories.list },
 
     { label: 'Edit' },
 
@@ -232,7 +232,7 @@ export default function CategoryEditPage() {
 
         if (!res.success || !res.data) {
 
-          toast.error('Property category not found')
+          toast.error('Project category not found')
 
           navigate(LIST_PATH)
 
@@ -376,9 +376,9 @@ export default function CategoryEditPage() {
 
         {
 
-          successMessage: 'Property category updated successfully',
+          successMessage: 'Project category updated successfully',
 
-          customErrorMessage: 'Failed to update property category',
+          customErrorMessage: 'Failed to update project category',
 
         }
 

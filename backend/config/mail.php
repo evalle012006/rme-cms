@@ -136,6 +136,11 @@ return [
     /*
      | Regards email address for email
      */
-    'mail_regards' => env('MAIL_REGARDS')
+    'mail_regards' => env('MAIL_REGARDS'),
+
+    /*
+     | Recipient for public Contact form enquiries
+     */
+    'contact_to' => env('CONTACT_MAIL_TO', 'admin@ratemyestate.com.au'),
 
 ];

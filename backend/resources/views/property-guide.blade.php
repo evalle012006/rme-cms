@@ -1,14 +1,19 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Property Guide | ' . seoSiteName())
+@section('meta_description', seoText($sectionData['banner']['description'] ?? 'A step-by-step property guide to help Australian buyers research, compare and choose with confidence on ' . seoSiteName() . '.'))
+
 @section('content')
     <div class="bg-main inner-banner"
-         style="background-image: url({{$sectionData['banner']['image'] ? checkUrl($sectionData['banner']['image']) :"images/homepage/HomepageHero.jpg"}});">
+         style="background-image: url({{ $sectionData['banner']['image'] ? absoluteStorageUrl($sectionData['banner']['image']) : asset('images/homepage/HomepageHero.jpg') }});">
         <div class="banner-caption">
             @if($sectionData['banner']['title'])
-                <h2>{{$sectionData['banner']['title']}}</h2>
+                <h1>{{$sectionData['banner']['title']}}</h1>
             @else
-                <h2>Property Guide</h2>
-            @endif
+{{-- CMS fallback (kept for later restore)
+<h1>Property Guide</h1>
+            --}}
+@endif
         </div>
     </div>
     <div class="product-view-wrapper">
@@ -18,7 +23,7 @@
                     Best Results for: <span class="filter_name">All</span>
                 </div>
                 <div class="product-list" id="product-list">
-                    <p>No properties found</p>
+                    <p>No projects found</p>
                 </div>
             </div>
             <div class="map-side">
@@ -38,9 +43,12 @@
     <script>
         const groupedReviews = {!! json_encode($groupedReviews) !!};
         const suburbsLocations = {!! json_encode($suburbsLocations) !!};
+        // zoom level at (and above) which we switch from suburb pins to individual property pins
+        const PROPERTY_ZOOM = 13;
+        // suburb pins (one per suburb)
         const mapMarkers = [];
-        const propertyMarkers = [];
-        const visibleProperties = [];
+        // property pins, created once per suburb and reused: { suburbName: [ { marker, propertyName, data, rating, propertyRoute, companyRoute } ] }
+        const propertyMarkersBySuburb = {};
 
 
         document.onfullscreenchange = function (event) {
@@ -107,7 +115,7 @@
                     const lat = location.lat();
                     const lng = location.lng();
                     map.setCenter({lat, lng});
-                    map.setZoom(12);
+                    map.setZoom(PROPERTY_ZOOM);
                 }
             });
 // end
@@ -224,83 +232,120 @@
             google.maps.event.addListener(map, 'idle', function (e) {
                 const zoomLevel = map.getZoom();
                 const bounds = map.getBounds();
-                if (zoomLevel >= 13) {
-                    setPropertyMarkers(map, bounds, icoProperty, infowindow);
+                if (zoomLevel >= PROPERTY_ZOOM) {
+                    showPropertyView(map, bounds, icoProperty, infowindow);
                 } else {
-                    if (zoomLevel < 13) {
-                        removePropertyMarkers(bounds, map);
-                    }
+                    showSuburbView();
                 }
             });
 
-
-            function removePropertyMarkers(bounds) {
-                $("#product-list").html('<p>No properties found</p>');
-                mapMarkers.map(mainMarker => {
-                    if (mainMarker.getMap() == null) {
-                        mainMarker.setMap(map)
+            // Low zoom: show every suburb pin, hide all property pins, reset the list.
+            function showSuburbView() {
+                mapMarkers.forEach(mainMarker => {
+                    if (mainMarker.getMap() === null) {
+                        mainMarker.setMap(map);
                     }
                 });
-                propertyMarkers.map(propertyMarker => {
-                    if (bounds.contains(propertyMarker.getPosition())) {
-                        // propertyMarkers.splice(index, 1);
-                        propertyMarker.setMap(null);
-                    }
+                Object.keys(propertyMarkersBySuburb).forEach(suburbName => {
+                    propertyMarkersBySuburb[suburbName].forEach(item => {
+                        if (item.marker.getMap() !== null) {
+                            item.marker.setMap(null);
+                        }
+                    });
                 });
+                $("#product-list").html('<p>No projects found</p>');
             }
 
-            function setPropertyMarkers(map, bounds, ico, infowindow) {
-                let visibleSuburbs = {};
+            // High zoom: hide suburb pins in view and show their property pins; keep suburb pins visible outside the view.
+            function showPropertyView(map, bounds, ico, infowindow) {
+                const visibleProperties = [];
                 mapMarkers.forEach(mainMarker => {
+                    const suburbName = mainMarker.getTitle();
                     if (bounds.contains(mainMarker.getPosition())) {
-                        const propertiesObject = groupedReviews[mainMarker.getTitle()]['property_ratings'];
-                        const position = {
-                            lat: +propertiesObject[Object.keys(propertiesObject)[0]]['data']['lat'],
-                            lng: +propertiesObject[Object.keys(propertiesObject)[0]]['data']['long']
-                        };
-                        if (position['lat'] && position['lng']) {
-                            if (!checkPropertyMarkerExists(position)) {
-                                visibleSuburbs = {...propertiesObject, ...visibleSuburbs};
-                            }
+                        if (mainMarker.getMap() !== null) {
+                            mainMarker.setMap(null);
                         }
-                        mainMarker.setMap(null);
+                        if (!propertyMarkersBySuburb[suburbName]) {
+                            propertyMarkersBySuburb[suburbName] = createPropertyMarkers(suburbName, map, ico, infowindow);
+                        }
+                        propertyMarkersBySuburb[suburbName].forEach(item => {
+                            if (item.marker.getMap() === null) {
+                                item.marker.setMap(map);
+                            }
+                            visibleProperties.push(item);
+                        });
+                    } else {
+                        if (mainMarker.getMap() === null) {
+                            mainMarker.setMap(map);
+                        }
+                        if (propertyMarkersBySuburb[suburbName]) {
+                            propertyMarkersBySuburb[suburbName].forEach(item => {
+                                if (item.marker.getMap() !== null) {
+                                    item.marker.setMap(null);
+                                }
+                            });
+                        }
                     }
                 });
-                if (Object.keys(visibleSuburbs).length > 0) $("#product-list").empty();
+                renderPropertyCards(visibleProperties);
+            }
 
-                // sort visible properties by rating
-                const visibleProperties = Object.keys(visibleSuburbs);
-                visibleProperties.sort((a, b) => {
-                    return visibleSuburbs[b]['rating'] - visibleSuburbs[a]['rating'];
-                });
+            // Build (once) the property pins for a suburb; markers are reused afterwards.
+            function createPropertyMarkers(suburbName, map, ico, infowindow) {
+                const propertyRatings = groupedReviews[suburbName]['property_ratings'];
+                const markers = [];
 
-                visibleProperties.forEach((propertyName, index) => {
-                    const position = {
-                        lat: +visibleSuburbs[propertyName]['data']['lat'],
-                        lng: +visibleSuburbs[propertyName]['data']['long']
+                // Suburb centre (from the Suburbs table) is used as a fallback: the map decides
+                // visibility by suburb, so a property whose own coordinates are missing or belong to
+                // a different area (e.g. a default placeholder) would otherwise never appear in view.
+                let suburbCenter = null;
+                if (suburbsLocations[suburbName] && suburbsLocations[suburbName][0]) {
+                    suburbCenter = {
+                        lat: +suburbsLocations[suburbName][0]['latitude'],
+                        lng: +suburbsLocations[suburbName][0]['longitude']
                     };
+                }
+
+                let fallbackCount = 0;
+                Object.keys(propertyRatings).forEach(propertyName => {
+                    const propertyData = propertyRatings[propertyName];
+                    let lat = +propertyData['data']['lat'];
+                    let lng = +propertyData['data']['long'];
+
+                    // Use the property's own coordinates only when they are valid and actually near
+                    // the suburb (~0.5°); otherwise anchor the pin to the suburb centre.
+                    const nearSuburb = lat && lng && suburbCenter &&
+                        Math.abs(lat - suburbCenter.lat) <= 0.5 &&
+                        Math.abs(lng - suburbCenter.lng) <= 0.5;
+
+                    if (!nearSuburb) {
+                        if (!suburbCenter) {
+                            return;
+                        }
+                        // nudge each fallback pin slightly so multiple properties don't stack exactly
+                        lat = suburbCenter.lat + fallbackCount * 0.0009;
+                        lng = suburbCenter.lng + fallbackCount * 0.0009;
+                        fallbackCount++;
+                    }
+
                     const marker = new MarkerWithLabel({
                         title: propertyName,
-                        position: position,
+                        position: {lat, lng},
                         map: map,
                         icon: ico,
                         optimized: false,
-                        labelContent: index + 1,
+                        labelContent: '',
                         labelClass: 'property-pin'
                     });
-                    propertyMarkers.push(marker);
 
-                    // set marker popover
                     let propertyRoute = '{{route('property-review-slug',':property_slug')}}';
-                    propertyRoute = propertyRoute.replace(':property_slug', visibleSuburbs[propertyName]['data']['slug']);
+                    propertyRoute = propertyRoute.replace(':property_slug', propertyData['data']['slug']);
 
                     let companyRoute = '';
-
-                    if (visibleSuburbs[propertyName]['data']['company']) {
+                    if (propertyData['data']['company']) {
                         companyRoute = '{{route('property.company',':company_slug')}}';
-                        companyRoute = companyRoute.replace(':company_slug', visibleSuburbs[propertyName]['data']['company']['slug']);
+                        companyRoute = companyRoute.replace(':company_slug', propertyData['data']['company']['slug']);
                     }
-
 
                     google.maps.event.addListener(marker, 'click', function () {
                         const previewPopup = '<div>' +
@@ -309,19 +354,34 @@
                         infowindow.setContent(previewPopup);
                         infowindow.open(map, marker);
                     });
-                    setPropertyInCards(visibleSuburbs[propertyName], index, propertyRoute, companyRoute);
 
-                    // set card content
-
+                    markers.push({
+                        marker: marker,
+                        propertyName: propertyName,
+                        data: propertyData,
+                        rating: propertyData['rating'],
+                        propertyRoute: propertyRoute,
+                        companyRoute: companyRoute
+                    });
                 });
+                return markers;
             }
 
-            function checkPropertyMarkerExists(position) {
-                return propertyMarkers.some(item => {
-                    return position['lat'] === item.getPosition().lat() &&
-                        position['lng'] === item.getPosition().lng() &&
-                        item.getMap() !== null;
-                })
+            // Rebuild the left-hand list from the currently visible property pins, sorted by rating.
+            function renderPropertyCards(visibleProperties) {
+                if (visibleProperties.length === 0) {
+                    $("#product-list").html('<p>No projects found</p>');
+                    return;
+                }
+
+                visibleProperties.sort((a, b) => b.rating - a.rating);
+
+                $("#product-list").empty();
+                visibleProperties.forEach((item, index) => {
+                    // keep the numbered pin label in sync with the card order
+                    item.marker.set('labelContent', index + 1);
+                    setPropertyInCards(item.data, index, item.propertyRoute, item.companyRoute);
+                });
             }
 
 
@@ -343,21 +403,11 @@
                     '                                </div>\n' +
                     '                                <div class="product-rating">\n' +
                     '                                    <ul class="general-star-rating overall-rate-color-' + ratingClass(propertyData["rating"]) + '">\n' +
-                    '                                        <li><a href=""><img\n' +
-                    '                                                    src="http://54.252.180.118/ratemyestate/images/rating-img.png"></a>\n' +
-                    '                                        </li>\n' +
-                    '                                        <li><a href=""><img\n' +
-                    '                                                    src="http://54.252.180.118/ratemyestate/images/rating-img.png"></a>\n' +
-                    '                                        </li>\n' +
-                    '                                        <li><a href=""><img\n' +
-                    '                                                    src="http://54.252.180.118/ratemyestate/images/rating-img.png"></a>\n' +
-                    '                                        </li>\n' +
-                    '                                        <li><a href=""><img\n' +
-                    '                                                    src="http://54.252.180.118/ratemyestate/images/rating-img.png"></a>\n' +
-                    '                                        </li>\n' +
-                    '                                        <li><a href=""><img\n' +
-                    '                                                    src="http://54.252.180.118/ratemyestate/images/rating-img.png"></a>\n' +
-                    '                                        </li>\n' +
+                    '                                        <li><a href=""><img src="images/rating-img.png"></a></li>\n' +
+                    '                                        <li><a href=""><img src="images/rating-img.png"></a></li>\n' +
+                    '                                        <li><a href=""><img src="images/rating-img.png"></a></li>\n' +
+                    '                                        <li><a href=""><img src="images/rating-img.png"></a></li>\n' +
+                    '                                        <li><a href=""><img src="images/rating-img.png"></a></li>\n' +
                     '                                    </ul>\n' +
                     '                                </div>\n' +
                     '                            </div>\n' +

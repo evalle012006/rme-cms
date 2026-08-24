@@ -25,6 +25,7 @@ export interface Review {
   // string label ("Recommend"/"Don't Recommend") or a 0/1 flag on some rows.
   // Accept all and let the cell renderer normalise.
   recommendation: string | number | boolean | null
+  property?: ReviewProperty | null
 }
 
 // ── Datatable filter ─────────────────────────────────────────────────────────
@@ -135,7 +136,7 @@ export interface ReviewDetail {
   tags_list: ReviewTag[]
   property_list: ReviewPropertyOption[]
   full_review_image: string | null
-  full_review_docs?: string | null
+  full_review_docs: string | null
   property: ReviewProperty | null
   users: ReviewUser | null
   review_tags: ReviewTag[]
@@ -214,33 +215,12 @@ export const reviewsAPI = {
   update: (
     payload: UpdateReviewPayload,
     options?: ApiRequestOptions
-  ): Promise<UpdateReviewResult> => {
-    const fd = new FormData()
-    fd.append('title', payload.title)
-    fd.append('property_id', String(payload.property_id))
-    fd.append('recommendation', payload.recommendation ? '1' : '0')
-    fd.append('comment', payload.comment ?? '')
-    fd.append('buyer_type', payload.buyer_type)
-    fd.append('status', String(payload.status))
-    fd.append('state', String(payload.state))
-    fd.append('suburb', payload.suburb)
-    fd.append('post_code', payload.post_code)
-    fd.append('year_of_completion', payload.year_of_completion ?? '')
-    payload.review_tags.forEach((id) => fd.append('review_tags[]', String(id)))
-    if (payload.review_image instanceof File) {
-      fd.append('review_image', payload.review_image)
-    }
-    if (payload.review_docs instanceof File) {
-      fd.append('review_docs', payload.review_docs)
-    }
-
-    return apiRequest<UpdateReviewResult>(
+  ): Promise<UpdateReviewResult> =>
+    apiRequest<UpdateReviewResult>(
       apiClient.post<ApiEnvelope<UpdateReviewResult>>(
         REVIEWS_ENDPOINTS.UPDATE(payload.id),
-        fd,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
+        payload
       ),
       options
-    )
-  },
+    ),
 }

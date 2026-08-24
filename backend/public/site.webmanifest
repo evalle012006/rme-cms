@@ -1,0 +1,16 @@
+{
+    "name": "RateMyEstate",
+    "short_name": "RateMyEstate",
+    "description": "Australian property and real estate review platform.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#07AFAA",
+    "icons": [
+        {
+            "src": "/favicon.png",
+            "sizes": "any",
+            "type": "image/png"
+        }
+    ]
+}

@@ -2,7 +2,7 @@
     <thead>
     <tr>
         <th>Company Name</th>
-        <th>Property Name</th>
+        <th>Project Name</th>
         <th>State</th>
         <th>City</th>
         <th>Post code</th>

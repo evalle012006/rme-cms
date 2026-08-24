@@ -2,12 +2,11 @@
 
 namespace App\Models;
 
-use App\Notifications\MailResetPasswordNotification;
+use App\Services\ResendService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use \Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Storage;
 use Laravel\Passport\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -37,7 +36,7 @@ class User extends Authenticatable
     function getFullProfileImageAttribute()
     {
         if (!empty($this->profile_image)) {
-            return url(Storage::url($this->profile_image));
+            return absoluteStorageUrl($this->profile_image);
         }
         return null;
     }
@@ -59,6 +58,13 @@ class User extends Authenticatable
 
     public function sendPasswordResetNotification($token)
     {
-        $this->notify(new MailResetPasswordNotification($token));
+        $link = url('password/reset/' . $token . '?email=' . urlencode($this->email));
+
+        app(ResendService::class)->send(
+            $this->email,
+            'Reset Password Notification',
+            'email-template.reset-password',
+            ['link' => $link]
+        );
     }
 }

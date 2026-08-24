@@ -10,6 +10,7 @@ export interface DashboardCounters {
   company: number
   property: number
   review: number
+  pending_review: number
   reviewer: number
 }
 
@@ -41,6 +42,8 @@ export interface DashboardPropertyOption {
   id: number
   name: string
   project_name?: string
+  /** company_details.id — used to scope Rating Attributes project dropdown */
+  developer_name?: number | string | null
 }
 
 export interface DashboardData {
@@ -132,12 +135,21 @@ export interface DashboardExportCsvResponse {
 export function normalizeDashboardCounters(
   data: DashboardData
 ): DashboardCounters {
-  if (data.counters) return data.counters
+  if (data.counters) {
+    return {
+      company: data.counters.company ?? 0,
+      property: data.counters.property ?? 0,
+      review: data.counters.review ?? 0,
+      pending_review: data.counters.pending_review ?? 0,
+      reviewer: data.counters.reviewer ?? 0,
+    }
+  }
 
   return {
     company: data.total_companies ?? 0,
     property: data.total_properties ?? 0,
     review: data.total_reviews ?? 0,
+    pending_review: 0,
     reviewer: data.total_users ?? 0,
   }
 }

@@ -1,14 +1,19 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'Contact Us | ' . seoSiteName())
+@section('meta_description', 'Get in touch with the ' . seoSiteName() . ' team. Contact us for support, media enquiries, or to list your property development company.')
+
 @section('content')
     <div class="bg-main inner-banner"
-         style="background-image: url({{$sectionData['banner']['image'] ? checkUrl($sectionData['banner']['image']) :"images/homepage/HomepageHero.jpg"}});">
+         style="background-image: url({{ $sectionData['banner']['image'] ? absoluteStorageUrl($sectionData['banner']['image']) : asset('images/homepage/HomepageHero.jpg') }});">
         <div class="banner-caption">
             @if($sectionData['banner']['title'])
-                <h2>{{$sectionData['banner']['title']}}</h2>
+                <h1>{{$sectionData['banner']['title']}}</h1>
             @else
-                <h2>Contact Us</h2>
-            @endif
+{{-- CMS fallback (kept for later restore)
+<h1>Contact Us</h1>
+            --}}
+@endif
             <div class="breadcrumb-wrap">
                 <a href="{{route('root')}}">Home</a> / <span>Contact Us</span>
             </div>
@@ -24,7 +29,7 @@
         <div class="container">
             <div class="info-box">
                 <div class="form-wrap">
-                    <h3>Send Us Message</h3>
+                    <h3>Send Us a Message</h3>
                     <form action="{{route('contact-save')}}" method="POST">
                         @csrf
                         <div class="form-row">
@@ -84,8 +89,8 @@
                         </ul>
                         <div class="social-media-wrap">
                             <ul>
-                                <li><a href="#"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
-                                <li><a href="#"><i class="fa fa-instagram" aria-hidden="true"></i></a></li>
+                                <li><a href="https://www.facebook.com/share/1Un93B9z23/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Rate My Estate on Facebook"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
+                                <li><a href="https://www.instagram.com/ratemyestate.com.au/" target="_blank" rel="noopener noreferrer" aria-label="Rate My Estate on Instagram"><i class="fa fa-instagram" aria-hidden="true"></i></a></li>
                                 {{--                                <li><a href="#"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>--}}
                                 {{--                                <li><a href="#"><i class="fa fa-google-plus" aria-hidden="true"></i></a></li>--}}
                                 {{--                                <li><a href="#"><i class="fa fa-rss" aria-hidden="true"></i></a></li>--}}
@@ -102,11 +107,15 @@
 @section('extra-script')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
     <script>
-            @if(session('contact_us'))
-        let msg = '<?= session('contact_us') ?>'
+        @if(session('contact_us'))
         Swal.fire({
             icon: 'success',
-            text: msg
+            text: '<?= session('contact_us') ?>'
+        })
+        @elseif(session('contact_us_error'))
+        Swal.fire({
+            icon: 'error',
+            text: '<?= session('contact_us_error') ?>'
         })
         @endif
     </script>

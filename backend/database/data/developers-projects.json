@@ -1,0 +1,2646 @@
+{
+  "brands": [
+    {
+      "company_name": "Mirvac",
+      "categories": "Land, Home&Land, Home, Townhomes, Apartments",
+      "website": "https://www.mirvac.com/"
+    },
+    {
+      "company_name": "Stocklands",
+      "categories": "Land, Home&Land, Home, Townhomes, Apartments",
+      "website": "https://www.stockland.com.au/"
+    },
+    {
+      "company_name": "Frasers Property",
+      "categories": "Land, Home&Land, Home, Townhomes, Apartments",
+      "website": "https://www.frasersproperty.com.au/"
+    },
+    {
+      "company_name": "Ausbuild",
+      "categories": "Home & Land, Townhomes, Home",
+      "website": "https://www.ausbuild.com.au/"
+    },
+    {
+      "company_name": "Metricon",
+      "categories": "Home&Land, Home, Townhomes",
+      "website": "https://www.metricon.com.au/"
+    },
+    {
+      "company_name": "Mosaic",
+      "categories": "Apartments",
+      "website": "https://www.mosaicproperty.com.au/"
+    },
+    {
+      "company_name": "Satterley",
+      "categories": "Land, Home&Land, Home, Townhomes, Apartments",
+      "website": "https://satterley.com.au/"
+    },
+    {
+      "company_name": "Peet",
+      "categories": "Land, Home&Land, Home, Townhomes, Apartments",
+      "website": "https://WWW.PEET.COM.AU"
+    },
+    {
+      "company_name": "Unison Projects",
+      "categories": "Land, Home&Land, Townhomes,",
+      "website": "http://www.unisonprojects.net.au/"
+    },
+    {
+      "company_name": "Sekisui House",
+      "categories": "Land, Home&Land, Home, Townhomes, Apartments",
+      "website": "https://www.sekisuihouse.com.au/"
+    },
+    {
+      "company_name": "Sunland",
+      "categories": "Land, Home, Townhomes, Apartments",
+      "website": "https://www.sunlandgroup.com.au/"
+    },
+    {
+      "company_name": "Avid Property Group",
+      "categories": "Land, Home&Land",
+      "website": "https://www.avid.com.au/"
+    },
+    {
+      "company_name": "AV Jennings",
+      "categories": "Land, Home, Townhomes,",
+      "website": "https://www.avjennings.com.au/"
+    },
+    {
+      "company_name": "GJ Gardner",
+      "categories": "Home&Land, Homebuilder",
+      "website": ""
+    },
+    {
+      "company_name": "Stylemaster",
+      "categories": "Homebuilder",
+      "website": ""
+    },
+    {
+      "company_name": "Hallmark Homes",
+      "categories": "Homebuilder",
+      "website": ""
+    },
+    {
+      "company_name": "Mcarthy Homes",
+      "categories": "Homebuilder",
+      "website": ""
+    },
+    {
+      "company_name": "Coral Homes",
+      "categories": "Homebuilder",
+      "website": ""
+    },
+    {
+      "company_name": "Privium Group",
+      "categories": "Homebuilder",
+      "website": ""
+    },
+    {
+      "company_name": "Plantation Homes",
+      "categories": "Homebuilder",
+      "website": ""
+    },
+    {
+      "company_name": "Condev Constructions",
+      "categories": "Homebuilder",
+      "website": ""
+    },
+    {
+      "company_name": "Tamawood",
+      "categories": "Homebuilder",
+      "website": ""
+    },
+    {
+      "company_name": "Clarendon",
+      "categories": "Homebuilder",
+      "website": ""
+    },
+    {
+      "company_name": "Brighton Homes",
+      "categories": "Homebuilder",
+      "website": ""
+    },
+    {
+      "company_name": "Simonds Homes",
+      "categories": "Homebuilder",
+      "website": ""
+    },
+    {
+      "company_name": "Burbank",
+      "categories": "Homebuilder",
+      "website": ""
+    }
+  ],
+  "projects": [
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Everleigh",
+      "address": "56 Kessels Boulevard,",
+      "suburb": "Greenbank",
+      "state": "QLD",
+      "postcode": "4124",
+      "website": "https://everleigh.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Ashford",
+      "address": "50 Ashmore Street",
+      "suburb": "Everton Park",
+      "state": "QLD",
+      "postcode": "4053",
+      "website": "https://ashford.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Ascot Green",
+      "address": "230 Lancaster Road",
+      "suburb": "Ascot",
+      "state": "QLD",
+      "postcode": "4007",
+      "website": "https://ascotgreen.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Gainsborough Greens",
+      "address": "8 Swan Rd",
+      "suburb": "Pimpama",
+      "state": "QLD",
+      "postcode": "4209",
+      "website": "https://gainsboroughgreens.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Hydeberry Rochedale",
+      "address": "284 Gardner Road",
+      "suburb": "Rochedale",
+      "state": "QLD",
+      "postcode": "4123",
+      "website": "https://hydeberry.mirvac.com/?utm_source=residential&utm_medium=propertylistings"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Lucid",
+      "address": "38 Hope Street,",
+      "suburb": "South Brisbane",
+      "state": "QLD",
+      "postcode": "4101",
+      "website": "https://lucid.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Waterfront",
+      "address": "60 Skyring Terrace",
+      "suburb": "Newstead",
+      "state": "QLD",
+      "postcode": "4006",
+      "website": "https://waterfront.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Arthouse",
+      "address": "58 Hope Street",
+      "suburb": "South Brisbane",
+      "state": "QLD",
+      "postcode": "4101",
+      "website": "https://arthouse.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Marrick & Co",
+      "address": "Cnr Marrickville & Livingstone Road",
+      "suburb": "Marrickville",
+      "state": "NSW",
+      "postcode": "2204",
+      "website": "https://marrickandco.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Pavilions, Sydney Olympic Park2 Figtree Drive",
+      "address": "",
+      "suburb": "Sydney Olympic Park",
+      "state": "NSW",
+      "postcode": "2127",
+      "website": "https://pavilions.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "CREST by Mirvac",
+      "address": "182 Raby Rd,",
+      "suburb": "Gledswood Hill",
+      "state": "NSW",
+      "postcode": "2557",
+      "website": "https://crest.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Riverlands Milperra",
+      "address": "56 Prescot Parade",
+      "suburb": "Milperra",
+      "state": "NSW",
+      "postcode": "2214",
+      "website": "https://riverlands.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Green Square",
+      "address": "956 - 960 Bourke Street",
+      "suburb": "Zetland",
+      "state": "NSW",
+      "postcode": "2017",
+      "website": "https://greensquare.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "St Leonards Square",
+      "address": "Pacific Highway",
+      "suburb": "St Leonards",
+      "state": "NSW",
+      "postcode": "2065",
+      "website": "https://stleonards.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Menangle",
+      "address": "",
+      "suburb": "Menangle",
+      "state": "NSW",
+      "postcode": "2568",
+      "website": "https://menangle.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Moorebank by Mirvac",
+      "address": "Newbridge Rd",
+      "suburb": "Moorebank Cove",
+      "state": "NSW",
+      "postcode": "2170",
+      "website": "https://moorebank.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "The Avenue",
+      "address": "Alex Avenue",
+      "suburb": "Schofields",
+      "state": "NSW",
+      "postcode": "2762",
+      "website": "https://theavenue.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Googong",
+      "address": "",
+      "suburb": "Googong",
+      "state": "NSW",
+      "postcode": "2620",
+      "website": "http://googong.net/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Vance at Harold Park",
+      "address": "128-150 Ross Street",
+      "suburb": "128-150 Ross Street",
+      "state": "NSW",
+      "postcode": "2037",
+      "website": "https://haroldpark.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "The Moreton",
+      "address": "30 Wellington St",
+      "suburb": "Bondi",
+      "state": "NSW",
+      "postcode": "2026",
+      "website": ""
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "The Finery",
+      "address": "Lachlan Street",
+      "suburb": "Waterloo",
+      "state": "NSW",
+      "postcode": "2017",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Smiths Lane by Mirvac",
+      "address": "Smiths Lane",
+      "suburb": "Clyde North",
+      "state": "VIC",
+      "postcode": "3978",
+      "website": "https://smithslane.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Forge at Yarra's Edge",
+      "address": "South Wharf Drive",
+      "suburb": "Docklands",
+      "state": "VIC",
+      "postcode": "3008",
+      "website": "https://yarrasedge.mirvac.com/forge"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Waverley Park",
+      "address": "6 Goodison Court",
+      "suburb": "Mulgrave",
+      "state": "VIC",
+      "postcode": "3170",
+      "website": "https://waverleypark.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Folia Apartments of Tullamore",
+      "address": "473 Doncaster Rd",
+      "suburb": "Doncaster",
+      "state": "VIC",
+      "postcode": "3108",
+      "website": "http://tullamoreapartments.mirvac.com/?utm_source=mirvac&utm_medium=banner&utm_campaign=homepage"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Phoenix Apartments of Tullamore",
+      "address": "473 Doncaster Rd",
+      "suburb": "Doncaster",
+      "state": "VIC",
+      "postcode": "3108",
+      "website": "http://tullamoreapartments.mirvac.com/?utm_source=mirvac&utm_medium=banner&utm_campaign=homepage"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Voyager at Yarra's Edge",
+      "address": "South Wharf Drive",
+      "suburb": "Docklands",
+      "state": "VIC",
+      "postcode": "3006",
+      "website": "https://yarrasedge.mirvac.com/voyager"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Olivine by Mirvac",
+      "address": "1025 Donnybrook Road",
+      "suburb": "Donnybrook",
+      "state": "VIC",
+      "postcode": "3064",
+      "website": "https://olivine.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Tullamore",
+      "address": "473 Doncaster Rd",
+      "suburb": "Doncaster",
+      "state": "VIC",
+      "postcode": "3108",
+      "website": "http://tullamore.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Wantirna Sth by Mirvac",
+      "address": "191 George Street",
+      "suburb": "Wantirna South",
+      "state": "VIC",
+      "postcode": "3152",
+      "website": "https://wantirnasth.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "The Fabric by Mirvac",
+      "address": "Blackshaws Road",
+      "suburb": "Altona North",
+      "state": "VIC",
+      "postcode": "3025",
+      "website": "https://thefabric.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Woodlea",
+      "address": "",
+      "suburb": "Rockbank North",
+      "state": "VIC",
+      "postcode": "3335",
+      "website": "http://woodlea.com.au/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "The Eastbourne by Mirvac",
+      "address": "280 Albert St",
+      "suburb": "East Melbourne",
+      "state": "VIC",
+      "postcode": "3002",
+      "website": "https://theeastbourne.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Madox",
+      "address": "Cnr of Terracina Parkway and Nicholson Rd",
+      "suburb": "Piara Waters",
+      "state": "WA",
+      "postcode": "6118",
+      "website": "https://madox.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "One71 Baldivis",
+      "address": "Parkville Boulevard",
+      "suburb": "Baldivis",
+      "state": "WA",
+      "postcode": "6171",
+      "website": "https://one71baldivis.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Osprey Waters",
+      "address": "Cnr of Egret Point & Bridgewater Blvd",
+      "suburb": "Erskine",
+      "state": "WA",
+      "postcode": "6120",
+      "website": "https://ospreywaters.mirvac.com/"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Mirvac",
+      "project_name": "Iluma Private Estate",
+      "address": "orner of Luminous Boulevard and Pegasus Road",
+      "suburb": "Bennett Springs",
+      "state": "WA",
+      "postcode": "6063",
+      "website": "http://iluma.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Claremont",
+      "address": "Corner of Graylands Rd and Shenton Rd",
+      "suburb": "Claremont",
+      "state": "WA",
+      "postcode": "6010",
+      "website": "https://claremont.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Compass, Latitude Leighton Beach",
+      "address": "29 Leighton Beach Boulevard",
+      "suburb": "North Fremantle",
+      "state": "WA",
+      "postcode": "6159",
+      "website": "https://compass.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "Latitude Leighton Beach",
+      "address": "29 Leighton Beach Boulevard",
+      "suburb": "North Fremantle",
+      "state": "WA",
+      "postcode": "6159",
+      "website": "https://latitude.mirvac.com/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mirvac",
+      "project_name": "The Peninsula Burswood",
+      "address": "26 The Circus",
+      "suburb": "Burswood",
+      "state": "WA",
+      "postcode": "6100",
+      "website": "https://peninsulaburswood.mirvac.com/"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Stocklands",
+      "project_name": "Vida North Lakes",
+      "address": "",
+      "suburb": "North Lakes",
+      "state": "QLD",
+      "postcode": "4509",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "North Lakes",
+      "address": "",
+      "suburb": "North Lakes",
+      "state": "QLD",
+      "postcode": "4509",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "Promenade",
+      "address": "",
+      "suburb": "North Lakes",
+      "state": "QLD",
+      "postcode": "4509",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "Newport",
+      "address": "",
+      "suburb": "Newport",
+      "state": "QLD",
+      "postcode": "3015",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "Pallara",
+      "address": "",
+      "suburb": "Pallara",
+      "state": "QLD",
+      "postcode": "4110",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "Kalina",
+      "address": "",
+      "suburb": "Springfield",
+      "state": "QLD",
+      "postcode": "4300",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "Augustine Heights",
+      "address": "",
+      "suburb": "Augustine Heights",
+      "state": "QLD",
+      "postcode": "4300",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "Vale",
+      "address": "",
+      "suburb": "Holmview",
+      "state": "QLD",
+      "postcode": "4207",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "Soverign Pocket",
+      "address": "",
+      "suburb": "Deebing Heights",
+      "state": "QLD",
+      "postcode": "4306",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "Highland Reserve",
+      "address": "",
+      "suburb": "Upper Commera",
+      "state": "QLD",
+      "postcode": "4209",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land, Townhome",
+      "brand": "Stocklands",
+      "project_name": "Foreshore",
+      "address": "",
+      "suburb": "Coomera",
+      "state": "QLD",
+      "postcode": "4209",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "Riverstone",
+      "address": "",
+      "suburb": "Maudsland",
+      "state": "QLD",
+      "postcode": "4210",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "Delta",
+      "address": "",
+      "suburb": "Hope Island",
+      "state": "QLD",
+      "postcode": "4212",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land, Townhome",
+      "brand": "Stocklands",
+      "project_name": "Aura",
+      "address": "",
+      "suburb": "Bells Creek",
+      "state": "QLD",
+      "postcode": "4551",
+      "website": ""
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Stocklands",
+      "project_name": "Birtinya at Oceanside",
+      "address": "",
+      "suburb": "Birtinya",
+      "state": "QLD",
+      "postcode": "4575",
+      "website": ""
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Stocklands",
+      "project_name": "Bokarina",
+      "address": "",
+      "suburb": "Bokarina",
+      "state": "QLD",
+      "postcode": "4575",
+      "website": ""
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "Oceaside",
+      "address": "",
+      "suburb": "Birtinya",
+      "state": "QLD",
+      "postcode": "4575",
+      "website": ""
+    },
+    {
+      "category": "Towhomes",
+      "brand": "Stocklands",
+      "project_name": "Mainwaring Collection",
+      "address": "",
+      "suburb": "Mountain Creek",
+      "state": "QLD",
+      "postcode": "4557",
+      "website": "https://www.stockland.com.au/residential/qld/brightwater/find-your-home?producttypes=townhome"
+    },
+    {
+      "category": "Land, Home and Land",
+      "brand": "Stocklands",
+      "project_name": "McKeachie's Run",
+      "address": "",
+      "suburb": "Aberglasslyn",
+      "state": "NSW",
+      "postcode": "2320",
+      "website": ""
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Stocklands",
+      "project_name": "Altrove",
+      "address": "",
+      "suburb": "Schofields",
+      "state": "NSW",
+      "postcode": "2762",
+      "website": ""
+    },
+    {
+      "category": "Home & Land, Townhome",
+      "brand": "Stocklands",
+      "project_name": "Elara",
+      "address": "",
+      "suburb": "Marsden Park",
+      "state": "NSW",
+      "postcode": "4132",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land, Townhome",
+      "brand": "Stocklands",
+      "project_name": "Willowsdale",
+      "address": "",
+      "suburb": "Denham Court",
+      "state": "NSW",
+      "postcode": "2565",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "The Parks",
+      "address": "",
+      "suburb": "Red Hill",
+      "state": "ACT",
+      "postcode": "4059",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "North Shore",
+      "address": "",
+      "suburb": "Burdell",
+      "state": "QLD",
+      "postcode": "4818",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Mernda Villages",
+      "address": "",
+      "suburb": "",
+      "state": "VIC",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Cloverton",
+      "address": "",
+      "suburb": "Kalkallo",
+      "state": "VIC",
+      "postcode": "3064",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Highlands",
+      "address": "",
+      "suburb": "Craigieburn",
+      "state": "VIC",
+      "postcode": "3064",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Waterlea",
+      "address": "",
+      "suburb": "Rowville",
+      "state": "VIC",
+      "postcode": "3174",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Minta",
+      "address": "",
+      "suburb": "Berwick",
+      "state": "VIC",
+      "postcode": "3806",
+      "website": ""
+    },
+    {
+      "category": "Townhome",
+      "brand": "Stocklands",
+      "project_name": "Orion",
+      "address": "",
+      "suburb": "Braybrook",
+      "state": "VIC",
+      "postcode": "3019",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Haven",
+      "address": "",
+      "suburb": "Altona",
+      "state": "VIC",
+      "postcode": "3018",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Grandview",
+      "address": "",
+      "suburb": "Truganina",
+      "state": "VIC",
+      "postcode": "3029",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Mt.Atkinson",
+      "address": "",
+      "suburb": "Mt. Atkinson",
+      "state": "VIC",
+      "postcode": "3029",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Edgebrook",
+      "address": "",
+      "suburb": "Clyde North",
+      "state": "VIC",
+      "postcode": "3978",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Allura",
+      "address": "",
+      "suburb": "Truganina",
+      "state": "VIC",
+      "postcode": "3029",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "The Address Point Cook",
+      "address": "",
+      "suburb": "Point Cook",
+      "state": "VIC",
+      "postcode": "3030",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Sienna Wood",
+      "address": "",
+      "suburb": "Hilbert",
+      "state": "WA",
+      "postcode": "6112",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land, Townhome,Homebuilder",
+      "brand": "Stocklands",
+      "project_name": "Vale",
+      "address": "",
+      "suburb": "Aveley",
+      "state": "WA",
+      "postcode": "6069",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land, Townhome",
+      "brand": "Stocklands",
+      "project_name": "Whiteman Edge",
+      "address": "",
+      "suburb": "Brabham",
+      "state": "WA",
+      "postcode": "6055",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Newhaven",
+      "address": "",
+      "suburb": "Piara Waters",
+      "state": "WA",
+      "postcode": "6112",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land, Townhome",
+      "brand": "Stocklands",
+      "project_name": "Calleya",
+      "address": "",
+      "suburb": "Banjup",
+      "state": "WA",
+      "postcode": "6164",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Stocklands",
+      "project_name": "Amberton",
+      "address": "",
+      "suburb": "Eglinton",
+      "state": "WA",
+      "postcode": "6034",
+      "website": ""
+    },
+    {
+      "category": "Apartments",
+      "brand": "Frasers Property",
+      "project_name": "Ed. Square",
+      "address": "",
+      "suburb": "Edmonson Park",
+      "state": "NSW",
+      "postcode": "2174",
+      "website": "https://www.frasersproperty.com.au/nsw/ed-square?utm_source=Ed%20Park%20FPA%20site&utm_medium=Our%20featured%20properties&utm_campaign=Ed%20Square"
+    },
+    {
+      "category": "Home",
+      "brand": "Frasers Property",
+      "project_name": "Fairwater",
+      "address": "",
+      "suburb": "Blacktown",
+      "state": "NSW",
+      "postcode": "2148",
+      "website": "https://www.frasersproperty.com.au/nsw/fairwater"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Frasers Property",
+      "project_name": "Tailor's Walk",
+      "address": "",
+      "suburb": "Botany",
+      "state": "NSW",
+      "postcode": "2019",
+      "website": "https://www.frasersproperty.com.au/nsw/tailors-walk"
+    },
+    {
+      "category": "Land, Apartments",
+      "brand": "Frasers Property",
+      "project_name": "The Waterfront",
+      "address": "",
+      "suburb": "Shell Cove",
+      "state": "NSW",
+      "postcode": "2529",
+      "website": "https://www.frasersproperty.com.au/nsw/shell-cove"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Frasers Property",
+      "project_name": "Brookhaven",
+      "address": "",
+      "suburb": "Bahrs Scrub",
+      "state": "QLD",
+      "postcode": "4207",
+      "website": "https://www.frasersproperty.com.au/qld/brookhaven"
+    },
+    {
+      "category": "Land, Home",
+      "brand": "Frasers Property",
+      "project_name": "Cova",
+      "address": "",
+      "suburb": "Hope Island",
+      "state": "QLD",
+      "postcode": "4212",
+      "website": "https://www.frasersproperty.com.au/qld/cova"
+    },
+    {
+      "category": "Apartments, Home",
+      "brand": "Frasers Property",
+      "project_name": "Hamilton Reach",
+      "address": "",
+      "suburb": "Hamilton",
+      "state": "QLD",
+      "postcode": "4007",
+      "website": "https://www.frasersproperty.com.au/qld/hamilton-reach"
+    },
+    {
+      "category": "Land, Townhomes",
+      "brand": "Frasers Property",
+      "project_name": "Minnippi Quarter",
+      "address": "",
+      "suburb": "Carina",
+      "state": "QLD",
+      "postcode": "4152",
+      "website": "https://www.frasersproperty.com.au/smp/qld/minnippi-quarter/roi"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Frasers Property",
+      "project_name": "Berwick Waters",
+      "address": "",
+      "suburb": "Clyde North",
+      "state": "VIC",
+      "postcode": "3978",
+      "website": "https://www.frasersproperty.com.au/vic/berwick-waters"
+    },
+    {
+      "category": "Land, Aparments, Homes",
+      "brand": "Frasers Property",
+      "project_name": "Burwood Brickworks",
+      "address": "",
+      "suburb": "Burwood East",
+      "state": "VIC",
+      "postcode": "3151",
+      "website": "https://www.frasersproperty.com.au/vic/burwood-brickworks"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Frasers Property",
+      "project_name": "Encompass",
+      "address": "",
+      "suburb": "Carlton",
+      "state": "VIC",
+      "postcode": "3053",
+      "website": "https://www.frasersproperty.com.au/vic/encompass-carlton"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Frasers Property",
+      "project_name": "Found",
+      "address": "",
+      "suburb": "Carlton",
+      "state": "VIC",
+      "postcode": "3053",
+      "website": "https://www.frasersproperty.com.au/vic/found"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Frasers Property",
+      "project_name": "Greenvale Gardens",
+      "address": "",
+      "suburb": "Greenvale",
+      "state": "VIC",
+      "postcode": "3059",
+      "website": "https://www.frasersproperty.com.au/vic/greenvale-gardens"
+    },
+    {
+      "category": "Land",
+      "brand": "Frasers Property",
+      "project_name": "Life, Point Cook",
+      "address": "",
+      "suburb": "Point Cook",
+      "state": "VIC",
+      "postcode": "3030",
+      "website": "https://www.frasersproperty.com.au/vic/point-cook"
+    },
+    {
+      "category": "Land, Townhomes",
+      "brand": "Frasers Property",
+      "project_name": "Mambourin",
+      "address": "",
+      "suburb": "Mambourin",
+      "state": "VIC",
+      "postcode": "3024",
+      "website": "https://www.frasersproperty.com.au/vic/mambourin"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Frasers Property",
+      "project_name": "Parkside Parkville",
+      "address": "",
+      "suburb": "Parkville",
+      "state": "VIC",
+      "postcode": "3052",
+      "website": "https://www.frasersproperty.com.au/vic/parkside-parkville"
+    },
+    {
+      "category": "Land, Home & Land, Homes",
+      "brand": "Frasers Property",
+      "project_name": "The Grove",
+      "address": "",
+      "suburb": "Tarneit",
+      "state": "VIC",
+      "postcode": "3029",
+      "website": "https://www.frasersproperty.com.au/smp/vic/the-grove/register"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Frasers Property",
+      "project_name": "Valley Park",
+      "address": "",
+      "suburb": "Wallan",
+      "state": "VIC",
+      "postcode": "3756",
+      "website": "https://www.frasersproperty.com.au/vic/wallara-waters"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Frasers Property",
+      "project_name": "Baldivis Grove",
+      "address": "",
+      "suburb": "Baldivis",
+      "state": "WA",
+      "postcode": "6171",
+      "website": "https://www.frasersproperty.com.au/wa/baldivis-grove"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Frasers Property",
+      "project_name": "Baldivis Parks",
+      "address": "",
+      "suburb": "Baldivis",
+      "state": "WA",
+      "postcode": "6171",
+      "website": "https://www.frasersproperty.com.au/wa/baldivis-parks"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Frasers Property",
+      "project_name": "Cockburn Living",
+      "address": "",
+      "suburb": "Cockburn Central",
+      "state": "WA",
+      "postcode": "6164",
+      "website": "https://www.frasersproperty.com.au/wa/cockburn-living"
+    },
+    {
+      "category": "Land, Home & Land, Home",
+      "brand": "Frasers Property",
+      "project_name": "East Green",
+      "address": "",
+      "suburb": "East Green",
+      "state": "WA",
+      "postcode": "4359",
+      "website": "https://www.frasersproperty.com.au/smp/wa/east-green/home"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Frasers Property",
+      "project_name": "Frasers Landing",
+      "address": "",
+      "suburb": "Mandurah",
+      "state": "WA",
+      "postcode": "6180",
+      "website": "https://www.frasersproperty.com.au/wa/frasers-landing"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Frasers Property",
+      "project_name": "Port Coogee",
+      "address": "",
+      "suburb": "North Coogee",
+      "state": "WA",
+      "postcode": "6163",
+      "website": "https://www.frasersproperty.com.au/wa/port-coogee"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Frasers Property",
+      "project_name": "Queens Riverside",
+      "address": "",
+      "suburb": "East Perth",
+      "state": "WA",
+      "postcode": "6004",
+      "website": "https://www.frasersproperty.com.au/wa/queens-riverside"
+    },
+    {
+      "category": "Home & Land, Townhomes, Home",
+      "brand": "Ausbuild",
+      "project_name": "Element",
+      "address": "43 Wesley Road",
+      "suburb": "Griffin",
+      "state": "QLD",
+      "postcode": "4503",
+      "website": "https://www.ausbuild.com.au/communities/element"
+    },
+    {
+      "category": "Home & Land, Townhomes, Home",
+      "brand": "Ausbuild",
+      "project_name": "Kinross",
+      "address": "74 Kinross Road",
+      "suburb": "Thornlands",
+      "state": "VIC",
+      "postcode": "4164",
+      "website": "https://www.ausbuild.com.au/communities/kinross"
+    },
+    {
+      "category": "Home & Land, Townhomes, Home",
+      "brand": "Ausbuild",
+      "project_name": "Prominence",
+      "address": "223 Ritchie Road",
+      "suburb": "Pallara",
+      "state": "QLD",
+      "postcode": "4110",
+      "website": "https://www.ausbuild.com.au/communities/prominence"
+    },
+    {
+      "category": "Home & Land, Townhomes, Home",
+      "brand": "Ausbuild",
+      "project_name": "Prosperity",
+      "address": "140 Sweets Road",
+      "suburb": "Pallara",
+      "state": "QLD",
+      "postcode": "4110",
+      "website": "https://www.ausbuild.com.au/communities/prosperity"
+    },
+    {
+      "category": "Home & Land, Townhomes, Home",
+      "brand": "Ausbuild",
+      "project_name": "Thrive",
+      "address": "307 Old Gympie Road",
+      "suburb": "Dakabin",
+      "state": "QLD",
+      "postcode": "4503",
+      "website": "https://www.ausbuild.com.au/communities/thrive"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Ausbuild",
+      "project_name": "Lexington",
+      "address": "40 Greensill Road",
+      "suburb": "Albany Creek",
+      "state": "QLD",
+      "postcode": "4035",
+      "website": "https://www.ausbuild.com.au/townhouses/lexington-townhouses"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Ausbuild",
+      "project_name": "Parkvista",
+      "address": "Kingsdale Avenue",
+      "suburb": "Thornlands",
+      "state": "QLD",
+      "postcode": "4164",
+      "website": "https://www.ausbuild.com.au/townhouses/parkvista"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Metricon",
+      "project_name": "Edgerton Street",
+      "address": "Edgerton Street",
+      "suburb": "Southport",
+      "state": "QLD",
+      "postcode": "4215",
+      "website": "https://www.metricon.com.au/builders/qld/townliving/edgerton-street"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mosaic",
+      "project_name": "The Sinclair",
+      "address": "150 Toohey St",
+      "suburb": "East Brisbane",
+      "state": "QLD",
+      "postcode": "4169",
+      "website": "https://www.mosaicproperty.com.au/buying/the-sinclair-by-mosaic-luxury-apartments/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mosaic",
+      "project_name": "Elan",
+      "address": "8 Churchill St",
+      "suburb": "Kirra",
+      "state": "QLD",
+      "postcode": "4225",
+      "website": "https://www.mosaicproperty.com.au/buying/elan/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mosaic",
+      "project_name": "The Henry",
+      "address": "186 Clarence Road,",
+      "suburb": "Indooroopilly",
+      "state": "QLD",
+      "postcode": "4068",
+      "website": "https://www.mosaicproperty.com.au/buying/the-henry-by-mosaic-high-demand-indooroopilly-apartments/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mosaic",
+      "project_name": "First Bay",
+      "address": "1674-1676 Coolum Esplanade,",
+      "suburb": "First Bay",
+      "state": "QLD",
+      "postcode": "4655",
+      "website": "https://www.mosaicproperty.com.au/buying/first-bay-by-mosaic-luxury-beachfront-apartments/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mosaic",
+      "project_name": "Avalon",
+      "address": "100 Duporth Avenue",
+      "suburb": "Maroochydore",
+      "state": "QLD",
+      "postcode": "4558",
+      "website": "https://www.mosaicproperty.com.au/buying/avalon-by-mosaic-luxury-waterfront-apartments-maroochydore/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mosaic",
+      "project_name": "Bela",
+      "address": "43-49 Peerless Avenue",
+      "suburb": "Mermaid Beach",
+      "state": "QLD",
+      "postcode": "4218",
+      "website": "https://www.mosaicproperty.com.au/buying/bela/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mosaic",
+      "project_name": "Amparo",
+      "address": "71 Swann Road",
+      "suburb": "Taringa",
+      "state": "QLD",
+      "postcode": "4068",
+      "website": "https://www.mosaicproperty.com.au/buying/amparo/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Mosaic",
+      "project_name": "Sayre",
+      "address": "28 Gallway Street",
+      "suburb": "Windsor",
+      "state": "QLD",
+      "postcode": "4030",
+      "website": "https://www.mosaicproperty.com.au/buying/sayre-by-mosaic/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Satterley",
+      "project_name": "Allara",
+      "address": "",
+      "suburb": "Eglinton",
+      "state": "WA",
+      "postcode": "6034",
+      "website": "https://satterley.com.au/allara/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Beaumaris Beach",
+      "address": "",
+      "suburb": "Iluka",
+      "state": "WA",
+      "postcode": "6028",
+      "website": "https://satterley.com.au/beaumaris-beach/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Brighton",
+      "address": "",
+      "suburb": "Butler",
+      "state": "WA",
+      "postcode": "6036",
+      "website": "https://satterley.com.au/brighton"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Cassia",
+      "address": "",
+      "suburb": "Kwinna Town Centre",
+      "state": "WA",
+      "postcode": "6167",
+      "website": "https://satterley.com.au/cassia/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Catalina",
+      "address": "",
+      "suburb": "Mindarie",
+      "state": "WA",
+      "postcode": "6030",
+      "website": "https://satterley.com.au/catalina/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Clementine",
+      "address": "",
+      "suburb": "Upper Swan",
+      "state": "WA",
+      "postcode": "6069",
+      "website": "https://satterley.com.au/clementine-estate"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Dalyellup Beach",
+      "address": "",
+      "suburb": "Dalyellup",
+      "state": "WA",
+      "postcode": "6230",
+      "website": "https://satterley.com.au/dalyellup-beach/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Eden Beach",
+      "address": "",
+      "suburb": "Jindalee",
+      "state": "WA",
+      "postcode": "4074",
+      "website": "https://satterley.com.au/eden-beach/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Gallery",
+      "address": "",
+      "suburb": "Willagee",
+      "state": "WA",
+      "postcode": "6156",
+      "website": "https://satterley.com.au/gallery-estate"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Habitat on Davis Creek",
+      "address": "",
+      "suburb": "Tarneit",
+      "state": "VIC",
+      "postcode": "3029",
+      "website": "https://satterley.com.au/habitat-tarneit/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "True North",
+      "address": "",
+      "suburb": "Greenvale",
+      "state": "VIC",
+      "postcode": "3059",
+      "website": "https://satterley.com.au/true-north/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Upper Point Cook",
+      "address": "",
+      "suburb": "Point Cook",
+      "state": "VIC",
+      "postcode": "3030",
+      "website": "https://satterley.com.au/upper-point-cook-estate"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Arcadia",
+      "address": "",
+      "suburb": "Officer",
+      "state": "VIC",
+      "postcode": "3809",
+      "website": "https://satterley.com.au/arcadia-estate/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Botanical",
+      "address": "",
+      "suburb": "Mickleham",
+      "state": "VIC",
+      "postcode": "3064",
+      "website": "https://satterley.com.au/botanical/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Ridge View",
+      "address": "",
+      "suburb": "Narangba",
+      "state": "QLD",
+      "postcode": "4504",
+      "website": "https://satterley.com.au/ridgeview/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Ripley Valley",
+      "address": "",
+      "suburb": "Ripley",
+      "state": "QLD",
+      "postcode": "4306",
+      "website": "https://satterley.com.au/ripley-valley/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Smithfield Village",
+      "address": "",
+      "suburb": "Smithfield",
+      "state": "QLD",
+      "postcode": "4878",
+      "website": "https://satterley.com.au/smithfield-village/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Heron Park",
+      "address": "",
+      "suburb": "Harrisdale",
+      "state": "WA",
+      "postcode": "6112",
+      "website": "https://satterley.com.au/heron-park-estate/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Honeywood",
+      "address": "",
+      "suburb": "Wandi",
+      "state": "WA",
+      "postcode": "6167",
+      "website": "https://satterley.com.au/honeywood/buy-land/search/"
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "Satterley",
+      "project_name": "Myella",
+      "address": "",
+      "suburb": "Wanneroo",
+      "state": "WA",
+      "postcode": "6065",
+      "website": "https://satterley.com.au/myella"
+    },
+    {
+      "category": "Land, Home & Land, Townhomes, Home",
+      "brand": "Peet",
+      "project_name": "Edens Crossing",
+      "address": "",
+      "suburb": "Redbank Plains",
+      "state": "QLD",
+      "postcode": "4301",
+      "website": "https://www.peet.com.au/communities/brisbane-and-qld/edens-crossing"
+    },
+    {
+      "category": "Land, Home & Land, Townhomes, Home",
+      "brand": "Peet",
+      "project_name": "Flagstone",
+      "address": "",
+      "suburb": "Jimboomba",
+      "state": "QLD",
+      "postcode": "4280",
+      "website": "https://www.peet.com.au/communities/brisbane-and-qld/flagstone"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Peet",
+      "project_name": "Lily Rochedale",
+      "address": "",
+      "suburb": "Rochedale",
+      "state": "QLD",
+      "postcode": "4123",
+      "website": "https://www.peet.com.au/communities/brisbane-and-qld/lily"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Peet",
+      "project_name": "Nudgee Townhouses",
+      "address": "",
+      "suburb": "Nudgee",
+      "state": "QLD",
+      "postcode": "4014",
+      "website": "https://www.peet.com.au/communities/brisbane-and-qld/nudgee-townhouses"
+    },
+    {
+      "category": "Land, Home & Land, Townhomes, Home",
+      "brand": "Peet",
+      "project_name": "Riverbank",
+      "address": "",
+      "suburb": "Caboolture South",
+      "state": "QLD",
+      "postcode": "4510",
+      "website": "https://www.peet.com.au/communities/brisbane-and-qld/riverbank"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Spring Mountain",
+      "address": "",
+      "suburb": "Greenbank",
+      "state": "QLD",
+      "postcode": "4124",
+      "website": "https://www.peet.com.au/communities/brisbane-and-qld/spring-mountain"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "The Landing Strathpine",
+      "address": "",
+      "suburb": "Strathpine",
+      "state": "QLD",
+      "postcode": "4500",
+      "website": "https://www.peet.com.au/communities/brisbane-and-qld/the-landing-strathpine"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Vantage",
+      "address": "",
+      "suburb": "New Auckland",
+      "state": "QLD",
+      "postcode": "4680",
+      "website": "https://www.peet.com.au/communities/brisbane-and-qld/vantage"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Village Green",
+      "address": "",
+      "suburb": "Sippy Downs",
+      "state": "QLD",
+      "postcode": "4556",
+      "website": "https://www.peet.com.au/communities/brisbane-and-qld/village-green-palmview"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Avon Ridge",
+      "address": "",
+      "suburb": "Brigadoon",
+      "state": "WA",
+      "postcode": "6069",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/avon-ridge"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Brabham",
+      "address": "",
+      "suburb": "Brabham",
+      "state": "WA",
+      "postcode": "6055",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/brabham"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Burns Beach",
+      "address": "",
+      "suburb": "Burns Beach",
+      "state": "WA",
+      "postcode": "6028",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/burns-beach"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Golden Bay",
+      "address": "",
+      "suburb": "Golden Bay",
+      "state": "WA",
+      "postcode": "6174",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/golden-bay"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Greenlea Baldivis",
+      "address": "",
+      "suburb": "Baldivis",
+      "state": "WA",
+      "postcode": "6171",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/greenlea-baldivis"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Hilbert Park Estate",
+      "address": "",
+      "suburb": "Hilbert",
+      "state": "WA",
+      "postcode": "6112",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/hilbert-park-estate"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Peet",
+      "project_name": "Invita Apartments",
+      "address": "",
+      "suburb": "Wellard",
+      "state": "WA",
+      "postcode": "6170",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/invita-apartments"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Lakelands Estate",
+      "address": "",
+      "suburb": "Lakelands",
+      "state": "WA",
+      "postcode": "6180",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/lakelands-estate"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Movida Estate",
+      "address": "",
+      "suburb": "Midvale",
+      "state": "WA",
+      "postcode": "6056",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/movida-estate"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Shorehaven",
+      "address": "",
+      "suburb": "Alkimos",
+      "state": "WA",
+      "postcode": "6038",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/shorehaven"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "The Avenue Estate",
+      "address": "",
+      "suburb": "Hilbert",
+      "state": "WA",
+      "postcode": "6112",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/the-avenue-estate"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "The Village at Wellard",
+      "address": "",
+      "suburb": "Wellard",
+      "state": "WA",
+      "postcode": "6170",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/the-village-at-wellard"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Yanchep Golf Estate",
+      "address": "",
+      "suburb": "Yanchep",
+      "state": "WA",
+      "postcode": "6035",
+      "website": "https://www.peet.com.au/communities/perth-and-wa/yanchep-golf-estate"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Acacia",
+      "address": "",
+      "suburb": "Botanic Ridge",
+      "state": "VIC",
+      "postcode": "3977",
+      "website": "https://www.peet.com.au/communities/melbourne-and-victoria/acacia"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Aston",
+      "address": "",
+      "suburb": "Craigieburn",
+      "state": "VIC",
+      "postcode": "3064",
+      "website": "https://www.peet.com.au/communities/melbourne-and-victoria/aston"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Cornerstone",
+      "address": "",
+      "suburb": "Werribee",
+      "state": "VIC",
+      "postcode": "3030",
+      "website": "https://www.peet.com.au/communities/melbourne-and-victoria/cornerstone"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Peet",
+      "project_name": "Craigieburn Townhouses",
+      "address": "",
+      "suburb": "Craigieburn",
+      "state": "VIC",
+      "postcode": "3064",
+      "website": "https://www.peet.com.au/living-choices/peet-complete/craigieburn-townhouses"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Peet",
+      "project_name": "Keysborough",
+      "address": "",
+      "suburb": "Keysborough",
+      "state": "VIC",
+      "postcode": "3173",
+      "website": "https://www.peet.com.au/communities/melbourne-and-victoria/keysborough"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Peet",
+      "project_name": "Littabella Mews",
+      "address": "",
+      "suburb": "Botanic Ridge",
+      "state": "VIC",
+      "postcode": "3977",
+      "website": "https://www.peet.com.au/living-choices/peet-complete/littabella-mews"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Peet",
+      "project_name": "Lumeah Cranbourne West",
+      "address": "",
+      "suburb": "Cranbourne West",
+      "state": "VIC",
+      "postcode": "3977",
+      "website": "https://www.peet.com.au/communities/melbourne-and-victoria/lumeah"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Newhaven",
+      "address": "",
+      "suburb": "Tarneit",
+      "state": "VIC",
+      "postcode": "3029",
+      "website": "https://www.peet.com.au/communities/melbourne-and-victoria/newhaven"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Peet",
+      "project_name": "South Morang",
+      "address": "",
+      "suburb": "South Morang",
+      "state": "VIC",
+      "postcode": "3752",
+      "website": "https://www.peet.com.au/communities/melbourne-and-victoria/south-morang"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Summerhill",
+      "address": "",
+      "suburb": "Botanic Ridge",
+      "state": "VIC",
+      "postcode": "3977",
+      "website": "https://www.peet.com.au/communities/melbourne-and-victoria/summerhill"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Peet",
+      "project_name": "Atria",
+      "address": "",
+      "suburb": "Kingston",
+      "state": "ACT",
+      "postcode": "7050",
+      "website": "http://atriagreensquare.com.au/"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Burrabella",
+      "address": "",
+      "suburb": "Burrabella",
+      "state": "NSW",
+      "postcode": "2620",
+      "website": "http://burrabella.com.au/"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Googong",
+      "address": "",
+      "suburb": "Googong",
+      "state": "NSW",
+      "postcode": "2620",
+      "website": "http://googong.net/"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Peet",
+      "project_name": "Jumping Creek",
+      "address": "6 Limestone Drive",
+      "suburb": "Jerrabomberra",
+      "state": "NSW",
+      "postcode": "2619",
+      "website": "https://www.peet.com.au/communities/nsw-and-act/jumping-creek"
+    },
+    {
+      "category": "Land, Home & Land, Townhomes, Homes",
+      "brand": "Peet",
+      "project_name": "The Heights",
+      "address": "",
+      "suburb": "Durack",
+      "state": "NT",
+      "postcode": "",
+      "website": "https://www.peet.com.au/communities/darwin-and-northern-territory/the-heights"
+    },
+    {
+      "category": "Land, Home & Land, Townhomes, Homes",
+      "brand": "Peet",
+      "project_name": "Blusetone",
+      "address": "",
+      "suburb": "",
+      "state": "",
+      "postcode": "",
+      "website": "https://www.peet.com.au/communities/adelaide-and-sa/bluestone-mt-barker"
+    },
+    {
+      "category": "Land, Townhomes, Homes, Apartments",
+      "brand": "Peet",
+      "project_name": "Lightsview",
+      "address": "",
+      "suburb": "",
+      "state": "",
+      "postcode": "",
+      "website": "https://www.peet.com.au/communities/adelaide-and-sa/lightsview"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Peet",
+      "project_name": "Lightsview Aparments",
+      "address": "",
+      "suburb": "",
+      "state": "",
+      "postcode": "",
+      "website": "https://www.peet.com.au/communities/adelaide-and-sa/lightsview-apartments-old"
+    },
+    {
+      "category": "Townhomes, Apartments",
+      "brand": "Peet",
+      "project_name": "Tonsley Village",
+      "address": "Tonsley Boulevard,",
+      "suburb": "",
+      "state": "",
+      "postcode": "",
+      "website": "https://www.peet.com.au/communities/adelaide-and-sa/tonsley"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Unison Projects",
+      "project_name": "Highfields",
+      "address": "",
+      "suburb": "Bridgeman Downs",
+      "state": "QLD",
+      "postcode": "4035",
+      "website": "http://www.highfieldsland.com.au/"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Unison Projects",
+      "project_name": "Griffin Pocket",
+      "address": "nr of Dohles Rocks Road and Shoreview Boulevard",
+      "suburb": "Griffin",
+      "state": "QLD",
+      "postcode": "4503",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Unison Projects",
+      "project_name": "Arbour Beach",
+      "address": "",
+      "suburb": "Sherwood",
+      "state": "QLD",
+      "postcode": "4075",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Unison Projects",
+      "project_name": "Park Vue",
+      "address": "",
+      "suburb": "Oxley",
+      "state": "QLD",
+      "postcode": "4075",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Unison Projects",
+      "project_name": "Seacliffs",
+      "address": "",
+      "suburb": "Byron Bay",
+      "state": "NSW",
+      "postcode": "2481",
+      "website": "http://www.seacliffsbyronbay.com.au/"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Unison Projects",
+      "project_name": "Terraces on Parkvue",
+      "address": "",
+      "suburb": "Oxley",
+      "state": "QLD",
+      "postcode": "4075",
+      "website": ""
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Unison Projects",
+      "project_name": "Terraces on Griffin Pocket",
+      "address": "",
+      "suburb": "Griffin",
+      "state": "QLD",
+      "postcode": "4503",
+      "website": ""
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Unison Projects",
+      "project_name": "Preston Point Residences",
+      "address": "",
+      "suburb": "Albany Creek",
+      "state": "QLD",
+      "postcode": "4035",
+      "website": ""
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Unison Projects",
+      "project_name": "Parkview Pavillions",
+      "address": "",
+      "suburb": "Oxley",
+      "state": "QLD",
+      "postcode": "4075",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Sekisui House",
+      "project_name": "The Hermitage",
+      "address": "",
+      "suburb": "Gledswood Hill",
+      "state": "NSW",
+      "postcode": "",
+      "website": "https://www.sekisuihouse.com.au/communities/the-hermitage"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Sekisui House",
+      "project_name": "Ecco Ripley",
+      "address": "",
+      "suburb": "Ripley",
+      "state": "QLD",
+      "postcode": "",
+      "website": "https://www.sekisuihouse.com.au/communities/ecco-ripley"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Sekisui House",
+      "project_name": "Vantage Coolum",
+      "address": "",
+      "suburb": "Yaroomba",
+      "state": "QLD",
+      "postcode": "",
+      "website": "https://www.sekisuihouse.com.au/communities/vantage-coolum"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Sekisui House",
+      "project_name": "Sanctuary",
+      "address": "",
+      "suburb": "Wenworth Point",
+      "state": "NSW",
+      "postcode": "",
+      "website": "https://www.sekisuihouse.com.au/communities/sanctuary"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Sekisui House",
+      "project_name": "West Village",
+      "address": "",
+      "suburb": "West End",
+      "state": "QLD",
+      "postcode": "",
+      "website": "https://www.sekisuihouse.com.au/communities/west-village-at-west-end"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Sekisui House",
+      "project_name": "The Orchards",
+      "address": "",
+      "suburb": "Northwest",
+      "state": "NSW",
+      "postcode": "",
+      "website": "https://www.sekisuihouse.com.au/communities/the-orchards"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Sekisui House",
+      "project_name": "The Address",
+      "address": "",
+      "suburb": "Wenworth Point",
+      "state": "NSW",
+      "postcode": "",
+      "website": "https://www.sekisuihouse.com.au/communities/the-address"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Sekisui House",
+      "project_name": "Central Park",
+      "address": "",
+      "suburb": "Chippindale",
+      "state": "NSW",
+      "postcode": "",
+      "website": "https://www.sekisuihouse.com.au/communities/central-park"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Sekisui House",
+      "project_name": "Royal Shores",
+      "address": "",
+      "suburb": "Ermington",
+      "state": "NSW",
+      "postcode": "",
+      "website": "https://www.sekisuihouse.com.au/communities/royal-shores"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Sunland",
+      "project_name": "272 Hedges Avenue",
+      "address": "",
+      "suburb": "Mermaid Beach",
+      "state": "QLD",
+      "postcode": "",
+      "website": "https://www.sunlandgroup.com.au/collections/gold-coast/272-hedges-avenue/"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Sunland",
+      "project_name": "Arbour Residence",
+      "address": "",
+      "suburb": "Pimpama",
+      "state": "QLD",
+      "postcode": "",
+      "website": "https://www.sunlandgroup.com.au/collections/gold-coast/arbour-residences/"
+    },
+    {
+      "category": "Land",
+      "brand": "Sunland",
+      "project_name": "Bayside",
+      "address": "",
+      "suburb": "Bushland Beach",
+      "state": "QLD",
+      "postcode": "",
+      "website": "https://www.sunlandgroup.com.au/collections/townsville/bayside-bushland-beach/"
+    },
+    {
+      "category": "Homes",
+      "brand": "Sunland",
+      "project_name": "Kirkdale",
+      "address": "",
+      "suburb": "Chapel Hill",
+      "state": "QLD",
+      "postcode": "",
+      "website": "https://www.sunlandgroup.com.au/collections/brisbane/kirkdale-residences/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Sunland",
+      "project_name": "Magnoli Apartments",
+      "address": "",
+      "suburb": "Palm Beach",
+      "state": "QLD",
+      "postcode": "",
+      "website": "https://www.sunlandgroup.com.au/collections/gold-coast/magnoli-apartments/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Sunland",
+      "project_name": "Marina Concourse",
+      "address": "",
+      "suburb": "Benowa",
+      "state": "QLD",
+      "postcode": "",
+      "website": "https://www.sunlandgroup.com.au/collections/gold-coast/marina-concourse/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Sunland",
+      "project_name": "Montaine Residences",
+      "address": "",
+      "suburb": "Mount Annan",
+      "state": "NSW",
+      "postcode": "",
+      "website": "https://www.sunlandgroup.com.au/collections/sydney/montaine-residences/"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Sunland",
+      "project_name": "The Gardens",
+      "address": "",
+      "suburb": "Chirnside Park",
+      "state": "VIC",
+      "postcode": "",
+      "website": "https://www.sunlandgroup.com.au/collections/melbourne/the-gardens/"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Sunland",
+      "project_name": "The Heights",
+      "address": "",
+      "suburb": "Pimpana",
+      "state": "QLD",
+      "postcode": "",
+      "website": "https://www.sunlandgroup.com.au/collections/gold-coast/the-heights/"
+    },
+    {
+      "category": "Townhomes",
+      "brand": "Sunland",
+      "project_name": "The Hills",
+      "address": "",
+      "suburb": "Everton Hills",
+      "state": "QLD",
+      "postcode": "",
+      "website": "https://www.sunlandgroup.com.au/collections/sunshine-coast/the-terraces-land/"
+    },
+    {
+      "category": "Apartments",
+      "brand": "Sunland",
+      "project_name": "The Lanes Residences",
+      "address": "",
+      "suburb": "Mermaid Waters",
+      "state": "QLD",
+      "postcode": "4218",
+      "website": "https://www.sunlandgroup.com.au/collections/gold-coast/the-lanes-residences/"
+    },
+    {
+      "category": "Homes",
+      "brand": "Sunland",
+      "project_name": "The Sunland Collection",
+      "address": "",
+      "suburb": "Maraylyla",
+      "state": "NSW",
+      "postcode": "",
+      "website": "https://www.sunlandgroup.com.au/collections/sydney/the-sunland-collection/"
+    },
+    {
+      "category": "Land",
+      "brand": "Sunland",
+      "project_name": "The Terraces",
+      "address": "",
+      "suburb": "Peregian Springs",
+      "state": "QLD",
+      "postcode": "",
+      "website": "https://www.sunlandgroup.com.au/collections/sunshine-coast/the-terraces-land/"
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Avid Property Group",
+      "project_name": "Harvest",
+      "address": "",
+      "suburb": "East Maitland,",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Avid Property Group",
+      "project_name": "Waterford Living",
+      "address": "",
+      "suburb": "Chisholm",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Apartments",
+      "brand": "Avid Property Group",
+      "project_name": "The Rathbone",
+      "address": "",
+      "suburb": "Surry Hills",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Avid Property Group",
+      "project_name": "Sienna Gardens",
+      "address": "",
+      "suburb": "Claremonyt Meadows",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Avid Property Group",
+      "project_name": "Kooindah",
+      "address": "",
+      "suburb": "Wyong",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Home",
+      "brand": "Avid Property Group",
+      "project_name": "Georges Fair",
+      "address": "",
+      "suburb": "Moorebank",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Avid Property Group",
+      "project_name": "Argyle",
+      "address": "",
+      "suburb": "Elderslie",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Avid Property Group",
+      "project_name": "Tempo",
+      "address": "",
+      "suburb": "Bellbird Park",
+      "state": "QLD",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Avid Property Group",
+      "project_name": "Brentwood Forest",
+      "address": "",
+      "suburb": "Bellbird Park",
+      "state": "QLD",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Avid Property Group",
+      "project_name": "Harmony",
+      "address": "",
+      "suburb": "Sunshine Coast",
+      "state": "QLD",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Avid Property Group",
+      "project_name": "Hillstowe",
+      "address": "",
+      "suburb": "Officer",
+      "state": "VIC",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Avid Property Group",
+      "project_name": "Bloomdale",
+      "address": "",
+      "suburb": "Diggers Rest",
+      "state": "VIC",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "Avid Property Group",
+      "project_name": "Savana",
+      "address": "",
+      "suburb": "Wyndham Vale",
+      "state": "VIC",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Townhomes",
+      "brand": "AV Jennings",
+      "project_name": "Anise",
+      "address": "Bridgeman Downs",
+      "suburb": "Bridgeman Downs",
+      "state": "QLD",
+      "postcode": "4035",
+      "website": ""
+    },
+    {
+      "category": "Land",
+      "brand": "AV Jennings",
+      "project_name": "Arbor",
+      "address": "",
+      "suburb": "Rochedale",
+      "state": "QLD",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "AV Jennings",
+      "project_name": "Cadence",
+      "address": "",
+      "suburb": "Ripley",
+      "state": "QLD",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land, Townhomes, Homes",
+      "brand": "AV Jennings",
+      "project_name": "Creekwood",
+      "address": "",
+      "suburb": "Meridan Plains",
+      "state": "QLD",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "AV Jennings",
+      "project_name": "Deebing Springs",
+      "address": "",
+      "suburb": "Deebing Heights",
+      "state": "QLD",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "AV Jennings",
+      "project_name": "Parkside",
+      "address": "",
+      "suburb": "Bethania",
+      "state": "QLD",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land,",
+      "brand": "AV Jennings",
+      "project_name": "Riverton",
+      "address": "",
+      "suburb": "Jimboomba",
+      "state": "QLD",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Townhomes & Apartments",
+      "brand": "AV Jennings",
+      "project_name": "Waterline Place",
+      "address": "",
+      "suburb": "Williamstown",
+      "state": "VIC",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land",
+      "brand": "AV Jennings",
+      "project_name": "Lyndarum North",
+      "address": "",
+      "suburb": "Wallert",
+      "state": "VIC",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Homes, Townhomes",
+      "brand": "AV Jennings",
+      "project_name": "Arcadian Grove",
+      "address": "",
+      "suburb": "Cobbitty",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Homes, Townhomes",
+      "brand": "AV Jennings",
+      "project_name": "Arcadian Hills",
+      "address": "",
+      "suburb": "Cobbitty",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land",
+      "brand": "AV Jennings",
+      "project_name": "Evergreen",
+      "address": "",
+      "suburb": "Spring Farm",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Townhomes",
+      "brand": "AV Jennings",
+      "project_name": "Argyle",
+      "address": "",
+      "suburb": "Elderslie",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Townhomes",
+      "brand": "AV Jennings",
+      "project_name": "Magnolia",
+      "address": "",
+      "suburb": "Hamlyn Terrace",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land, Home & Land",
+      "brand": "AV Jennings",
+      "project_name": "Seacrest",
+      "address": "",
+      "suburb": "Sandy Beach",
+      "state": "NSW",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Apartments",
+      "brand": "AV Jennings",
+      "project_name": "Indigo",
+      "address": "",
+      "suburb": "China Green",
+      "state": "WA",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Townhomes",
+      "brand": "AV Jennings",
+      "project_name": "Parkview",
+      "address": "",
+      "suburb": "Ferndale",
+      "state": "WA",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Townhomes",
+      "brand": "AV Jennings",
+      "project_name": "The Heights",
+      "address": "",
+      "suburb": "Kardinya",
+      "state": "WA",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Apartments",
+      "brand": "AV Jennings",
+      "project_name": "Viridian",
+      "address": "",
+      "suburb": "China Green",
+      "state": "WA",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Land",
+      "brand": "AV Jennings",
+      "project_name": "The Crescent",
+      "address": "",
+      "suburb": "Viveash",
+      "state": "WA",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Homes, Home&land, Land",
+      "brand": "AV Jennings",
+      "project_name": "Eyre",
+      "address": "",
+      "suburb": "Eyre",
+      "state": "SA",
+      "postcode": "",
+      "website": ""
+    },
+    {
+      "category": "Townhomes",
+      "brand": "AV Jennings",
+      "project_name": "St Clair",
+      "address": "",
+      "suburb": "St Clair",
+      "state": "SA",
+      "postcode": "",
+      "website": ""
+    }
+  ]
+}

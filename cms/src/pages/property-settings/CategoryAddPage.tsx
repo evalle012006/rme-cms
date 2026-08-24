@@ -18,7 +18,7 @@ const LIST_PATH = ROUTES.propertySettings.categories.list
 
 const BREADCRUMB = [
   { label: 'Home', to: ROUTES.root },
-  { label: 'Property Category', to: LIST_PATH },
+  { label: 'Project Category', to: LIST_PATH },
   { label: 'Add' },
 ]
 
@@ -110,8 +110,8 @@ export default function CategoryAddPage() {
           image: catIcon,
         },
         {
-          successMessage: 'Property category created successfully',
-          customErrorMessage: 'Failed to create property category',
+          successMessage: 'Project category created successfully',
+          customErrorMessage: 'Failed to create project category',
         }
       )
       navigate(LIST_PATH)

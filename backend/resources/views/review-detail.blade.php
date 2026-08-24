@@ -1,5 +1,31 @@
 @extends('layouts.app-layout')
 
+@php
+    $rmeProjectName = $review['property']['project_name'] ?? null;
+    $rmeAuthorName = $review['users']['display_name'] ?? ($review['users']['full_name'] ?? 'Anonymous');
+@endphp
+
+@section('meta_title', ($review['title'] ?? 'Review') . ($rmeProjectName ? ' - ' . $rmeProjectName : '') . ' | ' . seoSiteName())
+@section('meta_description', seoText($review['comment'] ?? ('Read a verified review' . ($rmeProjectName ? ' of ' . $rmeProjectName : '') . ' on ' . seoSiteName() . '.')))
+@section('og_type', 'article')
+
+@section('structured_data')
+    {!! seoJsonLd(array_filter([
+        '@context' => 'https://schema.org',
+        '@type' => 'Review',
+        'name' => $review['title'] ?? null,
+        'reviewBody' => !empty($review['comment']) ? seoText($review['comment'], 500) : null,
+        'author' => ['@type' => 'Person', 'name' => $rmeAuthorName],
+        'itemReviewed' => $rmeProjectName ? ['@type' => 'Product', 'name' => $rmeProjectName] : null,
+        'reviewRating' => (!empty($user['overall_rating']) && $user['overall_rating'] > 0) ? [
+            '@type' => 'Rating',
+            'ratingValue' => (string)$user['overall_rating'],
+            'bestRating' => '5',
+            'worstRating' => '1',
+        ] : null,
+    ])) !!}
+@endsection
+
 @section('content')
     <div class="bg-main inner-banner" style="background-image: url({{asset('images/homepage/HomepageHero.jpg')}});">
         <div class="banner-caption">

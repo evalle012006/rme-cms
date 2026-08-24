@@ -1,5 +1,8 @@
 @extends('layouts.app-layout')
 
+@section('meta_title', 'My Profile | ' . seoSiteName())
+@section('meta_robots', 'noindex, nofollow')
+
 @section('content')
 
     <div class="my-profile-section">

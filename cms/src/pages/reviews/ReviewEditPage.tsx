@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
+import { FileText } from "lucide-react"
 import { toast } from "sonner"
 
 import { Breadcrumb } from "@/components/atoms/Breadcrumb"
 import { Button } from "@/components/atoms/Button"
 import { FormControl } from "@/components/atoms/FormControl"
 import { FormField } from "@/components/atoms/FormField"
-import { ImageDropzone } from "@/components/atoms/ImageDropzone"
 import { MultiSelect, type MultiSelectOption } from "@/components/atoms/MultiSelect"
 import { Card } from "@/components/ui/card"
 import {
@@ -18,6 +18,23 @@ import {
 } from "@/api/reviews/reviewsAPIHandler"
 import { statesAPI, type State } from "@/api/states/statesAPIHandler"
 import { ROUTES } from "@/constants/routes"
+import { imgUrl } from "@/lib/utils"
+
+const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "svg"])
+
+function fileExtension(path: string | null | undefined): string {
+  if (!path) return ""
+  const clean = path.split("?")[0] ?? path
+  const parts = clean.split(".")
+  return (parts[parts.length - 1] ?? "").toLowerCase()
+}
+
+function resolveProofUrl(
+  fullUrl: string | null | undefined,
+  relativePath: string | null | undefined
+): string | null {
+  return fullUrl || imgUrl(relativePath)
+}
 
 // ── Return path ──────────────────────────────────────────────────────────────
 // Honour the `?from=approved|pending` hint when present, otherwise infer from
@@ -106,11 +123,6 @@ export default function ReviewEditPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
-  const [photo, setPhoto] = useState<File | null>(null)
-  const [existingPhotoUrl, setExistingPhotoUrl] = useState<string | null>(null)
-  const [doc, setDoc] = useState<File | null>(null)
-  const [existingDocUrl, setExistingDocUrl] = useState<string | null>(null)
-
   const returnPath = resolveReturnPath(
     searchParams.get("from"),
     review?.status
@@ -147,8 +159,6 @@ export default function ReviewEditPage() {
         setCategories(meta.categories ?? [])
         setStates(loadedStates)
         setForm(toFormState(detail))
-        setExistingPhotoUrl(detail.full_review_image)
-        setExistingDocUrl(detail.full_review_docs ?? null)
       })
       .catch(() => {
         if (mounted) navigate(ROUTES.reviews.approved)
@@ -183,6 +193,18 @@ export default function ReviewEditPage() {
   const userName =
     review?.users?.full_name || review?.users?.display_name || ""
   const companyName = review?.property?.company?.company_name ?? ""
+
+  const photoProofUrl = resolveProofUrl(
+    review?.full_review_image,
+    review?.review_image
+  )
+  const docProofUrl = resolveProofUrl(
+    review?.full_review_docs,
+    review?.review_docs
+  )
+  const docExtension = fileExtension(review?.review_docs ?? docProofUrl)
+  const docIsImage = IMAGE_EXTENSIONS.has(docExtension)
+  const docIsPdf = docExtension === "pdf"
 
   const fieldsDisabled = loading || submitting
 
@@ -318,12 +340,12 @@ export default function ReviewEditPage() {
 
             <FormControl
               variant="select"
-              label="Property"
+              label="Project"
               disabled={fieldsDisabled}
               value={form.property_id}
               onChange={(e) => setField("property_id", e.target.value)}
             >
-              <option value="">Select Property</option>
+              <option value="">Select Project</option>
               {propertyOptions.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.project_name}
@@ -430,25 +452,57 @@ export default function ReviewEditPage() {
             </FormField>
 
             <FormField label="Photo proof">
-              <ImageDropzone
-                layout="banner"
-                value={photo}
-                existingImageUrl={existingPhotoUrl}
-                onChange={setPhoto}
-                onClearExisting={() => setExistingPhotoUrl(null)}
-                disabled={fieldsDisabled}
-              />
+              {photoProofUrl ? (
+                <a
+                  href={photoProofUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block"
+                >
+                  <img
+                    src={photoProofUrl}
+                    alt="Photo proof"
+                    className="max-h-40 max-w-full rounded-card object-contain"
+                  />
+                </a>
+              ) : (
+                <p className="text-sm text-gray-500">No photo proof uploaded</p>
+              )}
             </FormField>
 
             <FormField label="Document proof">
-              <ImageDropzone
-                layout="banner"
-                value={doc}
-                existingImageUrl={existingDocUrl}
-                onChange={setDoc}
-                onClearExisting={() => setExistingDocUrl(null)}
-                disabled={fieldsDisabled}
-              />
+              {docProofUrl ? (
+                docIsImage ? (
+                  <a
+                    href={docProofUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block"
+                  >
+                    <img
+                      src={docProofUrl}
+                      alt="Document proof"
+                      className="max-h-40 max-w-full rounded-card object-contain"
+                    />
+                  </a>
+                ) : (
+                  <a
+                    href={docProofUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-card border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700 hover:border-gray-300 hover:bg-gray-100"
+                  >
+                    <FileText size={18} className="shrink-0 text-primary-600" />
+                    <span>
+                      View {docIsPdf ? "PDF" : "document"} proof
+                    </span>
+                  </a>
+                )
+              ) : (
+                <p className="text-sm text-gray-500">
+                  No document proof uploaded
+                </p>
+              )}
             </FormField>
           </div>
 

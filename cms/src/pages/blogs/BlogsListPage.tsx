@@ -1,22 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/atoms/Button'
 import { Breadcrumb } from '@/components/atoms/Breadcrumb'
 import { ConfirmDialog } from '@/components/atoms/ConfirmDialog'
 import { DataTable, type DataTableColumn } from '@/components/atoms/DataTable'
 import { blogsAPI, BLOG_STATUS, type Blog } from '@/api/blogs/blogsAPIHandler'
 import type { DataTablesColumnRequest, DataTablesRequest, SortDir } from '@/types/api'
-import { cn } from '@/lib/utils'
+import { cn, formatDate } from '@/lib/utils'
 import { ROUTES } from '@/constants/routes'
 
 const BREADCRUMB = [{ label: 'Home', to: ROUTES.root }, { label: 'Blogs' }]
 
-// Column metadata for `/database-blog` — index order must match the backend.
+// Column metadata for `/datatable-blogs` — index order must match UI columns.
 const COLUMN_META: Pick<DataTablesColumnRequest, 'name' | 'searchable' | 'orderable'>[] = [
   { name: 'title', searchable: true, orderable: true },
-  { name: 'id', searchable: true, orderable: false },
+  { name: 'id', searchable: false, orderable: false },
   { name: 'status', searchable: true, orderable: false },
-  { name: 'title', searchable: true, orderable: false },
+  { name: 'blog_date', searchable: false, orderable: true },
+  { name: 'action', searchable: false, orderable: false },
 ]
 
 function CategoryBadge({ label }: { label: string }) {
@@ -48,6 +49,7 @@ function BlogStatusBadge({ status }: { status: string }) {
 }
 
 export default function BlogsListPage() {
+  const navigate = useNavigate()
   const [data, setData] = useState<Blog[]>([])
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
@@ -72,6 +74,13 @@ export default function BlogsListPage() {
     setDeleteDialogOpen(false)
     setBlogToDelete(null)
   }, [])
+
+  const handlePreview = useCallback(
+    (blog: Blog) => {
+      navigate(ROUTES.blogs.preview(blog.id))
+    },
+    [navigate]
+  )
 
   const columns: DataTableColumn<Blog>[] = useMemo(
     () => [
@@ -100,11 +109,28 @@ export default function BlogsListPage() {
         cell: (row) => <BlogStatusBadge status={row.status} />,
       },
       {
+        key: 'blog_date',
+        header: 'Date',
+        width: '140px',
+        sortable: true,
+        cell: (row) => (
+          <span className="text-gray-800">{formatDate(row.blog_date)}</span>
+        ),
+      },
+      {
         key: 'action',
         header: 'Action',
-        width: '180px',
+        width: '260px',
         cell: (row) => (
           <div className="flex items-center gap-2">
+            <Button
+              color="secondary"
+              size="sm"
+              className="h-auto py-1.5"
+              onClick={() => handlePreview(row)}
+            >
+              Preview
+            </Button>
             <Link to={ROUTES.blogs.edit(row.id)}>
               <Button color="primary" size="sm" className="h-auto py-1.5">
                 Edit
@@ -122,7 +148,7 @@ export default function BlogsListPage() {
         ),
       },
     ],
-    [openDeleteDialog]
+    [handlePreview, openDeleteDialog]
   )
 
   const fetchBlogs = useCallback(() => {
