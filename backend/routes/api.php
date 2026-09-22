@@ -19,6 +19,15 @@ Route::post('uploadImages', 'UploadController@uploadImages');
 Route::post('fetch-suburbs', 'HomeController@fetchSuburbs');
 Route::post('autocomplete-suburb', 'HomeController@autocompleteSuburb');
 
+// Locality lookups for the State / Suburb / Postcode component. Unauthenticated
+// because the public review form needs them; all reads are from the local table.
+Route::group(['prefix' => 'localities'], function () {
+    Route::get('states', 'LocalityController@states');
+    Route::get('search', 'LocalityController@search');
+    Route::get('by-postcode', 'LocalityController@byPostcode');
+    Route::get('/', 'LocalityController@index');
+});
+
 Route::group(['namespace' => 'Admin', 'prefix' => 'auth'], function () {
     Route::post('login', 'AuthenticationController@login');
     Route::post('reviewer/signup', 'UserController@reviewerSignup');
@@ -116,12 +125,14 @@ Route::group(['namespace' => 'Admin', 'middleware' => 'auth:api'], function () {
     Route::post('cms-update/{id}', 'SelectOptionController@updateCms');
 
     Route::get('review/get/{id}', 'ReviewController@getReviewById');
+    Route::get('reviews/locality-exceptions', 'ReviewController@getLocalityExceptionReport');
     Route::post('review/change-status', 'ReviewController@changeReviewStatus');
     Route::get('get-states', 'ReviewController@getReviewStates');
     Route::post('review-update/{id}', 'ReviewController@updateReview');
     Route::delete('review/delete/{id}', 'ReviewController@deleteReview');
     Route::post('get-suburbs', 'ReviewController@getSuburbs');
     Route::post('suburbs-by-state', 'ReviewController@getSuburbsByState');
+    Route::post('suburbs-by-state-with-postcode', 'ReviewController@getSuburbsByStateWithPostcode');
 
     Route::get('buyer-type-get', 'ReviewController@getBuyerTypes');
 

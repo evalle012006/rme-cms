@@ -128,6 +128,7 @@ Route::post('/autocomplete/fetch-property',
 Route::post('/autocomplete/fetch-tags', 'HomeController@fetchTags')->name('autocomplete.fetchTags');
 Route::post('/autocomplete/fetch-states', 'HomeController@fetchReviewStates')->name('autocomplete.fetchStates');
 Route::post('/autocomplete/fetch-suburbs', 'HomeController@fetchSuburbs')->name('autocomplete.fetchSuburbs');
+Route::post('/autocomplete/fetch-suburbs-by-state', 'HomeController@fetchSuburbsByStateWithPostcode')->name('autocomplete.fetchSuburbsByState');
 
 Route::post('review-save-one', 'ReviewController@saveReviewStepOne')->name('review-save-one');
 Route::post('review-save-two', 'ReviewController@saveReviewStepTwo')->name('review-save-two');

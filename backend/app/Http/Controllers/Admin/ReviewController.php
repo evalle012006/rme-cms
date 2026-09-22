@@ -13,6 +13,8 @@ use App\Models\SelectMaster;
 use App\Models\Suburbs;
 use App\Models\Tags;
 use App\Services\ResendService;
+use App\Support\ReviewLocalityExceptionReport;
+use App\Support\StateResolver;
 use GuzzleHttp\Exception\ServerException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,11 +28,95 @@ class ReviewController extends BaseController
 
     public function getDatatableReview(Request $request)
     {
-        $reviews = Review::with(['property.company:id,company_name'])
+        $reviews = Review::with(['property.company:id,company_name', 'locality'])
             ->select('reviews.*')
             ->where('status', $request->status);
 
+        $this->applyLocalityFilters($reviews, $request);
+
         return datatables($reviews)->toJson();
+    }
+
+    /**
+     * Reviews that could not be resolved to a single locality.
+     *
+     * Returns a download URL rather than the rows so the portal can hand the
+     * client a CSV to work through. Regenerated on request, so it always
+     * reflects the current state of the data.
+     */
+    public function getLocalityExceptionReport()
+    {
+        try {
+            $rows = ReviewLocalityExceptionReport::rows();
+
+            return $this->formatSuccessResponse('success', [
+                'count' => count($rows),
+                'url' => empty($rows) ? null : ReviewLocalityExceptionReport::store($rows),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('REVIEW_LOCALITY_REPORT_ERROR: ' . $e->getMessage());
+            return $this->formatFailureResponse('Error generating the locality exception report', 500);
+        }
+    }
+
+    /**
+     * Re-derive the stored state, suburb and postcode from the referenced
+     * locality, so the legacy text columns always agree with the FK.
+     *
+     * @throws ValidationException when the locality does not resolve
+     */
+    private function applyLocalityToReviewData(array $data)
+    {
+        $locality = empty($data['locality_id'])
+            ? null
+            : Suburbs::find($data['locality_id']);
+
+        if (!$locality) {
+            throw ValidationException::withMessages([
+                'locality_id' => 'Select a State, Suburb and Postcode from the list',
+            ]);
+        }
+
+        $stateId = StateResolver::id($locality->state_code);
+
+        $data['locality_id'] = (int) $locality->id;
+        $data['suburb'] = $locality->name;
+        $data['post_code'] = (string) $locality->postcode;
+        if ($stateId) {
+            $data['state'] = $stateId;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Location filters run through the locality_id foreign key.
+     *
+     * Filtering used to compare the free-text suburb column, which could not
+     * match reliably. State and postcode are constrained through the related
+     * locality row so every combination narrows the same set.
+     */
+    private function applyLocalityFilters($query, Request $request)
+    {
+        if ($request->filled('locality_id')) {
+            $query->where('reviews.locality_id', $request->input('locality_id'));
+        }
+
+        $stateCode = $request->input('state_code');
+        $postcode = $request->input('postcode');
+
+        if (!$request->filled('state_code') && !$request->filled('postcode')) {
+            return $query;
+        }
+
+        return $query->whereHas('locality', function ($localityQuery) use ($stateCode, $postcode) {
+            if (!empty($stateCode)) {
+                $localityQuery->where('state_code', strtoupper(trim($stateCode)));
+            }
+            if (!empty($postcode)) {
+                $localityQuery->where('postcode', trim($postcode));
+            }
+        });
     }
 
     public function getReviewById($id)
@@ -42,11 +128,13 @@ class ReviewController extends BaseController
             'users' => function ($qry) {
                 $qry->select('id', 'display_name', 'firstname', 'lastname', 'email', 'email_verified_at');
             },
-            'reviewTags'
+            'reviewTags',
+            'locality'
         ])->find($id);
         $review->suburb_list = Suburbs::selectRaw('name as text')
             ->where('postcode', $review->post_code)
             ->get();
+        $review->state = $this->resolveReviewStateId($review);
         $review->tags_list = Tags::where('is_active', true)->get();
         if ($review->property->developer_name) {
             $review->property_list = Properties::select('id', 'project_name')
@@ -66,6 +154,8 @@ class ReviewController extends BaseController
             if (!$reviewData) {
                 return $this->formatFailureResponse('Review not found', 404);
             }
+
+            $data = $this->applyLocalityToReviewData($data);
 
             $oldStatus = $reviewData->status;
 
@@ -237,6 +327,69 @@ class ReviewController extends BaseController
             ->values();
 
         return $this->formatSuccessResponse('success', $data);
+    }
+
+    public function getSuburbsByStateWithPostcode(Request $request)
+    {
+        $stateId = $request->state_id;
+
+        if (empty($stateId)) {
+            return $this->formatSuccessResponse('success', []);
+        }
+
+        $state = ReviewStates::select('id', 'name')->find($stateId);
+        if (!$state) {
+            return $this->formatSuccessResponse('success', []);
+        }
+
+        $data = Suburbs::where('state', $state->name)
+            ->select('name', 'postcode')
+            ->distinct()
+            ->orderBy('name')
+            ->orderBy('postcode')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'id' => $row->name,
+                    'name' => $row->name,
+                    'postcode' => (string) $row->postcode,
+                ];
+            })
+            ->values();
+
+        return $this->formatSuccessResponse('success', $data);
+    }
+
+    /**
+     * Reviews.store state as review_states.id. Older/seeded rows may have 0
+     * or a state name coerced to 0. Resolve a valid id from suburb + postcode
+     * so the edit form can prefills.
+     */
+    private function resolveReviewStateId($review)
+    {
+        $stateId = (int) $review->state;
+        if ($stateId && ReviewStates::where('id', $stateId)->exists()) {
+            return $stateId;
+        }
+
+        if ($review->suburb || $review->post_code) {
+            $suburbQuery = Suburbs::query();
+            if ($review->suburb) {
+                $suburbQuery->where('name', $review->suburb);
+            }
+            if ($review->post_code) {
+                $suburbQuery->where('postcode', $review->post_code);
+            }
+            $suburbRow = $suburbQuery->first();
+            if ($suburbRow) {
+                $matched = ReviewStates::where('name', $suburbRow->state)->first();
+                if ($matched) {
+                    return $matched->id;
+                }
+            }
+        }
+
+        return $review->state;
     }
 
     public function deleteReview($id)

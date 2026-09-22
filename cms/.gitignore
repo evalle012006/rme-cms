@@ -4,4 +4,4 @@ dist
 .env.production
 .DS_Store
 *.local
-.env
+.env.*

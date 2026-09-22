@@ -187,7 +187,6 @@ export default function DashboardPage() {
       <PropertyReviewsSection 
        initialData={dashboardData?.properties_bar_chart?.data}
        initialCompanies={dashboardData?.companies}
-       initialStates={dashboardData?.options?.state}
       />
 
       <ReviewCountSection />
@@ -195,7 +194,6 @@ export default function DashboardPage() {
       <RatingAttributesSection
         initialData={dashboardData?.chart2?.data}
         initialCompanies={dashboardData?.companies}
-        initialStates={dashboardData?.options?.state}
         initialProjects={dashboardData?.properties}
       />
     </div>

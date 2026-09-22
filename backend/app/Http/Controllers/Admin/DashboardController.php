@@ -11,6 +11,7 @@ use App\Models\RatingConfiguration;
 use App\Models\Review;
 use App\Models\ReviewStates;
 use App\Models\User;
+use App\Support\StateResolver;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
@@ -151,8 +152,8 @@ class DashboardController extends BaseController
     {
         $result = CompanyDetails::select('id', 'company_name as project_name')
             ->where('status', 1)
-            ->with(['companyProperties' => function ($qry) {
-                $qry->select('id', 'developer_name')
+            ->with(['companyProperties' => function ($qry) use ($state, $suburb) {
+                $qry->select('id', 'developer_name', 'state', 'suburb')
                     ->where('status', 1)
                     ->with(['reviews' => function ($qry) {
                         $qry->select('id', 'property_id', 'title', 'comment')
@@ -160,16 +161,12 @@ class DashboardController extends BaseController
                             ->with(['ratings', 'reviewTags'])
                             ->where('status', 1);
                     }]);
+                $this->applyPropertyLocationFilter($qry, $state, $suburb);
             }]);
 
         if ($state || $suburb) {
             $result = $result->whereHas('companyProperties', function ($qry) use ($state, $suburb) {
-                if ($state) {
-                    $qry->where('state', $state);
-                }
-                if ($suburb) {
-                    $qry->where('suburb', $suburb);
-                }
+                $this->applyPropertyLocationFilter($qry, $state, $suburb);
             });
         }
 
@@ -228,13 +225,7 @@ class DashboardController extends BaseController
                 $properties = $properties->where('developer_name', $companyId);
             }
 
-            if ($state) {
-                $properties = $properties->whereState($state);
-            }
-
-            if ($suburb) {
-                $properties = $properties->where('suburb', $suburb);
-            }
+            $this->applyPropertyLocationFilter($properties, $state, $suburb);
 
             $data = $properties->get()->transform(function ($item) {
                 $avgOfReviews = [];
@@ -326,7 +317,8 @@ class DashboardController extends BaseController
     {
         $companyId = $request->company_id;
         $propertyId = $request->project_id;
-        $suburb = $request->suburb;
+        $localityId = $request->locality_id;
+        $stateCode = $request->state_code;
         $state = $request->state;
 
         $allReviews = Review::select('id')->with('ratings')->where('status', 1);
@@ -341,9 +333,18 @@ class DashboardController extends BaseController
             $allReviews = $allReviews->wherePropertyId($propertyId);
         }
 
-        if ($suburb) {
-            $allReviews = $allReviews->where('suburb', 'LIKE', '%' . $suburb . '%');
+        // Suburb filtering used to compare a suburb id against the free-text
+        // suburb column, which never matched. It is a foreign key join now.
+        if ($localityId) {
+            $allReviews = $allReviews->where('reviews.locality_id', $localityId);
         }
+
+        if ($stateCode) {
+            $allReviews = $allReviews->whereHas('locality', function ($qry) use ($stateCode) {
+                $qry->where('state_code', strtoupper(trim($stateCode)));
+            });
+        }
+
         if ($state) {
             $allReviews = $allReviews->where('state', $state);
         }
@@ -395,5 +396,21 @@ class DashboardController extends BaseController
             Log::info('CSV_EXPORT_ERROR : ' . $e->getMessage());
             return $this->formatFailureResponse('Error generating CSV export', 500);
         }
+    }
+
+    private function applyPropertyLocationFilter($query, $state, $suburb)
+    {
+        $resolved = StateResolver::resolve($state);
+        if ($resolved) {
+            $query->whereIn('state', StateResolver::propertyStateValues($resolved));
+        } elseif ($state) {
+            $query->where('state', $state);
+        }
+
+        if ($suburb) {
+            $query->where('suburb', $suburb);
+        }
+
+        return $query;
     }
 }

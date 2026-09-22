@@ -196,12 +196,21 @@
                         </div>
                         <div class="col-50">
                             <label>State</label>
-                            <input type="text" name="state" placeholder="Victoria">
+                            <select class="w-100" id="add_project_state" name="state">
+                                <option value=""></option>
+                                @foreach($states as $state)
+                                    <option value="{{ $state->name }}" data-id="{{ $state->id }}">{{ $state->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
-
+                        <div class="col-50">
+                            <label>Suburb</label>
+                            <select class="w-100" id="add_project_suburb" disabled></select>
+                            <input type="hidden" name="suburb" id="add_project_suburb_name">
+                        </div>
                         <div class="col-50">
                             <label>Post code</label>
-                            <input type="text" name="post_code" placeholder="2255">
+                            <input type="text" name="post_code" id="add_project_post_code" placeholder="2255" readonly>
                         </div>
 
                         <div class="col-50">
@@ -488,6 +497,7 @@
                 maximumSelectionLength: 5,
                 placeholder: 'Select Category',
                 data: options,
+                dropdownParent: $(document.body),
                 language: {
                     "noResults": function () {
                         return "No Results Found";
@@ -502,6 +512,101 @@
             });
             $('#cat_id').on('select2:unselect', function (e) {
                 $("#property-form").validate().element("#cat_id");
+            });
+
+            const suburbsByStateUrl = "{{ route('autocomplete.fetchSuburbsByState') }}";
+
+            function suburbNameFromId(id) {
+                if (!id) return '';
+                const separator = String(id).lastIndexOf('|');
+                return separator === -1 ? String(id) : String(id).slice(0, separator);
+            }
+
+            function initAddProjectSelect($el, placeholder, disabled, results) {
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.select2('destroy');
+                }
+                const options = {
+                    allowClear: true,
+                    placeholder: placeholder,
+                    width: '100%',
+                    dropdownParent: $(document.body),
+                    language: {
+                        noResults: function () {
+                            return 'No Results Found';
+                        }
+                    }
+                };
+                if (results) {
+                    options.data = results;
+                }
+                $el.select2(options);
+                $el.prop('disabled', !!disabled);
+            }
+
+            function initAddProjectSuburbSelect(placeholder, disabled, results) {
+                const $el = $('#add_project_suburb');
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.select2('destroy');
+                }
+                $el.empty().append(new Option('', '', false, false));
+                initAddProjectSelect($el, placeholder, disabled, results || []);
+            }
+
+            function applyAddProjectSuburbSelection(data) {
+                if (!data || !data.id) {
+                    $('#add_project_suburb_name').val('');
+                    $('#add_project_post_code').val('');
+                    return;
+                }
+                const name = data.name || suburbNameFromId(data.id);
+                $('#add_project_suburb_name').val(name);
+                $('#add_project_post_code').val(data.postcode || '');
+            }
+
+            function loadAddProjectSuburbs(stateId) {
+                if (!stateId) {
+                    initAddProjectSuburbSelect('Select state first', true, []);
+                    $('#add_project_suburb_name').val('');
+                    $('#add_project_post_code').val('');
+                    return;
+                }
+
+                initAddProjectSuburbSelect('Loading suburbs…', true, []);
+
+                $.ajax({
+                    url: suburbsByStateUrl,
+                    method: 'POST',
+                    dataType: 'json',
+                    data: { state_id: stateId },
+                }).done(function (data) {
+                    initAddProjectSuburbSelect('Select Suburb', false, data.results || []);
+                    $('#add_project_suburb').val(null).trigger('change');
+                }).fail(function () {
+                    initAddProjectSuburbSelect('Select Suburb', false, []);
+                });
+            }
+
+            window.resetAddProjectLocation = function () {
+                $('#add_project_state').val(null).trigger('change');
+                $('#add_project_suburb_name').val('');
+                $('#add_project_post_code').val('');
+                initAddProjectSuburbSelect('Select state first', true, []);
+            }
+
+            initAddProjectSelect($('#add_project_state'), 'Select State', false);
+            initAddProjectSuburbSelect('Select state first', true, []);
+
+            $('#add_project_suburb').on('change', function () {
+                const selected = $(this).select2('data')[0];
+                applyAddProjectSuburbSelection(selected);
+            });
+
+            $('#add_project_state').on('change', function () {
+                const stateId = $(this).find('option:selected').data('id') || '';
+                $('#add_project_suburb_name').val('');
+                $('#add_project_post_code').val('');
+                loadAddProjectSuburbs(stateId);
             });
 
             $("#profile_image").change(function (e) {
@@ -578,6 +683,9 @@
         span.onclick = function () {
             modal.style.display = "none";
             $("body").removeClass("popup-show");
+            if (typeof window.resetAddProjectLocation === 'function') {
+                window.resetAddProjectLocation();
+            }
         }
 
         spanLogo.onclick = function () {
@@ -596,6 +704,9 @@
             if (event.target == modal) {
                 modal.style.display = "none";
                 $("body").removeClass("popup-show");
+                if (typeof window.resetAddProjectLocation === 'function') {
+                    window.resetAddProjectLocation();
+                }
             }
 
             if (event.target == logoModal) {

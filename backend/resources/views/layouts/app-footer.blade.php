@@ -46,6 +46,12 @@
     <div class="btm-footer">
         <div class="container">
             <p>Copyright © 2020 All Rights Reserved By <a href="{{route('root')}}">ratemyestate</a></p>
+            {{-- Required by the G-NAF End User Licence Agreement, which the suburb and postcode data is supplied under. --}}
+            <p>Incorporates or developed using G-NAF © <a
+                    href="https://geoscape.com.au/legal/data-copyright-and-disclaimer/" target="_blank"
+                    rel="noopener">Geoscape Australia</a> licensed by the Commonwealth of Australia under the <a
+                    href="https://data.gov.au/dataset/ds-dga-19432f89-dc3a-4ef3-b943-5326ef1dbecc" target="_blank"
+                    rel="noopener">Open Geo-coded National Address File (G-NAF) End User Licence Agreement</a>.</p>
         </div>
     </div>
 </footer>

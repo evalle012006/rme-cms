@@ -1,0 +1,9 @@
+review_id,title,state,suburb,post_code,property_id,created_at,reason
+1,"Great location and quality finish","New South Wales","World Square",2000,1,"2026-02-12 06:32:37","suburb not found in the locality table"
+2,"Exceeded our expectations","New South Wales","World Square",2000,1,"2026-04-21 06:32:37","suburb not found in the locality table"
+3,"Solid construction, minor defects","New South Wales","World Square",2000,1,"2026-07-07 06:32:37","suburb not found in the locality table"
+4,"Pending: Good value for first home buyers","New South Wales","World Square",2000,1,"2026-07-15 06:32:37","suburb not found in the locality table"
+17,"Builder was responsive and professional",Queensland,Baringa,4551,5,"2026-06-23 06:32:37","suburb not found in the locality table"
+18,"Some delays but worth the wait",Queensland,Baringa,4551,5,"2026-06-12 06:32:37","suburb not found in the locality table"
+19,"Highly recommended to families",Queensland,Baringa,4551,5,"2026-02-01 06:32:37","suburb not found in the locality table"
+20,"Pending: Average experience overall",Queensland,Baringa,4551,5,"2026-07-11 06:32:37","suburb not found in the locality table"

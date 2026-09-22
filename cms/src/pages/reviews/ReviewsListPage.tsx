@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import { Trash2 } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/atoms/Button"
 import { Breadcrumb, type BreadcrumbItem } from "@/components/atoms/Breadcrumb"
 import { ConfirmDialog } from "@/components/atoms/ConfirmDialog"
@@ -10,26 +11,34 @@ import {
   reviewsAPI,
   REVIEW_STATUS,
   type Review,
+  type ReviewLocalityFilter,
   type ReviewStatusFilter,
 } from "@/api/reviews/reviewsAPIHandler"
+import {
+  EMPTY_LOCALITY_SELECTION,
+  LocalitySelect,
+  type LocalitySelection,
+} from "@/components/atoms/LocalitySelect"
 import type {
   DataTablesColumnRequest,
   DataTablesRequest,
   SortDir,
 } from "@/types/api"
 import { ROUTES } from "@/constants/routes"
+import { formatDate } from "@/lib/utils"
 
 // ── Column metadata for `/datatable-reviews` ────────────────────────────────
-// Index order mirrors what the backend expects. Only `title` is searchable
-// and orderable. The 4th column has a deliberately empty `name` — the legacy
-// payload sends it that way, so we preserve it here to keep the request shape
-// identical to the production app.
+// Index order mirrors what the backend expects. Title and created_at are
+// searchable/orderable as marked. The 4th column has a deliberately empty
+// `name` — the legacy payload sends it that way, so we preserve it here to
+// keep the request shape identical to the production app.
 const COLUMN_META: Pick<DataTablesColumnRequest, "name" | "searchable" | "orderable">[] = [
   { name: "title",          searchable: true,  orderable: true  },
   { name: "status",         searchable: false, orderable: false },
   { name: "recommendation", searchable: false, orderable: false },
   { name: "",               searchable: false, orderable: false },
   { name: "action",         searchable: false, orderable: false },
+  { name: "created_at",     searchable: false, orderable: true  },
 ]
 
 // ── Recommendation cell ──────────────────────────────────────────────────────
@@ -84,6 +93,10 @@ export function ReviewsListPage({
   const [loading, setLoading] = useState(true)
   const [confirmId, setConfirmId] = useState<number | null>(null)
   const [reviewToDelete, setReviewToDelete] = useState<Review | null>(null)
+  const [locality, setLocality] = useState<LocalitySelection>(
+    EMPTY_LOCALITY_SELECTION
+  )
+  const [reportLoading, setReportLoading] = useState(false)
 
   // Increments per request; sent back as-is by the backend so we can detect
   // stale responses and ignore them.
@@ -116,16 +129,26 @@ export function ReviewsListPage({
       })),
     }
 
+    const localityFilter: ReviewLocalityFilter = {}
+    if (locality.localityId) {
+      localityFilter.locality_id = Number(locality.localityId)
+    }
+    if (locality.stateCode) {
+      localityFilter.state_code = locality.stateCode
+    }
+    if (locality.postcode) {
+      localityFilter.postcode = locality.postcode
+    }
+
     reviewsAPI
-      .datatable(payload, statusFilter)
+      .datatable(payload, statusFilter, localityFilter)
       .then((res) => {
-        if (res.draw !== draw) return
+        if (Number(res.draw) !== draw) return
         setData(res.data)
         setTotal(res.recordsFiltered)
       })
-      .catch(() => {})
       .finally(() => setLoading(false))
-  }, [page, perPage, search, sortKey, sortDir, statusFilter])
+  }, [page, perPage, search, sortKey, sortDir, statusFilter, locality])
 
   // Reset page/sort/search when the tab (status filter) changes.
   useEffect(() => {
@@ -133,6 +156,7 @@ export function ReviewsListPage({
     setSortKey(undefined)
     setSortDir(undefined)
     setSearch("")
+    setLocality(EMPTY_LOCALITY_SELECTION)
   }, [statusFilter])
 
   useEffect(() => {
@@ -183,6 +207,13 @@ export function ReviewsListPage({
         key: "company",
         header: "Company",
         cell: (row) => row.property?.company?.company_name || "—",
+      },
+      {
+        key: "created_at",
+        header: "Submitted At",
+        width: "140px",
+        sortable: true,
+        cell: (row) => formatDate(row.created_at),
       },
       {
         key: "status",
@@ -258,6 +289,30 @@ export function ReviewsListPage({
     setPage(1)
   }
 
+  const hasLocalityFilter = Boolean(
+    locality.stateCode || locality.localityId || locality.postcode
+  )
+
+  // Reviews submitted before locations were controlled may have no locality, so
+  // they cannot be filtered. The report lists them for manual resolution.
+  const downloadLocalityExceptions = useCallback(async () => {
+    setReportLoading(true)
+    try {
+      const report = await reviewsAPI.localityExceptions({
+        customErrorMessage: "Could not build the unresolved locations report",
+      })
+      if (!report.url) {
+        toast.success("Every review has a resolved location")
+        return
+      }
+      window.open(report.url, "_blank", "noopener")
+    } catch {
+      // Toast already shown by the API wrapper / global interceptor.
+    } finally {
+      setReportLoading(false)
+    }
+  }, [])
+
   // Derived pagination fields from total + page + perPage.
   const lastPage = Math.max(1, Math.ceil(total / perPage))
   const from = total === 0 ? null : (page - 1) * perPage + 1
@@ -266,6 +321,38 @@ export function ReviewsListPage({
   return (
     <div className="space-y-10">
       <Breadcrumb items={breadcrumb} />
+
+      <div className="flex flex-col gap-4 rounded-card border border-gray-200 bg-white p-5 lg:flex-row lg:items-end">
+        <LocalitySelect
+          className="flex-1"
+          value={locality}
+          onChange={(next) => {
+            setLocality(next)
+            setPage(1)
+          }}
+        />
+        <Button
+          type="button"
+          color="secondary"
+          className="h-auto py-2.5 whitespace-nowrap"
+          disabled={!hasLocalityFilter}
+          onClick={() => {
+            setLocality(EMPTY_LOCALITY_SELECTION)
+            setPage(1)
+          }}
+        >
+          Clear all filters
+        </Button>
+        <Button
+          type="button"
+          color="secondary"
+          className="h-auto py-2.5 whitespace-nowrap"
+          disabled={reportLoading}
+          onClick={() => void downloadLocalityExceptions()}
+        >
+          {reportLoading ? "Preparing…" : "Unresolved locations"}
+        </Button>
+      </div>
 
       <DataTable<Review>
         columns={columns}

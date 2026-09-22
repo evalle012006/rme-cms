@@ -374,12 +374,13 @@ class BuilderController extends BaseController
                 ->orderBy('created_at', 'DESC')
                 ->paginate(3, ["*"], 'advertise');
             $propertyCategory = PropertyCategory::get()->toArray();
+            $states = ReviewStates::select('id', 'name')->get();
 
             if (request()->ajax()) {
                 return view('partials.builder-my-property-list', compact('properties'));
             }
 
-            return view('builder-portal.my-property', compact('user', 'company', 'properties', 'pendingProperties', 'advertises', 'propertyCategory'));
+            return view('builder-portal.my-property', compact('user', 'company', 'properties', 'pendingProperties', 'advertises', 'propertyCategory', 'states'));
         }
         return redirect('/');
     }
@@ -541,13 +542,15 @@ class BuilderController extends BaseController
                 'reason' => $reason,
                 'company_name' => Auth::user()->company->company_name
             ];
-            $adminEmail = User::whereId(1)->pluck('email')->first();
-            app(ResendService::class)->send(
-                $adminEmail,
-                'User Reported',
-                'email-template.report-user',
-                ['data' => $data]
-            );
+            $adminEmail = config('mail.contact_to');
+            if ($adminEmail) {
+                app(ResendService::class)->send(
+                    $adminEmail,
+                    'User Reported',
+                    'email-template.report-user',
+                    ['data' => $data]
+                );
+            }
             return $this->jSonFormatSuccessResponse(['status' => 'success']);
         } else {
             return $this->jSonFormatFailureResponse('error');

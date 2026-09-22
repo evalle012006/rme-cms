@@ -288,17 +288,19 @@ class HomeController extends Controller
             $user->requested_display_name = $data['display_name'];
             $user->save();
             // send mail to admin
-            $adminEmail = User::whereId(1)->pluck('email')->first();
+            $adminEmail = config('mail.contact_to');
             $details = [
                 'display_name' => $user->display_name,
                 'full_name' => $user->firstname . ' ' . $user->lastname
             ];
-            app(ResendService::class)->send(
-                $adminEmail,
-                'Display name change request',
-                'email-template.change-request-admin',
-                ['details' => $details]
-            );
+            if ($adminEmail) {
+                app(ResendService::class)->send(
+                    $adminEmail,
+                    'Display name change request',
+                    'email-template.change-request-admin',
+                    ['details' => $details]
+                );
+            }
             return Redirect::to("my-profile")->with('request_placed',
                 'Great! Request has been placed to change display name.');
         }
@@ -352,6 +354,49 @@ class HomeController extends Controller
             ];
         }
         return [];
+    }
+
+    public function fetchSuburbsByStateWithPostcode(Request $request)
+    {
+        $stateId = $request->state_id;
+
+        if (empty($stateId)) {
+            return ['results' => []];
+        }
+
+        $state = ReviewStates::select('id', 'name')->find($stateId);
+        if (!$state) {
+            return ['results' => []];
+        }
+
+        $query = Suburbs::where('state', $state->name)
+            ->select('name', 'postcode')
+            ->distinct()
+            ->orderBy('name')
+            ->orderBy('postcode');
+
+        $search = $request->q;
+        if (!empty($search)) {
+            $query->where('name', 'LIKE', '%' . $search . '%');
+        }
+
+        $rows = $query->get();
+        $nameCounts = $rows->groupBy('name')->map->count();
+
+        $results = $rows->map(function ($row) use ($nameCounts) {
+            $name = $row->name;
+            $postcode = (string) $row->postcode;
+            $duplicate = ($nameCounts[$name] ?? 0) > 1;
+
+            return [
+                'id' => $duplicate ? $name . '|' . $postcode : $name,
+                'text' => $duplicate ? $name . ' (' . $postcode . ')' : $name,
+                'name' => $name,
+                'postcode' => $postcode,
+            ];
+        })->values();
+
+        return ['results' => $results];
     }
 
     public function autocompleteSuburb(Request $request)

@@ -9,6 +9,7 @@ use App\Models\PropertyCategory;
 use App\Models\Review;
 use App\Models\SelectMaster;
 use App\Models\Tags;
+use App\Support\StateResolver;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -522,7 +523,7 @@ class PropertyListingController extends Controller
 
         $categories = $request->get('categories');
         $cookie_property = $request->get('cookie_property', null);
-        $query = Properties::selectRaw('id, project_name as text')->where('status', 1);
+        $query = Properties::selectRaw('id, project_name as text, state, suburb, post_code')->where('status', 1);
 
         if ($request->get('company_id')) {
             $query->where('developer_name', $request->get('company_id'));
@@ -539,7 +540,7 @@ class PropertyListingController extends Controller
         $data = $query->where('project_name', 'LIKE', "%" . $request->get('q') . "%")->get();
 
         if (!empty($cookie_property)) {
-            $savedIdResults = Properties::selectRaw('id, project_name as text')
+            $savedIdResults = Properties::selectRaw('id, project_name as text, state, suburb, post_code')
                 ->where('id', $cookie_property['id'])->where('status', '<>', 1);
 
             if ($request->get('company_id')) {
@@ -560,8 +561,19 @@ class PropertyListingController extends Controller
             }
         }
 
+        $results = $data->map(function ($property) {
+            return [
+                'id' => $property->id,
+                'text' => $property->text,
+                'state' => $property->state,
+                'suburb' => $property->suburb,
+                'post_code' => $property->post_code,
+                'state_id' => StateResolver::id($property->state),
+            ];
+        })->values();
+
         return [
-            'results' => $data,
+            'results' => $results,
         ];
     }
 

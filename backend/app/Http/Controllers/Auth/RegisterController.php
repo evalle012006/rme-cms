@@ -8,10 +8,12 @@ use App\Models\PropertyCategory;
 use App\Models\Rating;
 use App\Models\Review;
 use App\Models\ReviewTags;
+use App\Models\Suburbs;
 use App\Models\User;
 use App\Rules\UniqueCompanyName;
 use App\Services\ResendService;
 use App\Services\SocialFacebookAccountService;
+use App\Support\StateResolver;
 use Carbon\Carbon;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -227,7 +229,7 @@ class RegisterController extends Controller
                 $data['profile_image'] = $this->saveToS3($file, 'profile-image/');
             }
 
-            $adminEmail = User::whereId(1)->pluck('email')->first();
+            $adminEmail = config('mail.contact_to');
 
             if ($isExistingCompany) {
                 $company = CompanyDetails::where('id', $data['company_id'])
@@ -379,6 +381,22 @@ class RegisterController extends Controller
             $insertData['state'] = $reviewData['review-state'];
             $insertData['post_code'] = $reviewData['review-post-code'];
             $insertData['suburb'] = $reviewData['review-suburb'];
+            $insertData['locality_id'] = $reviewData['review-locality-id'] ?? null;
+
+            // This path builds the review straight from the session, so re-derive
+            // the location from the locality rather than trusting the stored text.
+            $locality = $insertData['locality_id']
+                ? Suburbs::find($insertData['locality_id'])
+                : null;
+            if ($locality) {
+                $insertData['suburb'] = $locality->name;
+                $insertData['post_code'] = (string) $locality->postcode;
+                $stateId = StateResolver::id($locality->state_code);
+                if ($stateId) {
+                    $insertData['state'] = $stateId;
+                }
+            }
+
             $insertData['title'] = $reviewData['review-title'];
             $insertData['rating'] = $reviewData['review-rating'];
             $insertData['recommendation'] = $reviewData['review-recommendation'];
@@ -405,6 +423,7 @@ class RegisterController extends Controller
             $insertData['review_docs'] = $this->saveToS3($file, 'review-docs/');
 
             $insertData['is_agree'] = $reviewData['review-is-agree'];
+            $insertData['status'] = 0;
             $review_id = Review::create($insertData);
 
             if ($review_id) {

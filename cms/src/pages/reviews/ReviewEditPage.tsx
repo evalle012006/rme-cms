@@ -16,9 +16,13 @@ import {
   type ReviewCategory,
   type ReviewDetail,
 } from "@/api/reviews/reviewsAPIHandler"
-import { statesAPI, type State } from "@/api/states/statesAPIHandler"
 import { ROUTES } from "@/constants/routes"
 import { imgUrl } from "@/lib/utils"
+import {
+  EMPTY_LOCALITY_SELECTION,
+  LocalitySelect,
+  type LocalitySelection,
+} from "@/components/atoms/LocalitySelect"
 
 const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "svg"])
 
@@ -63,12 +67,10 @@ interface ReviewFormState {
   property_id: string
   recommendation: string
   buyer_type: string
-  post_code: string
-  state: string
   category_id: string
   comment: string
   year_of_completion: string
-  suburb: string
+  locality: LocalitySelection
   tag_ids: number[]
 }
 
@@ -78,13 +80,36 @@ const EMPTY_FORM: ReviewFormState = {
   property_id: "",
   recommendation: "",
   buyer_type: "",
-  post_code: "",
-  state: "",
   category_id: "",
   comment: "",
   year_of_completion: "",
-  suburb: "",
+  locality: EMPTY_LOCALITY_SELECTION,
   tag_ids: [],
+}
+
+/**
+ * Location comes from the locality record. A review saved before the locality
+ * foreign key existed has only the legacy text, so show that and leave the id
+ * empty — saving then requires picking a real locality.
+ */
+function toLocalityValue(review: ReviewDetail): LocalitySelection {
+  if (review.locality) {
+    return {
+      stateCode: review.locality.state_code ?? "",
+      stateId: review.state != null ? String(review.state) : "",
+      stateName: review.locality.state ?? "",
+      suburb: review.locality.name ?? "",
+      postcode: review.locality.postcode ?? "",
+      localityId: String(review.locality.id),
+    }
+  }
+
+  return {
+    ...EMPTY_LOCALITY_SELECTION,
+    stateId: review.state != null && review.state !== 0 ? String(review.state) : "",
+    suburb: review.suburb ?? "",
+    postcode: review.post_code ?? "",
+  }
 }
 
 function toFormState(review: ReviewDetail): ReviewFormState {
@@ -99,12 +124,10 @@ function toFormState(review: ReviewDetail): ReviewFormState {
     property_id: review.property_id ? String(review.property_id) : "",
     recommendation: recommended ? "1" : "0",
     buyer_type: review.buyer_type ? String(review.buyer_type) : "",
-    post_code: review.post_code ?? "",
-    state: review.state ? String(review.state) : "",
     category_id: review.category_id ? String(review.category_id) : "",
     comment: review.comment ?? "",
     year_of_completion: review.year_of_completion ?? "",
-    suburb: review.suburb ?? "",
+    locality: toLocalityValue(review),
     tag_ids: (review.review_tags ?? []).map((t) => t.id),
   }
 }
@@ -116,7 +139,6 @@ export default function ReviewEditPage() {
   const reviewId = Number(idParam)
 
   const [review, setReview] = useState<ReviewDetail | null>(null)
-  const [states, setStates] = useState<State[]>([])
   const [buyerTypes, setBuyerTypes] = useState<BuyerTypeOption[]>([])
   const [categories, setCategories] = useState<ReviewCategory[]>([])
   const [form, setForm] = useState<ReviewFormState>(EMPTY_FORM)
@@ -150,14 +172,12 @@ export default function ReviewEditPage() {
     Promise.all([
       reviewsAPI.getById(reviewId, { customErrorMessage: "Review not found" }),
       reviewsAPI.getFormMeta(),
-      statesAPI.getAll(),
     ])
-      .then(([detail, meta, loadedStates]) => {
+      .then(([detail, meta]) => {
         if (!mounted) return
         setReview(detail)
         setBuyerTypes(meta.buyertype?.option_select ?? [])
         setCategories(meta.categories ?? [])
-        setStates(loadedStates)
         setForm(toFormState(detail))
       })
       .catch(() => {
@@ -179,11 +199,11 @@ export default function ReviewEditPage() {
     []
   )
 
+
   const propertyOptions = useMemo(
     () => review?.property_list ?? [],
     [review]
   )
-  const suburbOptions = useMemo(() => review?.suburb_list ?? [], [review])
   const tagOptions = useMemo<MultiSelectOption[]>(
     () => (review?.tags_list ?? []).map((t) => ({ value: t.id, label: t.name })),
     [review]
@@ -237,9 +257,12 @@ export default function ReviewEditPage() {
             comment: form.comment,
             buyer_type: form.buyer_type,
             status: Number(form.status),
-            state: Number(form.state),
-            suburb: form.suburb,
-            post_code: form.post_code,
+            // The server re-derives state, suburb and postcode from the
+            // locality, so the FK is the only location field that matters.
+            state: Number(form.locality.stateId || 0),
+            suburb: form.locality.suburb,
+            post_code: form.locality.postcode,
+            locality_id: Number(form.locality.localityId),
             year_of_completion: form.year_of_completion,
             review_tags: form.tag_ids,
           },
@@ -404,42 +427,15 @@ export default function ReviewEditPage() {
               onChange={(e) => setField("year_of_completion", e.target.value)}
             />
 
-            <FormControl
-              label="Postcode"
+            <LocalitySelect
+              layout="grid"
+              value={form.locality}
               disabled={fieldsDisabled}
-              value={form.post_code}
-              onChange={(e) => setField("post_code", e.target.value)}
+              anyStateLabel="Select State"
+              anySuburbLabel="Select Suburb"
+              onChange={(locality) => setField("locality", locality)}
+              className="px-6 py-5"
             />
-
-            <FormControl
-              variant="select"
-              label="Suburb"
-              disabled={fieldsDisabled}
-              value={form.suburb}
-              onChange={(e) => setField("suburb", e.target.value)}
-            >
-              <option value="">Select Suburb</option>
-              {suburbOptions.map((s) => (
-                <option key={s.text} value={s.text}>
-                  {s.text}
-                </option>
-              ))}
-            </FormControl>
-
-            <FormControl
-              variant="select"
-              label="State"
-              disabled={fieldsDisabled}
-              value={form.state}
-              onChange={(e) => setField("state", e.target.value)}
-            >
-              <option value="">Select State</option>
-              {states.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.state_name}
-                </option>
-              ))}
-            </FormControl>
 
             <FormField label="Comment Tags">
               <MultiSelect

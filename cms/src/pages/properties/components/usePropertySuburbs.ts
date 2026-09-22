@@ -1,27 +1,29 @@
 import { useEffect, useState } from 'react'
 import {
   suburbsAPI,
-  type SuburbOption,
+  type SuburbByStateWithPostcodeOption,
 } from '@/api/suburbs/suburbsAPIHandler'
 
-export function usePropertySuburbs(postCode: string) {
-  const [suburbs, setSuburbs] = useState<SuburbOption[]>([])
+export function usePropertySuburbs(stateId: string) {
+  const [suburbs, setSuburbs] = useState<SuburbByStateWithPostcodeOption[]>([])
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    const trimmed = postCode.trim()
+    const trimmed = stateId.trim()
     if (!trimmed) {
       setSuburbs([])
+      setLoading(false)
       return
     }
 
     let cancelled = false
+    setSuburbs([])
     setLoading(true)
 
     suburbsAPI
-      .fetch({ postcode: trimmed, q: '' })
-      .then((res) => {
-        if (!cancelled) setSuburbs(res.results ?? [])
+      .byStateWithPostcode({ state_id: trimmed }, { showErrorToast: false })
+      .then((rows) => {
+        if (!cancelled) setSuburbs(rows ?? [])
       })
       .catch(() => {
         if (!cancelled) setSuburbs([])
@@ -33,7 +35,7 @@ export function usePropertySuburbs(postCode: string) {
     return () => {
       cancelled = true
     }
-  }, [postCode])
+  }, [stateId])
 
   return { suburbs, loading }
 }

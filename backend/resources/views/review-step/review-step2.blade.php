@@ -292,6 +292,7 @@
             'review-state',
             'review-post-code',
             'review-suburb',
+            'review-locality-id',
             'review-image',
             'review-image-system',
             'review-docs',

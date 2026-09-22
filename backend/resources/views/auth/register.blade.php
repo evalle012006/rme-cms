@@ -21,9 +21,9 @@
                         @endif
                         <div class="social-media-wrap">
                             <ul>
-                                <li class="fb-icon">
+                                {{-- <li class="fb-icon">
                                     <a href="{{ route('socialite-facebook') }}"><i class="fa fa-facebook" aria-hidden="true"></i></a>
-                                </li>
+                                </li> --}}
                                 <li class="gplus-icon">
                                     <a href="{{ route('socialite-google') }}"><i class="fa fa-google" aria-hidden="true"></i></a>
                                 </li>

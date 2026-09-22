@@ -100,26 +100,37 @@ export default function PropertyEditPage() {
     },
   })
 
+  const stateId = watch('state')
   const postCode = watch('post_code')
   const lat = watch('lat')
   const long = watch('long')
-  const previousPostCode = useRef<string | null>(null)
+  const previousState = useRef<string | null>(null)
 
   useEffect(() => {
     if (
-      previousPostCode.current !== null &&
-      previousPostCode.current !== postCode
+      previousState.current !== null &&
+      previousState.current !== stateId
     ) {
       setValue('suburb', '')
+      setValue('post_code', '')
     }
-    previousPostCode.current = postCode
-  }, [postCode, setValue])
+    previousState.current = stateId
+  }, [stateId, setValue])
+
+  const handleSuburbChange = useCallback(
+    (suburbName: string, nextPostCode: string) => {
+      setValue('suburb', suburbName, { shouldValidate: true })
+      setValue('post_code', nextPostCode, { shouldValidate: true })
+    },
+    [setValue]
+  )
 
   const applyProperty = useCallback(
     (property: Property, loadedStates: State[]) => {
+      const values = toFormValues(property, loadedStates)
       setOriginal(property)
-      previousPostCode.current = property.post_code ?? ''
-      reset(toFormValues(property, loadedStates))
+      previousState.current = values.state
+      reset(values)
       setExistingLogoUrl(property.full_property_logo)
       setLogo(null)
       setLogoCleared(false)
@@ -198,7 +209,10 @@ export default function PropertyEditPage() {
         const match = states.find(
           (s) => s.state_name.toLowerCase() === place.state.toLowerCase()
         )
-        if (match) setValue('state', String(match.id), { shouldValidate: true })
+        if (match) {
+          previousState.current = String(match.id)
+          setValue('state', String(match.id), { shouldValidate: true })
+        }
       }
       if (place.lat != null) setValue('lat', String(place.lat))
       if (place.lng != null) setValue('long', String(place.lng))
@@ -520,26 +534,27 @@ export default function PropertyEditPage() {
                 {...register('city')}
               />
 
-              <FormControl
-                label="Post Code"
-                placeholder=""
-                disabled={fieldsDisabled}
-                error={errors.post_code?.message}
-                {...register('post_code')}
-              />
-
               <Controller
                 control={control}
                 name="suburb"
                 render={({ field }) => (
                   <PropertySuburbSelect
+                    stateId={stateId}
                     postCode={postCode}
                     value={field.value}
-                    onChange={field.onChange}
+                    onChange={handleSuburbChange}
                     disabled={fieldsDisabled}
                     error={errors.suburb?.message}
                   />
                 )}
+              />
+
+              <FormControl
+                label="Post Code"
+                placeholder=""
+                alwaysReadOnly
+                error={errors.post_code?.message}
+                {...register('post_code')}
               />
 
               <FormField label="Latitude">

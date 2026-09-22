@@ -16,9 +16,6 @@
                         @if(!request()->has('company'))
                             <div class="social-media-wrap">
                                 <ul>
-                                    <li class="fb-icon"><a href="{{route('socialite-facebook')}}"><i class="fa fa-facebook"
-                                                                                                     aria-hidden="true"></i></a>
-                                    </li>
                                     <li class="gplus-icon"><a href="{{ route('socialite-google') }}"><i class="fa fa-google"
                                                                                                         aria-hidden="true"></i></a>
                                     </li>
@@ -26,14 +23,14 @@
                             </div>
                             <h6>Or use your email account</h6>
                         @else
-                            <div class="social-media-wrap">
+                            {{-- <div class="social-media-wrap">
                                 <ul>
                                     <li class="fb-icon"><a href="{{ route('socialite-facebook', ['intent' => 'builder_login']) }}"><i class="fa fa-facebook"
                                                                                                      aria-hidden="true"></i></a>
                                     </li>
                                 </ul>
                             </div>
-                            <h6>Or use your email account</h6>
+                            <h6>Or use your email account</h6> --}}
                         @endif
                         <form method="POST" action="{{route('login')}}">
                             @csrf

@@ -233,8 +233,7 @@
                                         {{--                                        <input type="text" name="xyz" class="rating-field" id="rating_suburb"--}}
                                         {{--                                               placeholder="Search by Suburb">--}}
 
-                                        <select class="rating-field w-100" id="rating_suburb">
-                                            {{--                                            <option value="">-- all suburbs --</option>--}}
+                                        <select class="rating-field w-100" id="rating_suburb" disabled>
                                         </select>
 
 
@@ -294,21 +293,23 @@
                                     <h4>Filter by:</h4>
                                     <div class="filter-wrap">
                                         <div class="filter-srch-row">
-                                            <select class="rating-field" name="state">
+                                            <select class="rating-field" id="property_state" name="state">
                                                 <option value="" {{request()->input('state')=='' ?'selected':'' }}>--
                                                     all states
                                                     --
                                                 </option>
                                                 @foreach($states as $state)
                                                     <option
-                                                        value="{{$state->name}}" {{request()->input('state')==$state->name ?'selected':'' }}>{{$state->name}}</option>
+                                                        value="{{$state->name}}"
+                                                        data-id="{{$state->id}}"
+                                                        {{request()->input('state')==$state->name ?'selected':'' }}>{{$state->name}}</option>
                                                 @endforeach
                                             </select>
                                             {{--                                            <input type="text" name="suburb"--}}
                                             {{--                                                   value="{{request()->input('suburb')}}"--}}
                                             {{--                                                   placeholder="Search by Suburb">--}}
 
-                                            <select class="rating-field w-100" id="property_suburb" name="suburb">
+                                            <select class="rating-field w-100" id="property_suburb" name="suburb" disabled>
                                             </select>
                                             {{--                                            <input type="text" name="zipcode"--}}
                                             {{--                                                   value="{{request()->input('zipcode')}}"--}}
@@ -465,62 +466,79 @@
             })
             @endif
             const params = new URLSearchParams(window.location.search);
-            const propertySuburb = params.get('suburb');
+            const suburbsByStateUrl = "{{ route('autocomplete.fetchSuburbsByState') }}";
 
-            if (propertySuburb) {
-                var $newOption = $("<option selected='selected'></option>").val(propertySuburb).text(propertySuburb)
-                $("#property_suburb").append($newOption).trigger('change');
+            function uniqueSuburbsByName(results) {
+                const seen = {};
+                const unique = [];
+                (results || []).forEach(function (row) {
+                    const name = row.name || row.text;
+                    if (!name || seen[name]) {
+                        return;
+                    }
+                    seen[name] = true;
+                    unique.push({ id: name, text: name });
+                });
+                return unique;
             }
 
+            function initFilterSuburbSelect($el, placeholder, disabled, results) {
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    $el.select2('destroy');
+                }
+                $el.empty().append(new Option('', '', false, false));
+                $el.select2({
+                    allowClear: true,
+                    placeholder: placeholder,
+                    data: results || [],
+                });
+                $el.prop('disabled', !!disabled);
+            }
 
-            $("#property_suburb").select2({
-                ajax: {
-                    url: "{{route('get-property-suburbs')}}",
+            function loadFilterSuburbs($el, stateId, selectedSuburb) {
+                if (!stateId) {
+                    initFilterSuburbSelect($el, 'Select state first', true, []);
+                    $el.val(null).trigger('change');
+                    return;
+                }
+
+                initFilterSuburbSelect($el, 'Loading suburbs…', true, []);
+
+                $.ajax({
+                    url: suburbsByStateUrl,
+                    method: 'POST',
                     dataType: 'json',
-                    delay: 250,
-                    type: 'POST',
-                    data: function (params) {
-                        return {
-                            search: params.term, // search term
-                        };
-                    },
-                    processResults: function (data, params) {
-                        return {
-                            results: data.results,
-                        };
-                    },
-                },
-                allowClear: true,
-                placeholder: '-- all suburbs --',
+                    data: { state_id: stateId },
+                }).done(function (data) {
+                    const results = uniqueSuburbsByName(data.results);
+                    initFilterSuburbSelect($el, '-- All Suburbs --', false, results);
+                    if (selectedSuburb) {
+                        $el.val(selectedSuburb).trigger('change');
+                    } else {
+                        $el.val(null).trigger('change');
+                    }
+                }).fail(function () {
+                    initFilterSuburbSelect($el, '-- All Suburbs --', false, []);
+                });
+            }
 
+            initFilterSuburbSelect($('#rating_suburb'), 'Select state first', true, []);
+            initFilterSuburbSelect($('#property_suburb'), 'Select state first', true, []);
+
+            $('#rating_state').on('change', function () {
+                loadFilterSuburbs($('#rating_suburb'), $(this).val());
             });
 
-
-            // for rating attribute
-
-            $("#rating_suburb").select2({
-                placeholder: '-- all suburbs --',
-                ajax: {
-                    url: "{{route('get-property-suburbs')}}",
-                    dataType: 'json',
-                    delay: 250,
-                    type: 'POST',
-                    data: function (params) {
-                        return {
-                            search: params.term, // search term
-                        };
-                    },
-                    processResults: function (data, params) {
-                        return {
-                            results: data.results,
-                        };
-                    },
-                },
-                allowClear: true,
-
+            $('#property_state').on('change', function () {
+                const stateId = $(this).find('option:selected').data('id') || '';
+                loadFilterSuburbs($('#property_suburb'), stateId);
             });
 
-            // end
+            const propertyStateId = $('#property_state option:selected').data('id') || '';
+            const propertySuburb = params.get('suburb');
+            if (propertyStateId) {
+                loadFilterSuburbs($('#property_suburb'), propertyStateId, propertySuburb);
+            }
 
             $("#project_id").select2();
             $("#project_id_export").select2();

@@ -55,8 +55,8 @@ App: `2026027518059672` (from `FACEBOOK_CLIENT_ID`).
 
    CMS_URL=https://ratemyestatecms-react.castledigital.com.au
    ```
-2. Run `docker-compose exec php php artisan config:clear && php artisan config:cache`.
-3. Run `docker-compose exec php php artisan migrate --force` to apply the
+2. Run `docker compose exec php php artisan config:clear && php artisan config:cache`.
+3. Run `docker compose exec php php artisan migrate --force` to apply the
    `social_facebook_accounts` hardening migration.
 
 ## Smoke test checklist

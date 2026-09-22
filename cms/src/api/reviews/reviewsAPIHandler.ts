@@ -25,6 +25,7 @@ export interface Review {
   // string label ("Recommend"/"Don't Recommend") or a 0/1 flag on some rows.
   // Accept all and let the cell renderer normalise.
   recommendation: string | number | boolean | null
+  created_at: string | null
   property?: ReviewProperty | null
 }
 
@@ -39,6 +40,16 @@ export const REVIEW_STATUS = {
 } as const
 
 export type ReviewStatusFilter = (typeof REVIEW_STATUS)[keyof typeof REVIEW_STATUS]
+
+/**
+ * Location filters for `/datatable-reviews`. Resolved server-side through the
+ * locality foreign key, so any combination narrows the same set.
+ */
+export interface ReviewLocalityFilter {
+  state_code?: string
+  locality_id?: number
+  postcode?: string
+}
 
 export interface UpdateReviewStatusPayload {
   id: number
@@ -56,6 +67,7 @@ export interface UpdateReviewPayload {
   state: number
   suburb: string
   post_code: string
+  locality_id: number
   year_of_completion: string
   review_tags: number[]
 }
@@ -115,6 +127,21 @@ export interface ReviewUser {
   full_name: string
 }
 
+/** Result of the unresolved-locality report. `url` is null when there are none. */
+export interface ReviewLocalityExceptions {
+  count: number
+  url: string | null
+}
+
+export interface ReviewLocality {
+  id: number
+  name: string
+  postcode: string
+  state: string
+  state_code: string
+  is_active: boolean
+}
+
 export interface ReviewDetail {
   id: number
   property_id: number | null
@@ -130,6 +157,8 @@ export interface ReviewDetail {
   state: number | string | null
   post_code: string | null
   suburb: string | null
+  locality_id: number | null
+  locality: ReviewLocality | null
   year_of_completion: string | null
   status: number
   suburb_list: ReviewSuburb[]
@@ -172,12 +201,13 @@ export const reviewsAPI = {
   // Note the extra `status` field that filters approved vs pending rows.
   datatable: (
     payload: DataTablesRequest,
-    status: ReviewStatusFilter
+    status: ReviewStatusFilter,
+    localityFilter: ReviewLocalityFilter = {}
   ): Promise<DataTablesResponse<Review>> =>
     apiRequestRaw(
       apiClient.post<DataTablesResponse<Review>>(
         REVIEWS_ENDPOINTS.DATATABLE,
-        { ...payload, status }
+        { ...payload, status, ...localityFilter }
       )
     ),
 
@@ -209,6 +239,16 @@ export const reviewsAPI = {
   getFormMeta: (options?: ApiRequestOptions): Promise<ReviewFormMeta> =>
     apiRequest<ReviewFormMeta>(
       apiClient.get<ApiEnvelope<ReviewFormMeta>>(REVIEWS_ENDPOINTS.FORM_META),
+      options
+    ),
+
+  localityExceptions: (
+    options?: ApiRequestOptions
+  ): Promise<ReviewLocalityExceptions> =>
+    apiRequest<ReviewLocalityExceptions>(
+      apiClient.get<ApiEnvelope<ReviewLocalityExceptions>>(
+        REVIEWS_ENDPOINTS.LOCALITY_EXCEPTIONS
+      ),
       options
     ),
 

@@ -1,23 +1,23 @@
 import { SelectDropdown } from '@/components/atoms/SelectDropdown'
-import { ScrollableSelectDropdown } from '@/components/atoms/ScrollableSelectDropdown'
 import { Button } from '@/components/atoms/Button'
+import {
+  EMPTY_LOCALITY_SELECTION,
+  LocalitySelect,
+  type LocalitySelection,
+} from '@/components/atoms/LocalitySelect'
 import { PROPERTY_REVIEWS_MODE_OPTIONS } from '@/pages/dashboard/shared/dashboardUtils'
 import type { SelectDropdownOption } from '@/components/atoms/SelectDropdown'
 
 export type PropertyReviewsFilterValues = {
   companyId: string
   mode: string
-  stateId: string
-  suburbId: string
+  locality: LocalitySelection
 }
 
 type PropertyReviewsFilterProps = {
   values: PropertyReviewsFilterValues
   companyOptions: SelectDropdownOption[]
-  stateOptions: SelectDropdownOption[]
-  suburbOptions: SelectDropdownOption[]
   loading?: boolean
-  suburbsLoading?: boolean
   onChange: (values: PropertyReviewsFilterValues) => void
   onSearch: () => void
 }
@@ -25,10 +25,7 @@ type PropertyReviewsFilterProps = {
 export function PropertyReviewsFilter({
   values,
   companyOptions,
-  stateOptions,
-  suburbOptions,
   loading = false,
-  suburbsLoading = false,
   onChange,
   onSearch,
 }: PropertyReviewsFilterProps) {
@@ -37,7 +34,7 @@ export function PropertyReviewsFilter({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-end gap-3">
       <div className="w-44">
         <SelectDropdown
           placeholder="-- All Companies --"
@@ -46,7 +43,7 @@ export function PropertyReviewsFilter({
           onChange={(event) =>
             update({
               companyId: event.target.value,
-              suburbId: '',
+              locality: EMPTY_LOCALITY_SELECTION,
             })
           }
         />
@@ -62,34 +59,14 @@ export function PropertyReviewsFilter({
       </div>
 
       <div className="rounded-card border border-gray-200 bg-gray-50 p-2">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="w-44">
-            <SelectDropdown
-              placeholder="-- All States --"
-              options={stateOptions}
-              value={values.stateId}
-              onChange={(event) =>
-                update({
-                  stateId: event.target.value,
-                  suburbId: '',
-                })
-              }
-              className="border-primary-400 bg-primary-50"
-            />
-          </div>
-
-          <div className="w-44">
-            <ScrollableSelectDropdown
-              placeholder={
-                suburbsLoading ? 'Loading suburbs...' : '-- All Suburbs --'
-              }
-              options={suburbsLoading ? [] : suburbOptions}
-              value={suburbsLoading ? '' : values.suburbId}
-              onChange={(suburbId) => update({ suburbId })}
-              className="border-primary-400 bg-primary-50"
-              disabled={!values.stateId || suburbsLoading}
-            />
-          </div>
+        <div className="flex flex-wrap items-end gap-3">
+          <LocalitySelect
+            className="w-full sm:w-auto"
+            value={values.locality}
+            anyStateLabel="-- All States --"
+            anySuburbLabel="-- All Suburbs --"
+            onChange={(locality) => update({ locality })}
+          />
 
           <Button
             color="primary"

@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\StateResolver;
+use App\Support\SuburbStateLookup;
 use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -224,7 +226,7 @@ class TestDataSeeder extends Seeder
                 'project_name'   => $p['project_name'],
                 'developer_name' => $p['developer_name'],
                 'status'         => $p['status'],
-                'state'          => $p['state'],
+                'state'          => SuburbStateLookup::canonicalName($p['suburb'], $p['post_code']) ?: $p['state'],
                 'city'           => $p['city'],
                 'suburb'         => $p['suburb'],
                 'post_code'      => $p['post_code'],
@@ -292,19 +294,20 @@ class TestDataSeeder extends Seeder
             'Decent property but nothing exceptional. Met our basic requirements.',
         ];
 
-        $states    = ['New South Wales', 'Victoria', 'Queensland', 'Western Australia', 'South Australia'];
-        $suburbs   = ['Surry Hills', 'Fitzroy', 'Fortitude Valley', 'Subiaco', 'Norwood'];
-        $postCodes = ['2010', '3065', '4006', '6008', '5067'];
-
         $reviewCount = 0;
 
         foreach ($propertyIds as $propertyId) {
+            $property = DB::table('properties')->where('id', $propertyId)->first();
             $reviewsForProperty = rand(2, 4);
             for ($r = 0; $r < $reviewsForProperty; $r++) {
                 $createdAt  = Carbon::now()->subMonths(rand(0, 5))->subDays(rand(0, 25));
                 $reviewerId = $reviewerIds[array_rand($reviewerIds)];
-                $stateIdx   = array_rand($states);
                 $titleIdx   = $reviewCount % count($titles);
+                $stateId    = $property
+                    ? (SuburbStateLookup::canonicalId($property->suburb, $property->post_code)
+                        ?: StateResolver::id($property->state)
+                        ?: 0)
+                    : 0;
 
                 $reviewId = DB::table('reviews')->insertGetId([
                     'property_id'        => $propertyId,
@@ -314,9 +317,9 @@ class TestDataSeeder extends Seeder
                     'comment'            => $comments[$reviewCount % count($comments)],
                     'buyer_type'         => rand(1, 3),
                     'recommendation'     => rand(0, 1),
-                    'state'              => $states[$stateIdx],
-                    'suburb'             => $suburbs[$stateIdx],
-                    'post_code'          => $postCodes[$stateIdx],
+                    'state'              => $stateId,
+                    'suburb'             => $property->suburb ?? '',
+                    'post_code'          => $property->post_code ?? '',
                     'year_of_completion' => rand(2020, 2024),
                     'status'             => 1,
                     'slug'               => \Illuminate\Support\Str::slug($titles[$titleIdx]) . '-' . $reviewCount,
@@ -360,9 +363,13 @@ class TestDataSeeder extends Seeder
                 'comment'            => 'This review is awaiting moderation.',
                 'buyer_type'         => 1,
                 'recommendation'     => 1,
-                'state'              => 'New South Wales',
-                'suburb'             => 'Surry Hills',
-                'post_code'          => '2010',
+                'state'              => $property
+                    ? (SuburbStateLookup::canonicalId($property->suburb, $property->post_code)
+                        ?: StateResolver::id($property->state)
+                        ?: 0)
+                    : 0,
+                'suburb'             => $property->suburb ?? '',
+                'post_code'          => $property->post_code ?? '',
                 'year_of_completion' => 2024,
                 'status'             => 0,
                 'slug'               => 'pending-review-' . $propertyId . '-' . $reviewCount,

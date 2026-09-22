@@ -1,3 +1,8 @@
+import {
+  EMPTY_LOCALITY_SELECTION,
+  type LocalitySelection,
+} from '@/components/atoms/LocalitySelect'
+
 export const STAR_LABELS_DESC = ['5 star', '4 star', '3 star', '2 star', '1 star']
 export const STAR_LABELS_ASC = ['1 star', '2 star', '3 star', '4 star', '5 star']
 export const RATING_ATTR_X_LABELS = [
@@ -174,30 +179,14 @@ export function toPropertySelectOptions(
 export const DEFAULT_PROPERTY_REVIEWS_FILTERS = {
   companyId: '',
   mode: 'first',
-  stateId: '',
-  suburbId: '',
+  locality: EMPTY_LOCALITY_SELECTION,
 } as const
 
-function resolveOptionName(
-  id: string,
-  items: Array<{ id: number | string; name: string }> | undefined
-): string | null {
-  if (!id || !items?.length) return null
-  return items.find((item) => String(item.id) === id)?.name ?? null
-}
-
-export function buildPropertyReviewsOptionsPayload(
-  filters: {
-    companyId: string
-    mode: string
-    stateId: string
-    suburbId: string
-  },
-  lookup?: {
-    states?: Array<{ id: number | string; name: string }>
-    suburbs?: Array<{ id: number | string; name: string }>
-  }
-) {
+export function buildPropertyReviewsOptionsPayload(filters: {
+  companyId: string
+  mode: string
+  locality: LocalitySelection
+}) {
   const payload: {
     company_id?: number | null
     mode: 'first' | 'last'
@@ -205,8 +194,10 @@ export function buildPropertyReviewsOptionsPayload(
     suburb: string | null
   } = {
     mode: filters.mode === 'last' ? 'last' : 'first',
-    state: resolveOptionName(filters.stateId, lookup?.states),
-    suburb: resolveOptionName(filters.suburbId, lookup?.suburbs),
+    // This endpoint filters properties, which have no locality FK, so the names
+    // are taken off the selected locality row.
+    state: filters.locality.stateName || null,
+    suburb: filters.locality.suburb || null,
   }
 
   if (filters.companyId) {
@@ -221,14 +212,16 @@ export function buildPropertyReviewsOptionsPayload(
 export function buildRatingAttributesPayload(filters: {
   companyId: string
   projectId: string
-  stateId: string
-  suburbId: string
+  locality: LocalitySelection
 }) {
   return {
     company_id: filters.companyId ? Number(filters.companyId) : null,
     project_id: filters.projectId ? Number(filters.projectId) : null,
-    state: filters.stateId || '',
-    suburb: filters.suburbId || null,
+    // Reviews carry a locality FK, so both location filters are exact.
+    state_code: filters.locality.stateCode || null,
+    locality_id: filters.locality.localityId
+      ? Number(filters.locality.localityId)
+      : null,
   }
 }
 
@@ -266,17 +259,29 @@ function formatExportFilterSummary(
   return applied.length > 0 ? applied.join(EXPORT_FILTER_SEPARATOR) : undefined
 }
 
+/** State and suburb read straight off the selected locality. */
+function localityExportParts(locality: LocalitySelection) {
+  return [
+    { label: 'State', value: locality.stateName || null },
+    {
+      label: 'Suburb',
+      value: locality.suburb
+        ? locality.postcode
+          ? `${locality.suburb} ${locality.postcode}`
+          : locality.suburb
+        : null,
+    },
+  ]
+}
+
 export function formatPropertyReviewsExportFilters(
   filters: {
     companyId: string
     mode: string
-    stateId: string
-    suburbId: string
+    locality: LocalitySelection
   },
   options: {
     companyOptions: ExportFilterOption[]
-    stateOptions: ExportFilterOption[]
-    suburbOptions: ExportFilterOption[]
   }
 ): string | undefined {
   const modeLabel = PROPERTY_REVIEWS_MODE_OPTIONS.find(
@@ -289,28 +294,18 @@ export function formatPropertyReviewsExportFilters(
       value: getExportFilterOptionLabel(filters.companyId, options.companyOptions),
     },
     { label: 'View', value: modeLabel ?? null },
-    {
-      label: 'State',
-      value: getExportFilterOptionLabel(filters.stateId, options.stateOptions),
-    },
-    {
-      label: 'Suburb',
-      value: getExportFilterOptionLabel(filters.suburbId, options.suburbOptions),
-    },
+    ...localityExportParts(filters.locality),
   ])
 }
 
 export function formatRatingAttributesExportFilters(
   filters: {
     companyId: string
-    stateId: string
-    suburbId: string
+    locality: LocalitySelection
     projectId: string
   },
   options: {
     companyOptions: ExportFilterOption[]
-    stateOptions: ExportFilterOption[]
-    suburbOptions: ExportFilterOption[]
     projectOptions: ExportFilterOption[]
   }
 ): string | undefined {
@@ -319,14 +314,7 @@ export function formatRatingAttributesExportFilters(
       label: 'Company',
       value: getExportFilterOptionLabel(filters.companyId, options.companyOptions),
     },
-    {
-      label: 'State',
-      value: getExportFilterOptionLabel(filters.stateId, options.stateOptions),
-    },
-    {
-      label: 'Suburb',
-      value: getExportFilterOptionLabel(filters.suburbId, options.suburbOptions),
-    },
+    ...localityExportParts(filters.locality),
     {
       label: 'Project',
       value: getExportFilterOptionLabel(filters.projectId, options.projectOptions),

@@ -63,6 +63,7 @@ load_nvm() {
 # -----------------------------------------------------------------------------
 log "Pulling latest code..."
 cd "$REPO_DIR" || error "Repo not found at $REPO_DIR"
+# git pull origin main || error "Git pull failed"
 git pull origin development || error "Git pull failed"
 
 # -----------------------------------------------------------------------------
@@ -113,15 +114,6 @@ else
     mkdir -p "$LARAVEL_PUBLIC_CMS"
     rm -rf "${LARAVEL_PUBLIC_CMS:?}"/*
     cp -r "$CMS_BUILD_OUTPUT"/. "$LARAVEL_PUBLIC_CMS/"
-
-    # Nginx (port 8002) serves /var/www/backend/public/cms via bind mount.
-    # Also sync into the legacy cms volume if nginx container is running,
-    # in case an older nginx config still points at /var/www/cms.
-    if docker ps --format '{{.Names}}' | grep -qx 'rme_nginx'; then
-        log "Syncing React build into rme_nginx:/var/www/cms (compat)"
-        docker exec rme_nginx mkdir -p /var/www/cms
-        docker cp "$LARAVEL_PUBLIC_CMS"/. rme_nginx:/var/www/cms/
-    fi
 fi
 
 # -----------------------------------------------------------------------------
@@ -208,12 +200,6 @@ docker-compose exec -T php php artisan view:cache
 log "Fixing storage permissions..."
 docker-compose exec -T php chown -R www-data:www-data storage bootstrap/cache
 docker-compose exec -T php chmod -R 775 storage bootstrap/cache
-
-# -----------------------------------------------------------------------------
-# STEP 12 — Create storage symlink (public/storage → storage/app/public)
-# -----------------------------------------------------------------------------
-log "Creating storage symlink..."
-docker-compose exec -T php php artisan storage:link || warn "storage:link failed (check storage permissions)"
 
 # -----------------------------------------------------------------------------
 # DONE

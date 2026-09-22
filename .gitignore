@@ -1,3 +1,5 @@
 cms/package-lock.json
 .DS_Store
-cms/.env
+/rme_local_dump.sql
+deploy.sh
+.env

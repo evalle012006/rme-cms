@@ -3,7 +3,6 @@ import {
   dashboardAPI,
   type DashboardCompany,
   type DashboardPropertyOption,
-  type DashboardState,
 } from '@/api/dashboard/dashboardAPIHandler'
 import { DashboardSectionCard } from '@/pages/dashboard/shared/DashboardSectionCard'
 import {
@@ -12,7 +11,7 @@ import {
   toPropertySelectOptions,
   toSelectOptions,
 } from '@/pages/dashboard/shared/dashboardUtils'
-import { useSuburbsByState } from '@/pages/dashboard/shared/useSuburbsByState'
+import { EMPTY_LOCALITY_SELECTION } from '@/components/atoms/LocalitySelect'
 import {
   RatingAttributesFilter,
   type RatingAttributesFilterValues,
@@ -22,14 +21,12 @@ import { RatingAttributesChart } from './RatingAttributesChart'
 type RatingAttributesSectionProps = {
   initialData?: Record<string, number | null>
   initialCompanies?: DashboardCompany[]
-  initialStates?: DashboardState[]
   initialProjects?: DashboardPropertyOption[]
 }
 
 const defaultFilters: RatingAttributesFilterValues = {
   companyId: '',
-  stateId: '',
-  suburbId: '',
+  locality: EMPTY_LOCALITY_SELECTION,
   projectId: '',
 }
 
@@ -45,7 +42,6 @@ function normalizeChartData(
 export function RatingAttributesSection({
   initialData = {},
   initialCompanies = [],
-  initialStates = [],
   initialProjects = [],
 }: RatingAttributesSectionProps) {
   const [filters, setFilters] =
@@ -54,9 +50,6 @@ export function RatingAttributesSection({
     useState<Record<string, number | null>>(normalizeChartData(initialData))
   const [loading, setLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
-  const { suburbOptions, loading: suburbsLoading } = useSuburbsByState(
-    filters.stateId
-  )
 
   useEffect(() => {
     if (!hasSearched && Object.keys(normalizeChartData(initialData)).length) {
@@ -83,10 +76,6 @@ export function RatingAttributesSection({
     () => toSelectOptions(initialCompanies),
     [initialCompanies]
   )
-  const stateOptions = useMemo(
-    () => toSelectOptions(initialStates),
-    [initialStates]
-  )
   const scopedProjects = useMemo(() => {
     if (!filters.companyId) {
       return initialProjects
@@ -105,11 +94,9 @@ export function RatingAttributesSection({
     () =>
       formatRatingAttributesExportFilters(filters, {
         companyOptions,
-        stateOptions,
-        suburbOptions,
         projectOptions,
       }),
-    [filters, companyOptions, stateOptions, suburbOptions, projectOptions]
+    [filters, companyOptions, projectOptions]
   )
 
   return (
@@ -121,11 +108,8 @@ export function RatingAttributesSection({
         <RatingAttributesFilter
           values={filters}
           companyOptions={companyOptions}
-          stateOptions={stateOptions}
-          suburbOptions={suburbOptions}
           projectOptions={projectOptions}
           loading={loading}
-          suburbsLoading={suburbsLoading}
           onChange={setFilters}
           onSearch={() => void fetchChart()}
         />

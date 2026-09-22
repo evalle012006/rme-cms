@@ -76,14 +76,18 @@
                                     <span class="text-danger">{{ $errors->first('state') }}</span>
                                 </div>
                                 <div class="form-field">
-                                    <label>Postcode</label>
-                                    <input type="text" name="post_code" placeholder="Type Postcode" value="{{old('post_code')}}">
-                                    <span class="text-danger">{{ $errors->first('post_code') }}</span>
+                                    <label>Suburb</label>
+                                    <select class="w-100" id="suburb"></select>
+                                    <input type="hidden" name="suburb" id="suburb_name" value="{{old('suburb')}}">
+                                    <span class="text-danger">{{ $errors->first('suburb') }}</span>
                                 </div>
                                 <div class="form-field">
-                                    <label>Suburb</label>
-                                    <input type="text" name="suburb" placeholder="Suburb" value="{{old('suburb')}}">
-                                    <span class="text-danger">{{ $errors->first('suburb') }}</span>
+                                    <label>Postcode</label>
+                                    <input type="text" name="post_code" placeholder="Postcode" id="post_code"
+                                           readonly value="{{old('post_code')}}">
+                                    <input type="hidden" name="locality_id" id="locality_id" value="{{old('locality_id')}}">
+                                    <span class="text-danger">{{ $errors->first('post_code') }}</span>
+                                    <span class="text-danger">{{ $errors->first('locality_id') }}</span>
                                 </div>
                             </div>
 
@@ -310,6 +314,7 @@
 @section('extra-script')
     <script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+    <script src="{{ asset('js/locality-select.js') }}"></script>
     <script>
             @if(session('error'))
         let msg = '<?= session('error') ?>'
@@ -352,22 +357,19 @@
                 }
             }
         });
-        $('#state_id').select2({
-            allowClear: true,
-            placeholder: {
-                name: "",
-                placeholder: "Leave blank to ..."
-            },
-            ajax: {
-                delay: 250,
-                url: "{{ route('autocomplete.fetchStates') }}",
-                method: 'POST',
-                dataType: 'json',
-                processResults: function (data, params) {
-                    return {
-                        results: data.results,
-                    };
-                }
+        // State / Suburb / Postcode is handled by the shared locality component,
+        // which resolves the selection to a locality_id from the reference table.
+        RmeLocalitySelect.init({
+            apiBase: {!! json_encode(url('/api')) !!},
+            stateEl: '#state_id',
+            suburbEl: '#suburb',
+            suburbValueEl: '#suburb_name',
+            postcodeEl: '#post_code',
+            localityIdEl: '#locality_id',
+            initial: {
+                stateId: {!! json_encode(old('state')) !!},
+                suburb: {!! json_encode(old('suburb')) !!},
+                postcode: {!! json_encode(old('post_code')) !!}
             }
         });
         $('.rating-radio').on('change', function () {

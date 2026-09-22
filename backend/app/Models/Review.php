@@ -25,6 +25,7 @@ class Review extends Model implements ViewableContract
         'state' => 'required',
         'suburb' => 'required',
         'post_code' => 'required',
+        'locality_id' => 'required|exists:suburbs,id',
         'year_of_completion' => 'nullable',
         'parent_id' => 'nullable',
     ];
@@ -38,6 +39,7 @@ class Review extends Model implements ViewableContract
         'state' => 'required',
         'suburb' => 'required',
         'post_code' => 'required',
+        'locality_id' => 'required|exists:suburbs,id',
         'year_of_completion' => 'nullable',
         'parent_id' => 'nullable',
         'review_image' => 'nullable|file|image|mimes:jpeg,png,jpg,gif|max:5120',
@@ -55,6 +57,7 @@ class Review extends Model implements ViewableContract
         'state',
         'post_code',
         'suburb',
+        'locality_id',
         'year_of_completion',
         'status',
         'parent_id',
@@ -108,6 +111,11 @@ class Review extends Model implements ViewableContract
     public function stateName()
     {
         return $this->belongsTo(ReviewStates::class, 'state', 'id');
+    }
+
+    public function locality()
+    {
+        return $this->belongsTo(Suburbs::class, 'locality_id', 'id');
     }
 
     public function buyerTypeRow()

@@ -73,8 +73,9 @@ export interface DashboardData {
 export interface RatingAttributesFilterPayload {
   company_id: number | null
   project_id: number | null
-  state: string
-  suburb: string | null
+  /** Three letter state code, matched through the review's locality. */
+  state_code: string | null
+  locality_id: number | null
 }
 
 export type RatingAttributesData = Record<string, number>

@@ -11,9 +11,11 @@ use App\Models\RatingConfiguration;
 use App\Models\Review;
 use App\Models\ReviewTags;
 use App\Models\SelectMaster;
+use App\Models\Suburbs;
 use App\Models\User;
 use App\Rules\UniqueCompanyName;
 use App\Services\ResendService;
+use App\Support\StateResolver;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -50,7 +52,8 @@ class ReviewController extends BaseController
                 'review-category',
                 'review-state',
                 'review-post-code',
-                'review-suburb'
+                'review-suburb',
+                'review-locality-id'
             ];
             $removeItems = [
                 'review-image',
@@ -157,7 +160,14 @@ class ReviewController extends BaseController
             'state' => 'required',
             'post_code' => 'required',
             'suburb' => 'required',
-        ], ['project_id.required' => 'Project/Estate Name is required']);
+            'locality_id' => 'required|exists:suburbs,id',
+        ], [
+            'project_id.required' => 'Project/Estate Name is required',
+            'locality_id.required' => 'Please select a State, Suburb and Postcode from the list',
+            'locality_id.exists' => 'Please select a State, Suburb and Postcode from the list',
+        ]);
+
+        $data = $this->applyPropertyLocationToReviewData($data, $data['project_id']);
 
         $previousProperty = $request->session()->get('review-property-id');
         $previousCategory = $request->session()->get('review-category');
@@ -172,6 +182,7 @@ class ReviewController extends BaseController
         $request->session()->put('review-state', $data['state']);
         $request->session()->put('review-post-code', $data['post_code']);
         $request->session()->put('review-suburb', $data['suburb']);
+        $request->session()->put('review-locality-id', $data['locality_id']);
 
         if ($request->session()->has('review-property-id') && $request->session()->has('buyer-type')
             && $request->session()->has('review-category')) {
@@ -305,6 +316,10 @@ class ReviewController extends BaseController
                     $data['suburb'] = $request->session()->get('review-suburb');
                 }
 
+                if ($request->session()->has('review-locality-id')) {
+                    $data['locality_id'] = $request->session()->get('review-locality-id');
+                }
+
                 if ($request->session()->has('review-year-complete')) {
                     $data['year_of_completion'] = $request->session()->get('review-year-complete');
                 }
@@ -328,6 +343,14 @@ class ReviewController extends BaseController
                         ->withInput();
                 }
                 $data['review_docs'] = $this->saveToS3($file, self::REVIEWDOCS_STORAGE_PATH);
+                $data['status'] = 0;
+                if (empty($data['property_id']) && $request->session()->has('review-property-id')) {
+                    $data['property_id'] = $request->session()->get('review-property-id');
+                }
+                $data = $this->applyPropertyLocationToReviewData(
+                    $data,
+                    $data['property_id'] ?? $request->session()->get('review-property-id')
+                );
 
                 if ($review_id = Review::create($data)) {
                     if (count($data['tags']) > 0) {
@@ -360,6 +383,7 @@ class ReviewController extends BaseController
                     $request->session()->forget('review-state');
                     $request->session()->forget('review-post-code');
                     $request->session()->forget('review-suburb');
+                    $request->session()->forget('review-locality-id');
                     $request->session()->forget('review-title');
                     $request->session()->forget('review-is-agree');
                     $request->session()->forget('review-comment');
@@ -397,36 +421,73 @@ class ReviewController extends BaseController
 
     public function sendMailUponReviewCreation($reviewId, $suggestedCategory)
     {
+        $review = Review::select('id', 'property_id', 'title', 'user_id')
+            ->whereId($reviewId)
+            ->with('property:id,project_name', 'users')
+            ->first();
+
+        if (!$review) {
+            Log::error('REVIEW_NOTIFY_MISSING_REVIEW', ['review_id' => $reviewId]);
+            return;
+        }
+
+        $reviewData = $review->toArray();
+        $mailer = app(ResendService::class);
+        $reviewerEmail = $reviewData['users']['email'] ?? null;
+
         try {
-            $reviewData = Review::select('id', 'property_id', 'title', 'user_id')
-                ->whereId($reviewId)
-                ->with('property:id,project_name', 'users')
-                ->first()
-                ->toArray();
-
-            $adminEmail = User::whereId(1)->pluck('email')->first();
-            $mailer = app(ResendService::class);
-
-            $mailer->send(
-                $reviewData['users']['email'],
-                'Thank you',
-                'email-template.pending-review',
-                ['suggestedCategory' => $suggestedCategory]
-            );
-
-            $viewData = [
-                'property_name' => $reviewData['property']['project_name'],
-                'full_name' => $reviewData['users']['firstname'] . ' ' . $reviewData['users']['lastname'],
-                'display_name' => $reviewData['users']['display_name']
-            ];
-            $mailer->send(
-                $adminEmail,
-                'New review submitted',
-                'email-template.review-submitted',
-                ['details' => $viewData]
-            );
+            if ($reviewerEmail) {
+                $mailer->send(
+                    $reviewerEmail,
+                    'Thank you',
+                    'email-template.pending-review',
+                    ['suggestedCategory' => $suggestedCategory]
+                );
+            } else {
+                Log::error('REVIEW_NOTIFY_MISSING_REVIEWER_EMAIL', ['review_id' => $reviewId]);
+            }
         } catch (\Exception $e) {
-            Log::info('EMAIL_ERROR : ' . $e->getMessage());
+            Log::error('REVIEW_REVIEWER_MAIL_ERROR: ' . $e->getMessage(), [
+                'review_id' => $reviewId,
+            ]);
+        }
+
+        $adminEmails = User::role('admin')
+            ->where('status', 1)
+            ->pluck('email')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($adminEmails->isEmpty()) {
+            Log::error('REVIEW_ADMIN_MAIL_ERROR: no active admin emails found', [
+                'review_id' => $reviewId,
+            ]);
+            return;
+        }
+
+        $user = $reviewData['users'] ?? [];
+        $property = $reviewData['property'] ?? [];
+        $viewData = [
+            'property_name' => $property['project_name'] ?? '',
+            'full_name' => trim(($user['firstname'] ?? '') . ' ' . ($user['lastname'] ?? '')),
+            'display_name' => $user['display_name'] ?? '',
+        ];
+
+        foreach ($adminEmails as $adminEmail) {
+            try {
+                $mailer->send(
+                    $adminEmail,
+                    'New review submitted',
+                    'email-template.review-submitted',
+                    ['details' => $viewData]
+                );
+            } catch (\Exception $e) {
+                Log::error('REVIEW_ADMIN_MAIL_ERROR: ' . $e->getMessage(), [
+                    'review_id' => $reviewId,
+                    'admin_email' => $adminEmail,
+                ]);
+            }
         }
     }
 
@@ -448,12 +509,15 @@ class ReviewController extends BaseController
             'state' => 'required',
             'post_code' => 'required',
             'suburb' => 'required',
+            'locality_id' => 'required|exists:suburbs,id',
         ], [
             'property_id.required' => 'Project/Estate Name is required',
             'review_docs.required' => 'Proof of purchase is required. Please upload a document that confirms your purchase.',
             'review_docs.file' => 'Proof of purchase is required. Please upload a document that confirms your purchase.',
             'review_docs.mimes' => 'Proof of purchase must be a PDF, Word document, or image.',
             'review_docs.max' => 'Proof of purchase must not be larger than 10MB.',
+            'locality_id.required' => 'Please select a State, Suburb and Postcode from the list',
+            'locality_id.exists' => 'Please select a State, Suburb and Postcode from the list',
         ]);
 
 
@@ -477,6 +541,8 @@ class ReviewController extends BaseController
 
             $file = $request->file('review_docs');
             $data['review_docs'] = $this->saveToS3($file, self::REVIEWDOCS_STORAGE_PATH);
+            $data['status'] = 0;
+            $data = $this->applyPropertyLocationToReviewData($data, $data['property_id'] ?? null);
 
             if ($review_id = Review::create($data)) {
                 if (count($data['tags']) > 0) {
@@ -511,6 +577,7 @@ class ReviewController extends BaseController
                 $request->session()->forget('review-state');
                 $request->session()->forget('review-post-code');
                 $request->session()->forget('review-suburb');
+                $request->session()->forget('review-locality-id');
                 $request->session()->forget('review-title');
                 $request->session()->forget('review-is-agree');
                 $request->session()->forget('review-comment');
@@ -520,6 +587,14 @@ class ReviewController extends BaseController
                 $request->session()->forget('review-dev-page');
 
                 $request->session()->put('step2-1', true);
+
+                $categoryData = PropertyCategory::find($data['category_id']);
+                $recommendedCategory = '';
+                if ($categoryData && array_search($categoryData->slug, ['homesite', 'home']) !== false) {
+                    $recommendedCategory = ($categoryData->slug == 'homesite' ? 'home' : 'homesite');
+                }
+                $this->sendMailUponReviewCreation($review_parent_id, $recommendedCategory);
+
                 return redirect()->route('review-step-3');
             }
             return redirect()->route('review-step-2')->with('error', 'Login Required Before Review');
@@ -551,7 +626,10 @@ class ReviewController extends BaseController
         $data['state'] = $session_data['review-state'];
         $data['post_code'] = $session_data['review-post-code'];
         $data['suburb'] = $session_data['review-suburb'];
+        $data['locality_id'] = $session_data['review-locality-id'] ?? null;
         $data['year_of_completion'] = $session_data['review-year-complete'];
+        $data['status'] = 0;
+        $data = $this->applyPropertyLocationToReviewData($data, $data['property_id'] ?? null);
 
         if (!empty($session_data['review-image-system'])) {
             $imageFile = $this->uploadedFileFromSessionPath($session_data['review-image-system']);
@@ -730,5 +808,111 @@ class ReviewController extends BaseController
         return redirect()->back();
     }
 
+    /**
+     * When the selected property has a location, persist that location on
+     * the review (state as review_states.id). Otherwise keep the posted
+     * values and still coerce state to an id when possible.
+     *
+     * Either way the result is passed through the locality guard, so the stored
+     * text always matches the referenced locality record.
+     */
+    private function applyPropertyLocationToReviewData(array $data, $propertyId)
+    {
+        $property = $propertyId ? Properties::find($propertyId) : null;
+        if ($property && ($property->state || $property->suburb || $property->post_code)) {
+            $stateId = StateResolver::id($property->state);
+            if ($stateId) {
+                $data['state'] = $stateId;
+            }
+            if ($property->suburb) {
+                $data['suburb'] = $property->suburb;
+            }
+            if ($property->post_code) {
+                $data['post_code'] = $property->post_code;
+            }
 
+            // The property's location wins, so re-resolve the locality to match
+            // it rather than trusting the locality_id the form posted. Legacy
+            // properties hold free text, so this can fail to resolve — keep the
+            // posted locality in that case rather than blocking the submission.
+            $resolved = $this->resolveLocalityId(
+                $data['suburb'] ?? null,
+                $data['post_code'] ?? null,
+                $data['state'] ?? null
+            );
+
+            if ($resolved) {
+                $data['locality_id'] = $resolved;
+            }
+
+            return $this->applyLocalityToReviewData($data);
+        }
+
+        $stateId = StateResolver::id($data['state'] ?? null);
+        if ($stateId) {
+            $data['state'] = $stateId;
+        }
+
+        return $this->applyLocalityToReviewData($data);
+    }
+
+    /**
+     * FR-7 guard. The submitted combination must resolve to a single locality;
+     * the stored state, suburb and postcode are then re-derived from that row so
+     * the legacy text columns can never drift out of sync or be spoofed.
+     *
+     * @throws ValidationException when the combination does not resolve
+     */
+    private function applyLocalityToReviewData(array $data)
+    {
+        $locality = empty($data['locality_id'])
+            ? null
+            : Suburbs::active()->find($data['locality_id']);
+
+        if (!$locality) {
+            throw ValidationException::withMessages([
+                'locality_id' => 'Please select a State, Suburb and Postcode from the list',
+            ]);
+        }
+
+        $stateId = StateResolver::id($locality->state_code);
+
+        $data['locality_id'] = (int) $locality->id;
+        $data['suburb'] = $locality->name;
+        $data['post_code'] = (string) $locality->postcode;
+        if ($stateId) {
+            $data['state'] = $stateId;
+        }
+
+        return $data;
+    }
+
+    /**
+     * Single locality matching a suburb, postcode and state, or null when the
+     * combination is missing or ambiguous.
+     *
+     * @return int|null
+     */
+    private function resolveLocalityId($suburb, $postcode, $state)
+    {
+        $normalised = Suburbs::normalise($suburb);
+        $postcode = trim((string) $postcode);
+
+        if ($normalised === '' || $postcode === '') {
+            return null;
+        }
+
+        $query = Suburbs::active()
+            ->where('name_normalised', $normalised)
+            ->where('postcode', $postcode);
+
+        $stateRow = StateResolver::resolve($state);
+        if ($stateRow) {
+            $query->where('state_code', $stateRow->abbreviation);
+        }
+
+        $matches = $query->take(2)->get(['id']);
+
+        return $matches->count() === 1 ? (int) $matches->first()->id : null;
+    }
 }
