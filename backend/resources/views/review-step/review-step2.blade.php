@@ -224,6 +224,7 @@
                                                class="btn yellow-btn"
                                                onchange="readURL(this);"/></a>
                                 </div>
+                                <span class="text-danger" id="review-image-error">{{ $errors->first('review_image') }}</span>
                             </div>
                             <div class="form-row privacy-policy-wrap">
                                 <label>

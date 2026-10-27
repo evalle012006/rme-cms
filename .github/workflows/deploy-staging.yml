@@ -1,0 +1,25 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches:
+      - development
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            cd /home/rme/ratemyestate
+            # The copy of deploy.sh already on the server used to pull production,
+            # which left development-only fixes (including collapsed list-view
+            # reviews) off the site. Check out development before running it.
+            git fetch origin development
+            git checkout development || git checkout -b development --track origin/development
+            git merge --ff-only origin/development
+            bash deploy.sh --skip-angular

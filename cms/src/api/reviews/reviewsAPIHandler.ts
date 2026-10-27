@@ -31,13 +31,23 @@ export interface Review {
 
 // ── Datatable filter ─────────────────────────────────────────────────────────
 // `/datatable-reviews` extends the standard DataTables payload with a
-// `status` field used to filter approved (1) vs pending (0) rows. The page
-// owns which value to send.
+// `status` field used to filter approved (1), pending (0) or inactive (2)
+// rows. The page owns which value to send.
+//
+// INACTIVE hides the review from the public site and from ratings while
+// keeping it in admin so it can be reactivated later.
 
 export const REVIEW_STATUS = {
   PENDING: 0,
   APPROVED: 1,
+  INACTIVE: 2,
 } as const
+
+export const REVIEW_STATUS_LABELS: Record<ReviewStatusFilter, string> = {
+  [REVIEW_STATUS.PENDING]: "Pending",
+  [REVIEW_STATUS.APPROVED]: "Approved",
+  [REVIEW_STATUS.INACTIVE]: "Inactive",
+}
 
 export type ReviewStatusFilter = (typeof REVIEW_STATUS)[keyof typeof REVIEW_STATUS]
 
@@ -101,7 +111,15 @@ export interface ReviewSuburb {
 export interface ReviewPropertyOption {
   id: number
   project_name: string
+  status?: number
   full_property_logo: string | null
+}
+
+/** Entry in `company_list`: every company the review could be moved to. */
+export interface ReviewCompanyOption {
+  id: number
+  company_name: string
+  status?: number
 }
 
 export interface ReviewCompany {
@@ -164,6 +182,7 @@ export interface ReviewDetail {
   suburb_list: ReviewSuburb[]
   tags_list: ReviewTag[]
   property_list: ReviewPropertyOption[]
+  company_list: ReviewCompanyOption[]
   full_review_image: string | null
   full_review_docs: string | null
   property: ReviewProperty | null
@@ -223,10 +242,31 @@ export const reviewsAPI = {
       options
     ),
 
-  // DELETE /review/delete/{id} — no payload.
-  delete: (id: number, options?: ApiRequestOptions): Promise<unknown> =>
+  // DELETE /review/delete/{id} — the backend requires a free-text reason,
+  // which it stores with the soft-deleted row alongside the acting admin.
+  // A missing reason comes back as a 422 with a field error on `reason`.
+  delete: (
+    id: number,
+    reason: string,
+    options?: ApiRequestOptions
+  ): Promise<unknown> =>
     apiRequest<unknown>(
-      apiClient.delete<ApiEnvelope<unknown>>(REVIEWS_ENDPOINTS.DELETE(id)),
+      apiClient.delete<ApiEnvelope<unknown>>(REVIEWS_ENDPOINTS.DELETE(id), {
+        data: { reason },
+      }),
+      options
+    ),
+
+  // Projects belonging to a company; drives the Project select after the
+  // admin picks a different Company on the edit form.
+  getPropertiesByCompany: (
+    companyId: number,
+    options?: ApiRequestOptions
+  ): Promise<ReviewPropertyOption[]> =>
+    apiRequest<ReviewPropertyOption[]>(
+      apiClient.get<ApiEnvelope<ReviewPropertyOption[]>>(
+        REVIEWS_ENDPOINTS.PROPERTIES_BY_COMPANY(companyId)
+      ),
       options
     ),
 

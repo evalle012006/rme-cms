@@ -29,10 +29,21 @@ export interface Locality {
   longitude: string | null
 }
 
+/**
+ * Bumps the browser cache key for these reads.
+ *
+ * Successful responses are cached publicly for a day. Copies stored before
+ * they included Access-Control-Allow-Origin are reused by the admin site and
+ * fail the CORS check until that entry expires. The server ignores this param.
+ */
+const CACHE_KEY = { v: '2' } as const
+
 export const localitiesAPI = {
   states: (options?: ApiRequestOptions): Promise<LocalityState[]> =>
     apiRequest<LocalityState[]>(
-      apiClient.get<ApiEnvelope<LocalityState[]>>(LOCALITIES_ENDPOINTS.STATES),
+      apiClient.get<ApiEnvelope<LocalityState[]>>(LOCALITIES_ENDPOINTS.STATES, {
+        params: CACHE_KEY,
+      }),
       options
     ),
 
@@ -43,7 +54,7 @@ export const localitiesAPI = {
   ): Promise<Locality[]> =>
     apiRequest<Locality[]>(
       apiClient.get<ApiEnvelope<Locality[]>>(LOCALITIES_ENDPOINTS.LIST, {
-        params: { state: stateCode },
+        params: { state: stateCode, ...CACHE_KEY },
       }),
       options
     ),
@@ -55,7 +66,7 @@ export const localitiesAPI = {
   ): Promise<Locality[]> =>
     apiRequest<Locality[]>(
       apiClient.get<ApiEnvelope<Locality[]>>(LOCALITIES_ENDPOINTS.SEARCH, {
-        params: { q: params.q, state: params.stateCode || undefined },
+        params: { q: params.q, state: params.stateCode || undefined, ...CACHE_KEY },
       }),
       options
     ),
@@ -67,7 +78,7 @@ export const localitiesAPI = {
   ): Promise<Locality[]> =>
     apiRequest<Locality[]>(
       apiClient.get<ApiEnvelope<Locality[]>>(LOCALITIES_ENDPOINTS.BY_POSTCODE, {
-        params: { postcode },
+        params: { postcode, ...CACHE_KEY },
       }),
       options
     ),

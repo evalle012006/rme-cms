@@ -87,6 +87,9 @@ export function PropertiesListPage({
   const [loading, setLoading] = useState(true)
   const [confirmId, setConfirmId] = useState<number | null>(null)
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null)
+  // Open state is separate from the selected row so the row (and the dialog
+  // text) survives the close animation.
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [importModalOpen, setImportModalOpen] = useState(false)
 
   // Increments per request; sent back as-is by the backend so we can detect
@@ -173,11 +176,14 @@ export function PropertiesListPage({
           customErrorMessage: 'Failed to delete project',
         }
       )
-      setPropertyToDelete(null)
-      fetchProperties()
     } catch {
-      // Toast already shown by the API wrapper / global interceptor.
+      // Toast already shown by the API wrapper / global interceptor. The
+      // row may be stale (deleted elsewhere, or reviews attached since the
+      // list loaded), so fall through and refresh instead of leaving the
+      // dialog open on outdated data.
     }
+    setDeleteDialogOpen(false)
+    fetchProperties()
   }, [propertyToDelete, fetchProperties])
 
   const isPendingList = statusFilter === PROPERTY_STATUS.PENDING
@@ -231,7 +237,10 @@ export function PropertiesListPage({
                 color="destructive"
                 size="sm"
                 className="h-auto py-1.5"
-                onClick={() => setPropertyToDelete(row)}
+                onClick={() => {
+                  setPropertyToDelete(row)
+                  setDeleteDialogOpen(true)
+                }}
               >
                 Delete
               </Button>
@@ -262,6 +271,12 @@ export function PropertiesListPage({
   const lastPage = Math.max(1, Math.ceil(total / perPage))
   const from = total === 0 ? null : (page - 1) * perPage + 1
   const to = total === 0 ? null : Math.min(page * perPage, total)
+
+  const deleteReviewsCount = propertyToDelete?.reviews_count ?? 0
+  const deleteBlocked = deleteReviewsCount > 0
+  const deleteLabel = propertyToDelete?.project_name
+    ? `"${propertyToDelete.project_name}"`
+    : 'this project'
 
   return (
     <div className="space-y-6">
@@ -326,21 +341,30 @@ export function PropertiesListPage({
         onSuccess={fetchProperties}
       />
 
+      {/*
+        Single dialog instance for both the confirm and the blocked variant so
+        the popup doesn't swap content mid fade-out. Reviews must be moved to
+        another project before this one can go; the backend enforces the same
+        rule with a 409.
+      */}
       <ConfirmDialog
-        open={propertyToDelete !== null}
+        open={deleteDialogOpen}
         onOpenChange={(next) => {
-          if (!next) setPropertyToDelete(null)
+          if (!next) setDeleteDialogOpen(false)
         }}
-        title="Delete project?"
-        description={
-          propertyToDelete?.project_name
-            ? `Are you sure you want to delete "${propertyToDelete.project_name}"? This action cannot be undone.`
-            : 'Are you sure you want to delete this project? This action cannot be undone.'
-        }
+        blocked={deleteBlocked}
         tone="warning"
+        title={deleteBlocked ? 'Cannot delete project' : 'Delete project?'}
+        description={
+          deleteBlocked
+            ? `${deleteLabel} has ${deleteReviewsCount} ${
+                deleteReviewsCount === 1 ? 'review' : 'reviews'
+              } attached. Move the reviews to another company or project first, then delete the project.`
+            : `Are you sure you want to delete ${deleteLabel}? This action cannot be undone.`
+        }
         confirmLabel="Confirm"
         cancelLabel="Cancel"
-        onConfirm={confirmDelete}
+        onConfirm={deleteBlocked ? undefined : confirmDelete}
       />
     </div>
   )

@@ -70,9 +70,10 @@ export function CompaniesPageContent({
     setDeleteDialogOpen(true)
   }, [])
 
+  // Keep `companyToDelete` while the dialog fades out so its text doesn't
+  // flicker; it is replaced the next time a Delete button is clicked.
   const closeDeleteDialog = useCallback(() => {
     setDeleteDialogOpen(false)
-    setCompanyToDelete(null)
   }, [])
 
   const columns: DataTableColumn<Company>[] = useMemo(
@@ -188,13 +189,14 @@ export function CompaniesPageContent({
         successMessage: 'Company deleted successfully',
         customErrorMessage: 'Failed to delete company',
       })
-      closeDeleteDialog()
-      fetchCompanies()
     } catch {
-      // Toast already shown by the API wrapper / global interceptor.
-    } finally {
-      // setDeleting(false)
+      // Toast already shown by the API wrapper / global interceptor. The
+      // row may be stale (deleted elsewhere, or reviews attached since the
+      // list loaded), so fall through and refresh instead of leaving the
+      // dialog open on outdated data.
     }
+    closeDeleteDialog()
+    fetchCompanies()
   }
 
   const handlePerPageChange = (newPerPage: number) => {
@@ -263,6 +265,7 @@ export function CompaniesPageContent({
       <DeleteCompanyDialog
         open={deleteDialogOpen}
         companyName={companyToDelete?.company_name}
+        reviewsCount={companyToDelete?.reviews_count ?? 0}
         onOpenChange={(open) => {
           if (!open) closeDeleteDialog()
         }}

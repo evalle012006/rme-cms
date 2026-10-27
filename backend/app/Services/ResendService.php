@@ -84,17 +84,24 @@ class ResendService
             'timeout' => 15,
         ]);
 
+        $payload = [
+            'from' => sprintf('%s <%s>', $this->fromName, $this->fromAddress),
+            'to' => [$to],
+            'subject' => $subject,
+            'html' => $html,
+        ];
+
+        $logo = $this->logoAttachment();
+        if ($logo) {
+            $payload['attachments'] = [$logo];
+        }
+
         $response = $client->post('https://api.resend.com/emails', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
             ],
-            'json' => [
-                'from' => sprintf('%s <%s>', $this->fromName, $this->fromAddress),
-                'to' => [$to],
-                'subject' => $subject,
-                'html' => $html,
-            ],
+            'json' => $payload,
         ]);
 
         $statusCode = $response->getStatusCode();
@@ -111,5 +118,33 @@ class ResendService
         ]);
 
         return false;
+    }
+
+    /**
+     * Inline logo so mail clients do not have to fetch a remote image.
+     *
+     * @return array|null
+     */
+    private function logoAttachment()
+    {
+        $path = public_path('images/logo.png');
+
+        if (!is_readable($path)) {
+            Log::error('RESEND_LOGO_MISSING', ['path' => $path]);
+            return null;
+        }
+
+        $content = file_get_contents($path);
+        if ($content === false) {
+            Log::error('RESEND_LOGO_MISSING', ['path' => $path]);
+            return null;
+        }
+
+        return [
+            'filename' => 'logo.png',
+            'content' => base64_encode($content),
+            'content_type' => 'image/png',
+            'content_id' => 'logo',
+        ];
     }
 }

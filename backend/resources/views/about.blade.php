@@ -22,10 +22,10 @@
 
     <div class="get-to-know-section">
         <div class="container">
-            <div class="side-title">
-                <p>Get to know about us</p>
-            </div>
             <div class="img-wrap">
+                <div class="side-title">
+                    <p>Get to know about us</p>
+                </div>
                 @if($sectionData['get_to_know']['image'])
                     <img src="{{checkUrl($sectionData['get_to_know']['image'])}}">
                 @else

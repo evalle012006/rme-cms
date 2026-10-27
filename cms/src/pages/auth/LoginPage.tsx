@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,6 +10,7 @@ import { FormControl } from '@/components/atoms/FormControl'
 import { useAuthStore } from '@/store/authStore'
 import { authAPI } from '@/api/auth/authAPIHandler'
 import { ROUTES } from '@/constants/routes'
+import { safeRedirectPath } from '@/lib/safeRedirect'
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -22,6 +23,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const login = useAuthStore((s) => s.login)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
 
   const {
     register,
@@ -38,7 +40,7 @@ export default function LoginPage() {
         customErrorMessage: 'Invalid credentials',
       })
       login(user, access_token)
-      navigate(ROUTES.dashboard)
+      navigate(safeRedirectPath(searchParams.get('redirect')) ?? ROUTES.dashboard)
     } catch {
       // Toast already shown by the API wrapper / global interceptor.
     } finally {

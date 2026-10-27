@@ -27,6 +27,9 @@ export interface Company {
   created_at: string
   updated_at: string
   full_company_logo: string | null
+  // Reviews attached to any of this company's projects (all statuses). Sent
+  // by the datatable endpoint; a company with reviews cannot be deleted.
+  reviews_count?: number
 }
 
 export interface CompanyUser {

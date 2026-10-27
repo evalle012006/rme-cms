@@ -12,10 +12,13 @@ import { Card } from "@/components/ui/card"
 import {
   reviewsAPI,
   REVIEW_STATUS,
+  REVIEW_STATUS_LABELS,
   type BuyerTypeOption,
   type ReviewCategory,
   type ReviewDetail,
+  type ReviewPropertyOption,
 } from "@/api/reviews/reviewsAPIHandler"
+import { isValidationError } from "@/api/apiService"
 import { ROUTES } from "@/constants/routes"
 import { imgUrl } from "@/lib/utils"
 import {
@@ -41,19 +44,21 @@ function resolveProofUrl(
 }
 
 // ── Return path ──────────────────────────────────────────────────────────────
-// Honour the `?from=approved|pending` hint when present, otherwise infer from
-// the review's own status.
+// Honour the `?from=approved|pending|inactive` hint when present, otherwise
+// infer from the review's own status.
 function resolveReturnPath(from: string | null, status?: number) {
   if (from === "approved") return ROUTES.reviews.approved
   if (from === "pending") return ROUTES.reviews.pending
-  return status === REVIEW_STATUS.APPROVED
-    ? ROUTES.reviews.approved
-    : ROUTES.reviews.pending
+  if (from === "inactive") return ROUTES.reviews.inactive
+  if (status === REVIEW_STATUS.APPROVED) return ROUTES.reviews.approved
+  if (status === REVIEW_STATUS.INACTIVE) return ROUTES.reviews.inactive
+  return ROUTES.reviews.pending
 }
 
 const STATUS_OPTIONS = [
-  { value: String(REVIEW_STATUS.PENDING), label: "Pending" },
-  { value: String(REVIEW_STATUS.APPROVED), label: "Accept" },
+  { value: String(REVIEW_STATUS.PENDING), label: REVIEW_STATUS_LABELS[REVIEW_STATUS.PENDING] },
+  { value: String(REVIEW_STATUS.APPROVED), label: REVIEW_STATUS_LABELS[REVIEW_STATUS.APPROVED] },
+  { value: String(REVIEW_STATUS.INACTIVE), label: REVIEW_STATUS_LABELS[REVIEW_STATUS.INACTIVE] },
 ]
 
 const RECOMMENDATION_OPTIONS = [
@@ -64,6 +69,10 @@ const RECOMMENDATION_OPTIONS = [
 interface ReviewFormState {
   status: string
   title: string
+  // Company is not stored on the review; it is derived from the project.
+  // The form tracks it so the admin can move the review to another company
+  // (which then filters the Project options to that company).
+  company_id: string
   property_id: string
   recommendation: string
   buyer_type: string
@@ -77,6 +86,7 @@ interface ReviewFormState {
 const EMPTY_FORM: ReviewFormState = {
   status: "",
   title: "",
+  company_id: "",
   property_id: "",
   recommendation: "",
   buyer_type: "",
@@ -121,6 +131,9 @@ function toFormState(review: ReviewDetail): ReviewFormState {
   return {
     status: String(review.status),
     title: review.title ?? "",
+    company_id: review.property?.company?.id
+      ? String(review.property.company.id)
+      : "",
     property_id: review.property_id ? String(review.property_id) : "",
     recommendation: recommended ? "1" : "0",
     buyer_type: review.buyer_type ? String(review.buyer_type) : "",
@@ -144,6 +157,10 @@ export default function ReviewEditPage() {
   const [form, setForm] = useState<ReviewFormState>(EMPTY_FORM)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  // Projects for the currently selected company. Seeded from the review
+  // payload and refetched whenever the admin picks a different company.
+  const [propertyOptions, setPropertyOptions] = useState<ReviewPropertyOption[]>([])
+  const [propertiesLoading, setPropertiesLoading] = useState(false)
 
   const returnPath = resolveReturnPath(
     searchParams.get("from"),
@@ -178,6 +195,7 @@ export default function ReviewEditPage() {
         setReview(detail)
         setBuyerTypes(meta.buyertype?.option_select ?? [])
         setCategories(meta.categories ?? [])
+        setPropertyOptions(detail.property_list ?? [])
         setForm(toFormState(detail))
       })
       .catch(() => {
@@ -200,8 +218,45 @@ export default function ReviewEditPage() {
   )
 
 
-  const propertyOptions = useMemo(
-    () => review?.property_list ?? [],
+  // Moving a review to another company: load that company's projects and
+  // clear the project so the admin has to pick one explicitly. Picking the
+  // original company again restores the original project.
+  const handleCompanyChange = useCallback(
+    async (companyId: string) => {
+      setForm((prev) => ({ ...prev, company_id: companyId, property_id: "" }))
+      if (!companyId) {
+        setPropertyOptions([])
+        return
+      }
+
+      const originalCompanyId = review?.property?.company?.id
+      if (review && Number(companyId) === originalCompanyId) {
+        setPropertyOptions(review.property_list ?? [])
+        setForm((prev) => ({
+          ...prev,
+          property_id: review.property_id ? String(review.property_id) : "",
+        }))
+        return
+      }
+
+      setPropertiesLoading(true)
+      try {
+        const properties = await reviewsAPI.getPropertiesByCompany(
+          Number(companyId),
+          { customErrorMessage: "Could not load this company's projects" }
+        )
+        setPropertyOptions(properties)
+      } catch {
+        setPropertyOptions([])
+      } finally {
+        setPropertiesLoading(false)
+      }
+    },
+    [review]
+  )
+
+  const companyOptions = useMemo(
+    () => review?.company_list ?? [],
     [review]
   )
   const tagOptions = useMemo<MultiSelectOption[]>(
@@ -212,7 +267,11 @@ export default function ReviewEditPage() {
   const userVerified = !!review?.users?.email_verified_at
   const userName =
     review?.users?.full_name || review?.users?.display_name || ""
-  const companyName = review?.property?.company?.company_name ?? ""
+
+  const isMoving =
+    !!review &&
+    form.property_id !== "" &&
+    Number(form.property_id) !== review.property_id
 
   const photoProofUrl = resolveProofUrl(
     review?.full_review_image,
@@ -246,6 +305,11 @@ export default function ReviewEditPage() {
       event.preventDefault()
       if (!review) return
 
+      if (!form.property_id) {
+        toast.error("Select a project for this review")
+        return
+      }
+
       setSubmitting(true)
       try {
         await reviewsAPI.update(
@@ -272,8 +336,15 @@ export default function ReviewEditPage() {
           }
         )
         navigate(returnPath)
-      } catch {
-        // Error toast handled by apiRequest / global interceptor.
+      } catch (error) {
+        // The interceptor stays silent on 422 field errors (forms normally
+        // render them inline), but this page has no per-field error slots,
+        // so surface the first message as a toast. Anything else has already
+        // been toasted by apiRequest / the global interceptor.
+        if (isValidationError(error)) {
+          const messages = Object.values(error.response.data.errors).flat()
+          toast.error(messages[0] ?? "Failed to update review")
+        }
       } finally {
         setSubmitting(false)
       }
@@ -363,24 +434,51 @@ export default function ReviewEditPage() {
 
             <FormControl
               variant="select"
-              label="Project"
+              label="Company"
               disabled={fieldsDisabled}
-              value={form.property_id}
-              onChange={(e) => setField("property_id", e.target.value)}
+              value={form.company_id}
+              onChange={(e) => void handleCompanyChange(e.target.value)}
             >
-              <option value="">Select Project</option>
-              {propertyOptions.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.project_name}
+              <option value="">Select Company</option>
+              {companyOptions.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.company_name}
+                  {c.status === 0 ? " (pending)" : ""}
                 </option>
               ))}
             </FormControl>
 
-            <FormControl
-              label="Company"
-              alwaysReadOnly
-              value={companyName}
-            />
+            <div>
+              <FormControl
+                variant="select"
+                label="Project"
+                disabled={fieldsDisabled || propertiesLoading || !form.company_id}
+                value={form.property_id}
+                onChange={(e) => setField("property_id", e.target.value)}
+              >
+                <option value="">
+                  {propertiesLoading
+                    ? "Loading projects…"
+                    : form.company_id
+                      ? propertyOptions.length
+                        ? "Select Project"
+                        : "No projects for this company"
+                      : "Select a company first"}
+                </option>
+                {propertyOptions.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.project_name}
+                    {p.status === 0 ? " (pending)" : ""}
+                  </option>
+                ))}
+              </FormControl>
+              {isMoving && (
+                <p className="mt-1.5 text-xs text-amber-700">
+                  This review will be moved. Ratings for both the old and new
+                  project/company update automatically.
+                </p>
+              )}
+            </div>
 
             <FormControl
               variant="select"

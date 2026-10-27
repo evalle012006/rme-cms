@@ -15,6 +15,7 @@ import BuilderAddPage from '@/pages/builders/BuilderAddPage'
 import BuilderEditPage from '@/pages/builders/BuilderEditPage'
 import ReviewApprovedPage from '@/pages/reviews/ReviewApprovedPage'
 import ReviewPendingPage from '@/pages/reviews/ReviewPendingPage'
+import ReviewInactivePage from '@/pages/reviews/ReviewInactivePage'
 import ReviewEditPage from '@/pages/reviews/ReviewEditPage'
 import ContactUsPage from '@/pages/contact/ContactUsPage'
 import ProfileSettingsPage from '@/pages/settings/ProfileSettingsPage'
@@ -110,6 +111,7 @@ export default function App() {
 
             <Route path={ROUTES.reviews.approved} element={<ReviewApprovedPage />} />
             <Route path={ROUTES.reviews.pending} element={<ReviewPendingPage />} />
+            <Route path={ROUTES.reviews.inactive} element={<ReviewInactivePage />} />
             <Route path={ROUTES.reviews.editPattern} element={<ReviewEditPage />} />
 
             <Route path={ROUTES.cms.home} element={<HomePage />} />

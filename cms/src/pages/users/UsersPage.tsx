@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useSearchParams } from "react-router-dom"
 import { Button } from "@/components/atoms/Button"
 import { Breadcrumb } from "@/components/atoms/Breadcrumb"
 import { DataTable, type DataTableColumn } from "@/components/atoms/DataTable"
@@ -37,6 +37,8 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [requestModalOpen, setRequestModalOpen] = useState(false)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestId = searchParams.get("request")
 
   // Increments per request; sent back as-is by the backend so we can detect
   // stale responses and ignore them.
@@ -85,6 +87,25 @@ export default function UsersPage() {
     fetchUsers()
   }, [fetchUsers])
 
+  // Email links land on /users?request={id} and open that change request.
+  useEffect(() => {
+    if (!requestId || !/^\d+$/.test(requestId)) return
+
+    let mounted = true
+    usersAPI
+      .getById(requestId)
+      .then((res) => {
+        if (!mounted || !res?.success || !res.data) return
+        setSelectedUser(res.data)
+        setRequestModalOpen(true)
+      })
+      .catch(() => {})
+
+    return () => {
+      mounted = false
+    }
+  }, [requestId])
+
   const openRequestModal = useCallback((user: User) => {
     setSelectedUser(user)
     setRequestModalOpen(true)
@@ -93,7 +114,16 @@ export default function UsersPage() {
   const closeRequestModal = useCallback(() => {
     setRequestModalOpen(false)
     setSelectedUser(null)
-  }, [])
+    setSearchParams(
+      (prev) => {
+        if (!prev.get("request")) return prev
+        const next = new URLSearchParams(prev)
+        next.delete("request")
+        return next
+      },
+      { replace: true }
+    )
+  }, [setSearchParams])
 
   const columns: DataTableColumn<User>[] = useMemo(
     () => [

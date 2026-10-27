@@ -63,7 +63,7 @@ load_nvm() {
 # -----------------------------------------------------------------------------
 log "Pulling latest code..."
 cd "$REPO_DIR" || error "Repo not found at $REPO_DIR"
-# git pull origin main || error "Git pull failed"
+# Staging (castledigital) tracks development. production is deployed by deploy-prod.sh.
 git pull origin development || error "Git pull failed"
 
 # -----------------------------------------------------------------------------

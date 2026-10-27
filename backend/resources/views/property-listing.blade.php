@@ -190,6 +190,12 @@
                 }
             }
 
+            // common.js hides .content-panel once on first load. Pagination,
+            // filters, and view changes replace #list1, so collapse the new rows too.
+            function collapseListingDetails($list) {
+                $list.find('.content-panel').hide();
+            }
+
             function loadListingResults(url) {
                 var $list = $('#list1');
                 $list.css('opacity', '0.5');
@@ -202,6 +208,7 @@
                     },
                     success: function (html) {
                         $list.html(html);
+                        collapseListingDetails($list);
                         if (window.history && window.history.pushState) {
                             window.history.pushState({listingAjax: true}, '', url);
                         }

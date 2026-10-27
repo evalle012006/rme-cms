@@ -75,7 +75,7 @@
                 </div>
                 <div class="content-wrap">
                     @if($sectionData['why_write_review']['title'])
-                        <h5>{{$sectionData['why_write_review']['title']}} </h5>
+                        <h5>{{ str_replace("\xC2\xA0", ' ', $sectionData['why_write_review']['title']) }} </h5>
                     @else
 {{-- CMS fallback (kept for later restore)
 <h5>WHY WRITE A REVIEW. Be part of a community that is doing good. </h5>
@@ -83,7 +83,7 @@
 @endif
 
                     @if($sectionData['why_write_review']['body'])
-                        {!! $sectionData['why_write_review']['body'] !!}
+                        {!! str_replace(['&nbsp;', '&#160;', '&#xA0;', '&#xa0;', "\xC2\xA0"], ' ', $sectionData['why_write_review']['body']) !!}
                     @else
 {{-- CMS fallback (kept for later restore)
 <ul>

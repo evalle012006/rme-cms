@@ -141,6 +141,7 @@ return [
     /*
      | Recipient for public Contact form enquiries
      */
+    // 'contact_to' => env('CONTACT_MAIL_TO', 'admin@ratemyestate.com.au'),
     'contact_to' => env('CONTACT_MAIL_TO', 'admin@ratemyestate.com.au'),
 
 ];

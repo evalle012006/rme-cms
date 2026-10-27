@@ -36,6 +36,7 @@ export const NAV_ITEMS: NavItemConfig[] = [
     label: 'Review', icon: Star, children: [
       { label: 'Review Approved', to: ROUTES.reviews.approved },
       { label: 'Review Pending', to: ROUTES.reviews.pending },
+      { label: 'Review Inactive', to: ROUTES.reviews.inactive },
     ],
   },
   {

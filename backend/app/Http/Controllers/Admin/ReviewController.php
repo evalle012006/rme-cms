@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\BaseController;
+use App\Models\CompanyDetails;
 use App\Models\Properties;
 use App\Models\PropertyCategory;
 use App\Models\RatingConfiguration;
@@ -131,16 +132,35 @@ class ReviewController extends BaseController
             'reviewTags',
             'locality'
         ])->find($id);
+
+        if (!$review) {
+            return $this->formatFailureResponse('Review not found', 404);
+        }
+
         $review->suburb_list = Suburbs::selectRaw('name as text')
             ->where('postcode', $review->post_code)
             ->get();
         $review->state = $this->resolveReviewStateId($review);
         $review->tags_list = Tags::where('is_active', true)->get();
-        if ($review->property->developer_name) {
-            $review->property_list = Properties::select('id', 'project_name')
-                ->where('developer_name', $review->property->developer_name)->get();
+
+        // Every company, so the admin can move the review to a different
+        // one. Projects for the chosen company load on demand through
+        // `property-by-company/{id}`; the initial list is the current
+        // company's projects (or just the current project when orphaned).
+        $review->company_list = CompanyDetails::select('id', 'company_name', 'status')
+            ->orderBy('company_name')
+            ->get();
+
+        $developerId = $review->property ? $review->property->developer_name : null;
+        if ($developerId) {
+            $review->property_list = Properties::select('id', 'project_name', 'status')
+                ->where('developer_name', $developerId)
+                ->orderBy('project_name')
+                ->get();
         } else {
-            $review->property_list = Properties::select('id', 'project_name')->where('id', $review->property_id)->get();
+            $review->property_list = Properties::select('id', 'project_name', 'status')
+                ->where('id', $review->property_id)
+                ->get();
         }
         return $this->formatSuccessResponse('success', $review);
     }
@@ -148,7 +168,9 @@ class ReviewController extends BaseController
     public function updateReview($id, Request $request)
     {
         try {
-            $data = $this->validate($request, Review::$rules_admin);
+            $data = $this->validate($request, Review::$rules_admin, [
+                'property_id.exists' => 'The selected project no longer exists. Pick another project.',
+            ]);
             $reviewData = Review::find($id);
 
             if (!$reviewData) {
@@ -157,7 +179,7 @@ class ReviewController extends BaseController
 
             $data = $this->applyLocalityToReviewData($data);
 
-            $oldStatus = $reviewData->status;
+            $oldStatus = (int) $reviewData->status;
 
             // Handle photo upload
             if ($request->hasFile('review_image')) {
@@ -192,7 +214,9 @@ class ReviewController extends BaseController
                 ReviewTags::insert($tags);
             }
 
-            if ((int)$data['status'] === 1 && $oldStatus === 0) {
+            // First approval only (pending -> approved); reactivating an
+            // inactive review does not re-trigger these.
+            if ((int)$data['status'] === Review::STATUS_APPROVED && $oldStatus === Review::STATUS_PENDING) {
                 $property = Properties::find($data['property_id']);
                 if ($property && $property->status == 0 && $property->is_from == 'frontend') {
                     $property->update(['status' => 1]);
@@ -209,7 +233,8 @@ class ReviewController extends BaseController
 
             return $this->formatSuccessResponse('Review Updated', $reviewData->fresh());
         } catch (ValidationException $e) {
-            return $this->apiFormatFailureResponse('false', $e->errors());
+            // 422 with field errors; e.g. moving onto a deleted project.
+            return $this->apiFormatFailureResponse('Validation failed', $e->errors(), 422);
         } catch (\Exception $e) {
             Log::error('REVIEW_UPDATE_ERROR: ' . $e->getMessage());
             return $this->formatFailureResponse('Error updating review', 500);
@@ -235,17 +260,32 @@ class ReviewController extends BaseController
         $reviewId = $request->id;
         $newStatus = $request->status;
 
-        $validator = Validator::make(['id' => $reviewId], ['id' => 'required|exists:reviews,id']);
+        $validator = Validator::make(
+            ['id' => $reviewId, 'status' => $newStatus],
+            [
+                'id' => 'required|exists:reviews,id,deleted_at,NULL',
+                'status' => 'required|in:' . implode(',', Review::STATUSES),
+            ]
+        );
         if ($validator->fails()) {
+            if ($validator->errors()->has('status')) {
+                return $this->formatFailureResponse('Invalid review status', 422);
+            }
             return $this->formatFailureResponse('Review does not exists', 404);
         }
         try {
             $reviewData = Review::find($reviewId);
-            $oldStatus = $reviewData->status;
+            $oldStatus = (int) $reviewData->status;
 
-            $updated = Review::where('id', $reviewId)->update(['status' => $newStatus]);
-            if ($updated) {
-                if ((int)$newStatus === 1 && $oldStatus === 0) {
+            $updated = Review::where('id', $reviewId)->update(['status' => (int) $newStatus]);
+            // MySQL reports 0 affected rows when the value is unchanged; that
+            // is not a failure.
+            if ($updated || $oldStatus === (int) $newStatus) {
+                // Approval side-effects (auto-approve the project/company,
+                // notify the reviewer) only fire on the first approval
+                // (pending -> approved). Reactivating an inactive review
+                // (inactive -> approved) is silent.
+                if ((int)$newStatus === Review::STATUS_APPROVED && $oldStatus === Review::STATUS_PENDING) {
 
                     if ($reviewData->property->status == 0 && $reviewData->property->is_from == 'frontend') {
                         $update['status'] = 1;
@@ -392,11 +432,87 @@ class ReviewController extends BaseController
         return $review->state;
     }
 
-    public function deleteReview($id)
+    /**
+     * Soft-delete a review, recording why and by whom.
+     *
+     * A free-text reason is mandatory. The review row survives (with
+     * `deleted_at`, `delete_reason`, `deleted_by`) so the decision can be
+     * audited; its S3 proof files are removed on a best-effort basis since
+     * nothing can reach them any more.
+     */
+    public function deleteReview($id, Request $request)
     {
-        $review = Review::findOrFail($id);
-        $review->delete();
+        $validator = Validator::make($request->all(), [
+            'reason' => 'required|string|max:1000',
+        ], [
+            'reason.required' => 'A reason for deleting this review is required.',
+        ]);
+        if ($validator->fails()) {
+            return $this->apiFormatFailureResponse('Reason is required', $validator->errors(), 422);
+        }
+
+        $review = Review::find($id);
+        if (!$review) {
+            return $this->formatFailureResponse('Review not found', 404);
+        }
+
+        try {
+            $review->delete_reason = trim($request->input('reason'));
+            $review->deleted_by = Auth::id();
+            $review->save();
+            $review->delete();
+        } catch (\Exception $e) {
+            Log::error('REVIEW_DELETE_ERROR: ' . $e->getMessage());
+            return $this->formatFailureResponse('Error deleting review', 500);
+        }
+
+        $this->removeReviewAssets($review);
+
         return $this->formatSuccessResponse('Review Deleted', null);
+    }
+
+    /**
+     * Remove the review's proof files from storage. Failures are logged but
+     * never surfaced: the delete itself has already succeeded, and an
+     * orphaned object in S3 is harmless.
+     */
+    private function removeReviewAssets(Review $review)
+    {
+        foreach (['review_image', 'review_docs'] as $column) {
+            $path = $review->{$column};
+            if (empty($path) || filter_var($path, FILTER_VALIDATE_URL)) {
+                continue;
+            }
+
+            // Another live review may share the same object (e.g. legacy
+            // duplicated submissions); leave it alone in that case.
+            $stillReferenced = Review::where($column, $path)
+                ->where('id', '!=', $review->id)
+                ->exists();
+            if ($stillReferenced) {
+                continue;
+            }
+
+            try {
+                // saveToS3() strips a `public/` prefix from paths uploaded in
+                // the local env, while production uploads are stored as-is.
+                // Rows from either origin can coexist in one bucket/disk, so
+                // remove whichever variant is actually there.
+                foreach ([$path, 'public/' . $path] as $candidate) {
+                    if (Storage::exists($candidate)) {
+                        Storage::delete($candidate);
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning(sprintf(
+                    'REVIEW_ASSET_DELETE_ERROR: review %d, %s "%s": %s',
+                    $review->id,
+                    $column,
+                    $path,
+                    $e->getMessage()
+                ));
+            }
+        }
     }
 
 }

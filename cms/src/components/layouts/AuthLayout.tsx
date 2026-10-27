@@ -1,16 +1,19 @@
-import { Outlet, Navigate } from 'react-router-dom'
+import { Outlet, Navigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { ROUTES } from '@/constants/routes'
+import { safeRedirectPath } from '@/lib/safeRedirect'
 import badge from '@/assets/badge.png'
 
 // AuthLayout wraps all unauthenticated routes (login, forgot-password, reset-password).
-// If the user is already authenticated, redirect them straight to the dashboard
-// so they never land on the login page while logged in.
+// If the user is already authenticated, send them to the page they were trying
+// to open (for example an email deep link) or the dashboard.
 export default function AuthLayout() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const [searchParams] = useSearchParams()
 
   if (isAuthenticated) {
-    return <Navigate to={ROUTES.dashboard} replace />
+    const redirect = safeRedirectPath(searchParams.get('redirect')) ?? ROUTES.dashboard
+    return <Navigate to={redirect} replace />
   }
 
   return (

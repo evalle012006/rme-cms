@@ -131,6 +131,31 @@ function absoluteStorageUrl($path)
     return url(\Illuminate\Support\Facades\Storage::url($filePath));
 }
 
+/**
+ * Absolute URL into the React CMS admin.
+ *
+ * Returns null when CMS_APP_URL is unset so notification emails never fall
+ * back to the public site. $path must be an in-app path beginning with "/".
+ *
+ * @param string $path
+ * @return string|null
+ */
+function cmsAdminUrl($path)
+{
+    $path = (string) $path;
+    if ($path === '' || $path[0] !== '/' || strpos($path, '//') === 0 || strpos($path, '://') !== false) {
+        return null;
+    }
+
+    $base = rtrim((string) config('services.cms.url'), '/');
+    if ($base === '') {
+        \Illuminate\Support\Facades\Log::warning('CMS_ADMIN_URL_MISSING', ['path' => $path]);
+        return null;
+    }
+
+    return $base . $path;
+}
+
 function checkUrl($url)
 {
     if (!$url) {

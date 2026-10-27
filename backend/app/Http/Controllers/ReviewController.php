@@ -221,12 +221,32 @@ class ReviewController extends BaseController
     {
         $proofRequiredMessage = 'Proof of purchase is required. Please upload a document that confirms your purchase.';
 
-        if ($request->review_image) {
-            $name = $request->review_image->getClientOriginalName();
-            Storage::disk('public_form_media')->putFileAs('', $request->review_image, $name);
-            $imagePath = url('/') . '/review-form-media/' . $name;
-            $request->session()->put('review-image', $imagePath);
-            $request->session()->put('review-image-system', public_path('review-form-media/' . $name));
+        $imageError = null;
+        $image = $request->file('review_image');
+        if ($image) {
+            if (!$image->isValid()) {
+                $imageError = $image->getError() === UPLOAD_ERR_INI_SIZE
+                    ? 'Photo must not be larger than ' . ini_get('upload_max_filesize') . '.'
+                    : 'Photo failed to upload. Please try again.';
+            } else {
+                $imageValidator = Validator::make($request->all(), [
+                    'review_image' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+                ], [
+                    'review_image.image' => 'Photo must be an image.',
+                    'review_image.mimes' => 'Photo must be a jpeg, png, jpg, gif, or webp image.',
+                    'review_image.max' => 'Photo must not be larger than 10MB.',
+                ]);
+
+                if ($imageValidator->fails()) {
+                    $imageError = $imageValidator->errors()->first('review_image');
+                } else {
+                    $name = $image->hashName();
+                    Storage::disk('public_form_media')->putFileAs('', $image, $name);
+                    $imagePath = url('/') . '/review-form-media/' . $name;
+                    $request->session()->put('review-image', $imagePath);
+                    $request->session()->put('review-image-system', public_path('review-form-media/' . $name));
+                }
+            }
         }
 
         if ($request->hasFile('review_docs')) {
@@ -256,6 +276,9 @@ class ReviewController extends BaseController
 
         $validator = Validator::make($request->all(), $rules);
         $errors = $validator->errors();
+        if ($imageError) {
+            $errors->add('review_image', $imageError);
+        }
         $sessionDocPath = $request->session()->get('review-docs-system');
         if (!$request->session()->exists('review-docs') || !$sessionDocPath || !is_file($sessionDocPath)) {
             $errors->add('review_docs', $proofRequiredMessage);
@@ -473,6 +496,7 @@ class ReviewController extends BaseController
             'full_name' => trim(($user['firstname'] ?? '') . ' ' . ($user['lastname'] ?? '')),
             'display_name' => $user['display_name'] ?? '',
         ];
+        $adminUrl = cmsAdminUrl('/review/edit/' . $reviewId);
 
         foreach ($adminEmails as $adminEmail) {
             try {
@@ -480,7 +504,10 @@ class ReviewController extends BaseController
                     $adminEmail,
                     'New review submitted',
                     'email-template.review-submitted',
-                    ['details' => $viewData]
+                    [
+                        'details' => $viewData,
+                        'adminUrl' => $adminUrl,
+                    ]
                 );
             } catch (\Exception $e) {
                 Log::error('REVIEW_ADMIN_MAIL_ERROR: ' . $e->getMessage(), [
@@ -672,8 +699,13 @@ class ReviewController extends BaseController
     {
         $review = Review::with('property:id,project_name,developer_name', 'property.company:id,company_name', 'users', 'ratings', 'reviewTags')
             ->where('slug', $slug)
-            ->where('status', 1)
+            ->where('status', Review::STATUS_APPROVED)
             ->first();
+        // Pending, inactive and deleted reviews are not public: 404 rather
+        // than erroring on a null model.
+        if (!$review) {
+            abort(404);
+        }
         $user = $review->toArray();
         $expiresAt = now()->addHours(3);
         if (Auth::id() !== $user['users']['id']) {

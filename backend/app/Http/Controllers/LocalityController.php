@@ -220,11 +220,21 @@ class LocalityController extends BaseController
     }
 
     /**
+     * Day-long public cache. Also mark the body as readable from any origin.
+     *
+     * A same-origin caller (the public review form) does not send Origin, so
+     * the CORS middleware adds nothing. Without these headers the browser
+     * stores that copy and later reuses it for the admin site, which then
+     * fails the CORS check for up to a day.
+     *
      * @param \Illuminate\Http\JsonResponse $response
      * @return \Illuminate\Http\JsonResponse
      */
     private function cacheable($response)
     {
-        return $response->header('Cache-Control', self::CACHE_HEADER);
+        return $response
+            ->header('Cache-Control', self::CACHE_HEADER)
+            ->header('Access-Control-Allow-Origin', '*')
+            ->header('Vary', 'Origin');
     }
 }

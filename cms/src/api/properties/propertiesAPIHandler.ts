@@ -54,6 +54,9 @@ export interface Property {
   updated_at: string
   full_property_logo: string | null
   property_allowed_category: PropertyAllowedCategory[]
+  // Reviews attached to this project (all statuses). Sent by the datatable
+  // endpoints; a project with reviews cannot be deleted.
+  reviews_count?: number
 }
 
 // ── Status filter ────────────────────────────────────────────────────────────

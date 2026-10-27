@@ -180,7 +180,13 @@ class CompanyDetailsController extends BaseController
 
     public function getDatatableCompany(Request $request)
     {
-        return datatables(CompanyDetails::query()->where('status', $request->status))->toJson();
+        // `reviews_count` lets the portal tell the admin up front that a
+        // company cannot be deleted until its reviews are moved elsewhere.
+        return datatables(
+            CompanyDetails::query()
+                ->withCount('reviews')
+                ->where('status', $request->status)
+        )->toJson();
     }
 
     public function getCompany(Request $request)
@@ -230,22 +236,52 @@ class CompanyDetailsController extends BaseController
         }
     }
 
+    /**
+     * Delete a company and its projects.
+     *
+     * Refused while any review (of any status) still points at one of the
+     * company's projects: reviews are the site's content and must be moved
+     * to another company/project explicitly rather than disappearing with
+     * the company.
+     */
     public function deleteCompany(Request $request)
     {
+        $validator = Validator::make(
+            ['id' => $request->id],
+            ['id' => 'required|exists:company_details,id,deleted_at,NULL']
+        );
+        if ($validator->fails()) {
+            return $this->formatFailureResponse('Company does not exist', 404);
+        }
+
         try {
-            $companyId = $request->id;
-            $propertyIds = Properties::where('developer_name', $companyId)->pluck('id');
-            // delete reviews
-            Review::whereIn('property_id', $propertyIds)->delete();
+            $company = CompanyDetails::find($request->id);
+            $reviewCount = $company->reviews()->count();
 
-            // delete properties
-            Properties::where('developer_name', $companyId)->delete();
+            if ($reviewCount > 0) {
+                $noun = $reviewCount === 1 ? 'review' : 'reviews';
+                return $this->formatFailureResponse(
+                    "Cannot delete \"{$company->company_name}\": it has {$reviewCount} {$noun} attached. "
+                    . 'Move the reviews to another company or project first.',
+                    409
+                );
+            }
 
-            // delete company
-            CompanyDetails::where('id', $companyId)->delete();
+            DB::transaction(function () use ($company) {
+                // Users keep their accounts; they just stop pointing at a
+                // company that no longer exists. (Builder portal treats a
+                // null company_id as "no company assigned".)
+                User::where('company_id', $company->id)->update(['company_id' => null]);
+
+                // No reviews reference this company, so its (review-less)
+                // projects can go with it.
+                Properties::where('developer_name', $company->id)->delete();
+                $company->delete();
+            });
 
             return $this->formatSuccessResponse('record deleted', 'success');
         } catch (\Exception $e) {
+            Log::error('COMPANY_DELETE_ERROR: ' . $e->getMessage());
             return $this->formatFailureResponse('Error while processing', 500);
         }
     }

@@ -28,7 +28,12 @@ export interface ConfirmDialogProps {
   // Tone of the warning icon at the top of the dialog. Defaults to `danger`
   // (red), matching the legacy app's status-change modal.
   tone?: "danger" | "warning"
-  onConfirm: () => void | Promise<void>
+  // When true the dialog is informational only: the confirm button is hidden
+  // and the cancel button acts as "Close". Used when an action is blocked
+  // (e.g. deleting a company that still has reviews) and the admin needs to
+  // be told what to do first rather than asked to confirm.
+  blocked?: boolean
+  onConfirm?: () => void | Promise<void>
 }
 
 export function ConfirmDialog({
@@ -39,12 +44,13 @@ export function ConfirmDialog({
   confirmLabel = "Yes",
   cancelLabel = "Cancel",
   tone = "danger",
+  blocked = false,
   onConfirm,
 }: ConfirmDialogProps) {
   const [submitting, setSubmitting] = useState(false)
 
   const handleConfirm = async () => {
-    if (submitting) return
+    if (submitting || !onConfirm) return
     try {
       setSubmitting(true)
       await onConfirm()
@@ -94,25 +100,30 @@ export function ConfirmDialog({
               onClick={handleCancel}
               disabled={submitting}
               className={cn(
-                "rounded-md bg-red-500 px-5 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors",
-                "hover:bg-red-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-1",
+                "rounded-md px-5 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors",
+                blocked
+                  ? "bg-gray-600 hover:bg-gray-700 focus-visible:ring-gray-400"
+                  : "bg-red-500 hover:bg-red-600 focus-visible:ring-red-400",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
                 "disabled:cursor-not-allowed disabled:opacity-60"
               )}
             >
-              {cancelLabel}
+              {blocked ? "Close" : cancelLabel}
             </button>
-            <button
-              type="button"
-              onClick={handleConfirm}
-              disabled={submitting}
-              className={cn(
-                "rounded-md bg-emerald-500 px-5 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors",
-                "hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-1",
-                "disabled:cursor-not-allowed disabled:opacity-60"
-              )}
-            >
-              {submitting ? "Please wait…" : confirmLabel}
-            </button>
+            {!blocked && (
+              <button
+                type="button"
+                onClick={handleConfirm}
+                disabled={submitting}
+                className={cn(
+                  "rounded-md bg-emerald-500 px-5 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors",
+                  "hover:bg-emerald-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-1",
+                  "disabled:cursor-not-allowed disabled:opacity-60"
+                )}
+              >
+                {submitting ? "Please wait…" : confirmLabel}
+              </button>
+            )}
           </DialogFooter>
         </DialogPopup>
       </DialogPortal>

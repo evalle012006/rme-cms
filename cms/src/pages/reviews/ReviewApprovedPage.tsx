@@ -17,6 +17,7 @@ export default function ReviewApprovedPage() {
       flipStatusTo={REVIEW_STATUS.PENDING}
       flipConfirmMessage="Are you sure you want to set this review to pending ?"
       flipSuccessMessage="Review status updated successfully"
+      allowDeactivate
     />
   )
 }

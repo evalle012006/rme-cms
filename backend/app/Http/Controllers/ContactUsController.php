@@ -23,7 +23,10 @@ class ContactUsController extends BaseController
                 config('mail.contact_to'),
                 'Contact form: ' . $data['subject'],
                 'email-template.contact-us',
-                ['details' => $data]
+                [
+                    'details' => $data,
+                    'adminUrl' => cmsAdminUrl('/contact'),
+                ]
             );
 
             if ($sent) {

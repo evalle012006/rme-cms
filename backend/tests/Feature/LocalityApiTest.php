@@ -40,6 +40,13 @@ class LocalityApiTest extends TestCase
 
         $this->assertContains('public', $directives);
         $this->assertContains('max-age=86400', $directives);
+
+        // A publicly cached body must stay readable from the admin origin.
+        // Same-origin callers do not send Origin, so these cannot be left to
+        // the CORS middleware.
+        $this->assertSame('*', $response->headers->get('Access-Control-Allow-Origin'));
+        $vary = array_map('trim', explode(',', (string) $response->headers->get('Vary')));
+        $this->assertContains('Origin', $vary);
     }
 
     public function testIndexReturnsActiveLocalitiesForOneStateOnly()

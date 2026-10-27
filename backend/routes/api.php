@@ -91,6 +91,7 @@ Route::group(['namespace' => 'Admin', 'middleware' => 'auth:api'], function () {
     Route::post('property-delete', 'PropertyController@deleteProperty');
     Route::get('property-get/{id}', 'PropertyController@getProperty');
     Route::get('property-get-all', 'PropertyController@getPropertyAll');
+    Route::get('property-by-company/{companyId}', 'PropertyController@getPropertiesByCompany');
     Route::post('property-gallery-add', 'PropertyController@addPropertyGallery');
     Route::post('approve-property', 'PropertyController@approveProperty');
 

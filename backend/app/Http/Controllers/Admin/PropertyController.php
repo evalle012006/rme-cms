@@ -7,7 +7,6 @@ use App\Imports\PropertyImport;
 use App\Models\Properties;
 use App\Models\PropertyAvailableCategory;
 use App\Models\PropertyGallery;
-use App\Models\Review;
 use Dotenv\Exception\ValidationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,14 +26,20 @@ class PropertyController extends BaseController
     public function getDatatablePropertyApprove(Request $request)
     {
         return datatables(
-            Properties::with('propertyAllowedCategory')->where('status', 1)
+            Properties::with('propertyAllowedCategory')
+                ->withCount('reviews')
+                ->where('status', 1)
         )->toJson();
     }
 
     public function getDatatablePropertyPending(Request $request)
     {
+        // `reviews_count` lets the portal tell the admin up front that a
+        // project cannot be deleted until its reviews are moved elsewhere.
         return datatables(
-            Properties::with('propertyAllowedCategory')->where('status', 0)
+            Properties::with('propertyAllowedCategory')
+                ->withCount('reviews')
+                ->where('status', 0)
         )->toJson();
     }
 
@@ -91,11 +96,52 @@ class PropertyController extends BaseController
         return $data;
     }
 
+    /**
+     * Delete a project.
+     *
+     * Refused while any review (of any status) still points at it: reviews
+     * must be moved to another project explicitly rather than disappearing
+     * with the project.
+     */
     public function deleteProperty(Request $request)
     {
-        Properties::where('id', $request->id)->delete();
-        Review::where('property_id', $request->id)->delete();
+        $validator = Validator::make(
+            ['id' => $request->id],
+            ['id' => 'required|exists:properties,id,deleted_at,NULL']
+        );
+        if ($validator->fails()) {
+            return $this->formatFailureResponse('Project does not exist', 404);
+        }
+
+        $property = Properties::find($request->id);
+        $reviewCount = $property->reviews()->count();
+
+        if ($reviewCount > 0) {
+            $noun = $reviewCount === 1 ? 'review' : 'reviews';
+            return $this->formatFailureResponse(
+                "Cannot delete \"{$property->project_name}\": it has {$reviewCount} {$noun} attached. "
+                . 'Move the reviews to another company or project first.',
+                409
+            );
+        }
+
+        $property->delete();
         return $this->formatSuccessResponse('record deleted', 'success');
+    }
+
+    /**
+     * Projects belonging to a company, for the "move review" picker in the
+     * admin review form. Not status-filtered so a review can be moved onto
+     * a project that is still pending.
+     */
+    public function getPropertiesByCompany($companyId)
+    {
+        $properties = Properties::select('id', 'project_name', 'status')
+            ->where('developer_name', $companyId)
+            ->orderBy('project_name')
+            ->get();
+
+        return $this->formatSuccessResponse('success', $properties);
     }
 
     public function savePropertyCategories($property_id, $categories)

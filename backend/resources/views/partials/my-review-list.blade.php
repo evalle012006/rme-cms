@@ -3,7 +3,7 @@
                                 <div class="img-wrap">
                                     {{--                                    <a href="{{url('review/'.$userReview['slug'])}}"><img--}}
                                     {{--                                            src="{{$userReview['full_review_image'] ? $userReview['full_review_image']: 'images/property-review-img-1.png'}}"></a>--}}
-                                    <a href="{{$userReview->status ? url('review/'.$userReview['slug']) : "#"}}">
+                                    <a href="{{(int)$userReview->status === 1 ? url('review/'.$userReview['slug']) : "#"}}">
                                         <img
                                             src="{{isset($userReview->property) && isset($userReview->property->full_property_logo) ? $userReview->property->full_property_logo: 'images/property-review-img-1.png'}}"></a>
                                 </div>
@@ -18,7 +18,7 @@
                                                 <li><a><img src="{{asset('images/rating-img.png')}}"></a></li>
                                             </ul>
                                         </div>
-                                        @if($userReview->status===0)
+                                        @if((int)$userReview->status === 0)
                                             <div class="setting-icon">
                                                 <div class="btn-wrap">
                                                     <a class="btn" href="javascript:void(0)" id="modalBtn"
@@ -27,6 +27,15 @@
                                                     </a>
                                                     <a class="btn pending-btn" href="#">
                                                         Pending
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        @elseif((int)$userReview->status === 2)
+                                            {{-- Hidden by an admin; not public and not counted in ratings. --}}
+                                            <div class="setting-icon">
+                                                <div class="btn-wrap">
+                                                    <a class="btn pending-btn" href="#">
+                                                        Inactive
                                                     </a>
                                                 </div>
                                             </div>

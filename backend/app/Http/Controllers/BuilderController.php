@@ -548,7 +548,10 @@ class BuilderController extends BaseController
                     $adminEmail,
                     'User Reported',
                     'email-template.report-user',
-                    ['data' => $data]
+                    [
+                        'data' => $data,
+                        'adminUrl' => cmsAdminUrl('/builder/edit/' . $user->id . '?from=approved'),
+                    ]
                 );
             }
             return $this->jSonFormatSuccessResponse(['status' => 'success']);

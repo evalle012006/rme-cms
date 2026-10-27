@@ -291,14 +291,18 @@ class HomeController extends Controller
             $adminEmail = config('mail.contact_to');
             $details = [
                 'display_name' => $user->display_name,
-                'full_name' => $user->firstname . ' ' . $user->lastname
+                'full_name' => $user->firstname . ' ' . $user->lastname,
+                'requested_display_name' => $user->requested_display_name,
             ];
             if ($adminEmail) {
                 app(ResendService::class)->send(
                     $adminEmail,
                     'Display name change request',
                     'email-template.change-request-admin',
-                    ['details' => $details]
+                    [
+                        'details' => $details,
+                        'adminUrl' => cmsAdminUrl('/users?request=' . $user->id),
+                    ]
                 );
             }
             return Redirect::to("my-profile")->with('request_placed',

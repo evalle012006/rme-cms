@@ -11,6 +11,19 @@ class Review extends Model implements ViewableContract
 {
     use SoftDeletes, Viewable, Sluggable;
 
+    // Review workflow status. Only APPROVED reviews are shown on the public
+    // site or counted in ratings. INACTIVE keeps the review in admin (and
+    // lets it be reactivated) while hiding it everywhere else.
+    const STATUS_PENDING = 0;
+    const STATUS_APPROVED = 1;
+    const STATUS_INACTIVE = 2;
+
+    const STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_APPROVED,
+        self::STATUS_INACTIVE,
+    ];
+
     protected $appends = ['full_review_image', 'full_review_docs'];
 
     static $rules = [
@@ -31,11 +44,11 @@ class Review extends Model implements ViewableContract
     ];
     static $rules_admin = [
         'title' => 'required',
-        'property_id' => 'required',
+        'property_id' => 'required|exists:properties,id,deleted_at,NULL',
         'recommendation' => 'required',
         'comment' => 'nullable',
         'buyer_type' => 'required',
-        'status' => 'required',
+        'status' => 'required|in:0,1,2',
         'state' => 'required',
         'suburb' => 'required',
         'post_code' => 'required',
@@ -61,7 +74,9 @@ class Review extends Model implements ViewableContract
         'year_of_completion',
         'status',
         'parent_id',
-        'category_id'
+        'category_id',
+        'delete_reason',
+        'deleted_by',
     ];
 
     public function sluggable()
@@ -101,6 +116,12 @@ class Review extends Model implements ViewableContract
     public function users()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
+    }
+
+    /** Admin who removed the review (see `delete_reason`). */
+    public function deletedBy()
+    {
+        return $this->belongsTo(User::class, 'deleted_by', 'id');
     }
 
     public function category()

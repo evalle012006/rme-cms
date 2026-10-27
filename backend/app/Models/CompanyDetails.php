@@ -52,4 +52,20 @@ class CompanyDetails extends Model
     {
         return $this->hasMany(User::class, 'company_id', 'id');
     }
+
+    /**
+     * Reviews attached to any of this company's projects (all statuses).
+     * Used to block deletion while reviews still reference the company.
+     */
+    public function reviews()
+    {
+        return $this->hasManyThrough(
+            Review::class,
+            Properties::class,
+            'developer_name', // properties.developer_name -> company_details.id
+            'property_id',    // reviews.property_id -> properties.id
+            'id',
+            'id'
+        );
+    }
 }

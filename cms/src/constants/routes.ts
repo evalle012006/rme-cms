@@ -51,6 +51,7 @@ export const ROUTES = {
   reviews: {
     approved: '/review/approve',
     pending: '/review/pending',
+    inactive: '/review/inactive',
     edit: (id: string | number) => `/review/edit/${id}`,
     editPattern: '/review/edit/:id',
   },

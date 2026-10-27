@@ -265,6 +265,7 @@ class RegisterController extends Controller
                         [
                             'company_name' => $company->company_name,
                             'user_email' => $user->email,
+                            'adminUrl' => cmsAdminUrl('/builder/edit/' . $user->id . '?from=pending'),
                         ]
                     );
                 }
@@ -304,7 +305,10 @@ class RegisterController extends Controller
                         $adminEmail,
                         'New Company Registered',
                         'email-template.company-registered',
-                        ['company_name' => $company->company_name]
+                        [
+                            'company_name' => $company->company_name,
+                            'adminUrl' => cmsAdminUrl('/company/edit/' . $company->id),
+                        ]
                     );
                 }
 

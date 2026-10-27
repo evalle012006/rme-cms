@@ -899,6 +899,35 @@ header .logo-wrap a, header .logo-wrap a img {
     width: 50%;
     float: left;
     padding-left: 100px;
+    min-width: 0;
+    max-width: 100%;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+    line-height: 28px;
+}
+
+.write-review-section .content-wrap p,
+.write-review-section .content-wrap li,
+.write-review-section .content-wrap h1,
+.write-review-section .content-wrap h2,
+.write-review-section .content-wrap h3,
+.write-review-section .content-wrap h4,
+.write-review-section .content-wrap h5,
+.write-review-section .content-wrap h6 {
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+.write-review-section .content-wrap p {
+    margin: 0 0 20px;
+}
+
+.write-review-section .content-wrap p:last-child {
+    margin-bottom: 0;
 }
 
 .write-review-section .content-wrap h4 {
@@ -908,6 +937,16 @@ header .logo-wrap a, header .logo-wrap a img {
 .write-review-section .container {
     display: flex;
     align-items: center;
+}
+
+.write-review-section .content-wrap ol {
+    padding-left: 25px;
+    margin-bottom: 20px;
+}
+
+.write-review-section .content-wrap ol > li {
+    list-style: decimal;
+    list-style-position: outside;
 }
 
 .write-review-section .content-wrap ul li {
@@ -2306,6 +2345,11 @@ ul.mainmenu {
     transform: translateY(-50%);
 }
 
+.get-to-know-section .container {
+    position: relative;
+    padding-left: 70px;
+}
+
 .get-to-know-section .img-wrap {
     width: 45%;
     float: left;
@@ -2316,8 +2360,56 @@ ul.mainmenu {
     width: 55%;
     float: left;
     padding: 100px 90px 100px 80px;
-    line-height: 30px;
+    line-height: 28px;
     position: relative;
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+.get-to-know-section .content-wrap p,
+.get-to-know-section .content-wrap li,
+.get-to-know-section .content-wrap h1,
+.get-to-know-section .content-wrap h2,
+.get-to-know-section .content-wrap h3,
+.get-to-know-section .content-wrap h4,
+.get-to-know-section .content-wrap h5,
+.get-to-know-section .content-wrap h6 {
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+.get-to-know-section .content-wrap p {
+    margin: 0 0 20px;
+}
+
+.get-to-know-section .content-wrap p:last-child {
+    margin-bottom: 0;
+}
+
+.get-to-know-section .content-wrap ol,
+.get-to-know-section .content-wrap ul {
+    padding-left: 25px;
+    margin-bottom: 20px;
+}
+
+.get-to-know-section .content-wrap ul > li {
+    list-style: disc;
+    list-style-position: outside;
+}
+
+.get-to-know-section .content-wrap ol > li {
+    list-style: decimal;
+    list-style-position: outside;
+}
+
+.get-to-know-section .content-wrap ul ul > li {
+    list-style: circle;
 }
 
 .get-to-know-section .content-wrap:after {
@@ -2343,10 +2435,12 @@ ul.mainmenu {
     position: absolute;
     color: #07AFAA;
     text-transform: uppercase;
-    top: 40%;
-    transform: rotate(-90deg);
-    left: 0px;
+    top: 50%;
+    left: -36px;
+    z-index: 2;
     letter-spacing: 2.5px;
+    white-space: nowrap;
+    transform: translate(-50%, -50%) rotate(-90deg);
 }
 
 .get-to-know-section .side-title p {
@@ -2475,9 +2569,53 @@ ul.mainmenu {
     line-height: 28px;
     max-width: 100%;
     min-width: 0;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
     overflow-x: hidden;
+}
+
+.how-we-start-section .section-content .single-col p,
+.how-we-start-section .section-content .single-col li,
+.how-we-start-section .section-content .single-col h1,
+.how-we-start-section .section-content .single-col h2,
+.how-we-start-section .section-content .single-col h3,
+.how-we-start-section .section-content .single-col h4,
+.how-we-start-section .section-content .single-col h5,
+.how-we-start-section .section-content .single-col h6 {
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+.how-we-start-section .section-content .single-col p {
+    margin: 0 0 20px;
+}
+
+.how-we-start-section .section-content .single-col p:last-child {
+    margin-bottom: 0;
+}
+
+.how-we-start-section .section-content .single-col ol,
+.how-we-start-section .section-content .single-col ul {
+    padding-left: 25px;
+    margin-bottom: 20px;
+}
+
+.how-we-start-section .section-content .single-col ul > li {
+    list-style: disc;
+    list-style-position: outside;
+}
+
+.how-we-start-section .section-content .single-col ol > li {
+    list-style: decimal;
+    list-style-position: outside;
+}
+
+.how-we-start-section .section-content .single-col ul ul > li {
+    list-style: circle;
 }
 
 .how-we-start-section .section-content .single-col img,
@@ -2524,9 +2662,25 @@ ul.mainmenu {
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
     overflow-x: hidden;
+}
+
+.solution-section .content-wrap p,
+.solution-section .content-wrap li,
+.solution-section .content-wrap h1,
+.solution-section .content-wrap h2,
+.solution-section .content-wrap h3,
+.solution-section .content-wrap h4,
+.solution-section .content-wrap h5,
+.solution-section .content-wrap h6 {
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
 .solution-section .content-wrap img,
@@ -2538,9 +2692,11 @@ ul.mainmenu {
 
 .solution-section .content-wrap p {
     padding-right: 100px;
-    max-width: 100%;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    margin: 0 0 20px;
+}
+
+.solution-section .content-wrap p:last-child {
+    margin-bottom: 0;
 }
 
 .solution-section .content-wrap h3 {
@@ -2559,26 +2715,14 @@ ul.mainmenu {
     position: relative;
 }
 
-.solution-section .img-wrap:before {
-    content: '';
-    width: 15px;
-    background-color: #FDBF3B;
-    opacity: 0.2;
-    position: absolute;
-    left: 100px;
-    top: 0;
-    bottom: -40px;
+.solution-section .content-wrap ol {
+    padding-left: 25px;
+    margin-bottom: 20px;
 }
 
-.solution-section .img-wrap:after {
-    content: '';
-    width: 84%;
-    background-color: #FDBF3B;
-    opacity: 0.2;
-    position: absolute;
-    left: 115px;
-    height: 15px;
-    bottom: -40px;
+.solution-section .content-wrap ol > li {
+    list-style: decimal;
+    list-style-position: outside;
 }
 
 .solution-section .content-wrap ul li {
@@ -7158,9 +7302,11 @@ h3.advertise-heading {
 .general-content-section.custom-content-section .content-wrap {
     max-width: 100%;
     min-width: 0;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
     overflow-x: hidden;
+    line-height: 28px;
 }
 
 .general-content-section.custom-content-section .content-wrap img,
@@ -7179,8 +7325,18 @@ h3.advertise-heading {
 .general-content-section.custom-content-section .content-wrap h5,
 .general-content-section.custom-content-section .content-wrap h6 {
     max-width: 100%;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    min-width: 0;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
+}
+
+.general-content-section.custom-content-section .content-wrap p {
+    margin: 0 0 20px;
+}
+
+.general-content-section.custom-content-section .content-wrap p:last-child {
+    margin-bottom: 0;
 }
 
 .general-content-section.custom-content-section .content-wrap h1, .general-content-section.custom-content-section .content-wrap h2, .general-content-section.custom-content-section .content-wrap h3, .general-content-section.custom-content-section .content-wrap h4, .general-content-section.custom-content-section .content-wrap h5, .general-content-section.custom-content-section .content-wrap h6 {
@@ -7322,9 +7478,14 @@ li.parent:hover .sub-menu {
     margin-bottom: 15px;
 }
 
-.general-content-section.custom-content-section .content-wrap li {
+.general-content-section.custom-content-section .content-wrap ul > li {
     list-style: disc;
-    list-style-position: initial;
+    list-style-position: outside;
+}
+
+.general-content-section.custom-content-section .content-wrap ol > li {
+    list-style: decimal;
+    list-style-position: outside;
 }
 
 .general-content-section.custom-content-section .content-wrap ol, .general-content-section.custom-content-section .content-wrap ul {
@@ -9812,10 +9973,6 @@ h1.custom-title-h1 {
     .about-us-section .img-wrap:after {
         width: 940px;
     }
-
-    .get-to-know-section .side-title {
-        left: -50px;
-    }
 }
 
 @media (max-width: 1619px) {
@@ -9882,10 +10039,6 @@ h1.custom-title-h1 {
     .header-main .srch-wrap input {
         padding: 10px 15px; /*min-width: 195px;*/
         max-width: 180px;
-    }
-
-    .get-to-know-section .side-title {
-        left: -75px;
     }
 
     .review-listing-section .review-box-wrap .sort-filter .filter-wrap {
@@ -9995,15 +10148,6 @@ h1.custom-title-h1 {
     .banner-section .banner-caption {
         max-width: 580px;
         margin-top: 40px;
-    }
-
-    .solution-section .img-wrap:after {
-        left: 5px;
-        width: 100%;
-    }
-
-    .solution-section .img-wrap:before {
-        left: -10px;
     }
 
     .recent-reviews-section.white-bg .section-title:after {
@@ -10304,15 +10448,6 @@ h1.custom-title-h1 {
         padding-left: 10px;
     }
 
-    .solution-section .img-wrap:before {
-        left: -40px;
-    }
-
-    .solution-section .img-wrap:after {
-        left: -25px;
-        width: 106%;
-    }
-
     .how-we-start-section .section-content .single-col {
         padding-left: 20px;
         padding-right: 20px;
@@ -10320,10 +10455,6 @@ h1.custom-title-h1 {
 
     .get-to-know-section .content-wrap {
         padding: 30px 50px 50px 50px;
-    }
-
-    .get-to-know-section .side-title {
-        display: none;
     }
 
     .review-listing-section .review-box-wrap .view-filter h4 {
@@ -11073,6 +11204,19 @@ h1.custom-title-h1 {
         padding: 70px 0px;
     }
 
+    .get-to-know-section .container {
+        padding-left: 15px;
+    }
+
+    .get-to-know-section .side-title {
+        position: static;
+        display: block;
+        transform: none;
+        white-space: normal;
+        margin-bottom: 16px;
+        text-align: left;
+    }
+
     .get-to-know-section .img-wrap {
         width: 100%;
         text-align: center;
@@ -11128,15 +11272,6 @@ h1.custom-title-h1 {
     .solution-section .img-wrap {
         width: 100%;
         text-align: center;
-    }
-
-    .solution-section .img-wrap:before {
-        left: 0;
-    }
-
-    .solution-section .img-wrap:after {
-        left: 15px;
-        width: 98%;
     }
 
     .recent-reviews-section.white-bg {
@@ -11722,10 +11857,6 @@ h1.custom-title-h1 {
 
     .solution-section {
         padding: 50px 0;
-    }
-
-    .solution-section .img-wrap:before, .solution-section .img-wrap:after {
-        display: none;
     }
 
     .recent-reviews-section .review-box-col {
@@ -12954,7 +13085,7 @@ h1.custom-title-h1 {
     margin-top: 15px;
 }
 
-.general-content-section.custom-content-section .content-wrap li li {
+.general-content-section.custom-content-section .content-wrap ul ul > li {
     list-style: circle;
 }
 

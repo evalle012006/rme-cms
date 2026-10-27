@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { Trash2 } from "lucide-react"
+import { EyeOff, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/atoms/Button"
 import { Breadcrumb, type BreadcrumbItem } from "@/components/atoms/Breadcrumb"
@@ -14,6 +14,7 @@ import {
   type ReviewLocalityFilter,
   type ReviewStatusFilter,
 } from "@/api/reviews/reviewsAPIHandler"
+import { DeleteReviewDialog } from "./DeleteReviewDialog"
 import {
   EMPTY_LOCALITY_SELECTION,
   LocalitySelect,
@@ -57,9 +58,16 @@ function isRecommended(value: Review["recommendation"]): boolean | null {
 }
 
 // ── Shared list page ─────────────────────────────────────────────────────────
-// Powers both the Approved and Pending tabs of "Reviews". The two pages differ
-// only by breadcrumb, status filter (1 vs 0), the status badge label/tone, and
-// the status the badge flips to when clicked.
+// Powers the Approved, Pending and Inactive tabs of "Reviews". The pages
+// differ only by breadcrumb, status filter (1 / 0 / 2), the status badge
+// label/tone, the status the badge flips to when clicked, and whether a
+// "Deactivate" action is offered.
+
+const FROM_HINT: Record<ReviewStatusFilter, string> = {
+  [REVIEW_STATUS.APPROVED]: "approved",
+  [REVIEW_STATUS.PENDING]: "pending",
+  [REVIEW_STATUS.INACTIVE]: "inactive",
+}
 
 interface ReviewsListPageProps {
   breadcrumb: BreadcrumbItem[]
@@ -67,10 +75,14 @@ interface ReviewsListPageProps {
   statusLabel: string
   statusTone: StatusTone
   // Status to set via `/review/change-status` when the badge is clicked, plus
-  // the confirm/success copy. Pending → 1 (approve), Approved → 0 (pending).
+  // the confirm/success copy. Pending → 1 (approve), Approved → 0 (pending),
+  // Inactive → 1 (reactivate).
   flipStatusTo: number
   flipConfirmMessage: string
   flipSuccessMessage: string
+  // Offer a per-row "Deactivate" action (sets status 2). Inactive reviews
+  // stay in admin but are hidden from the site and excluded from ratings.
+  allowDeactivate?: boolean
 }
 
 export function ReviewsListPage({
@@ -81,6 +93,7 @@ export function ReviewsListPage({
   flipStatusTo,
   flipConfirmMessage,
   flipSuccessMessage,
+  allowDeactivate = false,
 }: ReviewsListPageProps) {
   const [data, setData] = useState<Review[]>([])
   const [page, setPage] = useState(1)
@@ -92,6 +105,7 @@ export function ReviewsListPage({
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [confirmId, setConfirmId] = useState<number | null>(null)
+  const [reviewToDeactivate, setReviewToDeactivate] = useState<Review | null>(null)
   const [reviewToDelete, setReviewToDelete] = useState<Review | null>(null)
   const [locality, setLocality] = useState<LocalitySelection>(
     EMPTY_LOCALITY_SELECTION
@@ -176,18 +190,20 @@ export function ReviewsListPage({
     }
   }, [confirmId, flipStatusTo, flipSuccessMessage, fetchReviews])
 
-  const confirmDelete = useCallback(async () => {
-    if (reviewToDelete === null) return
+  const confirmDeactivate = useCallback(async () => {
+    if (reviewToDeactivate === null) return
     try {
-      await reviewsAPI.delete(reviewToDelete.id, {
-        successMessage: "Review deleted successfully",
-        customErrorMessage: "Failed to delete review",
-      })
+      await reviewsAPI.updateStatus(
+        { id: reviewToDeactivate.id, status: REVIEW_STATUS.INACTIVE },
+        { successMessage: "Review set to inactive" }
+      )
       fetchReviews()
     } catch {
       // Toast already shown by the API wrapper / global interceptor.
     }
-  }, [reviewToDelete, fetchReviews])
+  }, [reviewToDeactivate, fetchReviews])
+
+  const fromHint = FROM_HINT[statusFilter]
 
   const columns = useMemo<DataTableColumn<Review>[]>(
     () => [
@@ -244,24 +260,34 @@ export function ReviewsListPage({
       {
         key: "action",
         header: "Action",
-        width: "140px",
+        width: allowDeactivate ? "190px" : "140px",
         cell: (row) => (
           <div className="flex items-center gap-2">
-            <Link
-              to={`${ROUTES.reviews.edit(row.id)}?from=${
-                statusFilter === REVIEW_STATUS.APPROVED ? "approved" : "pending"
-              }`}
-            >
+            <Link to={`${ROUTES.reviews.edit(row.id)}?from=${fromHint}`}>
               <Button color="primary" size="sm" className="h-auto py-1.5">
                 Edit
               </Button>
             </Link>
+            {allowDeactivate && (
+              <Button
+                type="button"
+                color="secondary"
+                size="sm"
+                className="h-auto px-2 py-1.5"
+                aria-label="Set review inactive"
+                title="Set inactive (hide from site and ratings)"
+                onClick={() => setReviewToDeactivate(row)}
+              >
+                <EyeOff size={16} />
+              </Button>
+            )}
             <Button
               type="button"
               color="destructive"
               size="sm"
               className="h-auto px-2 py-1.5"
               aria-label="Delete review"
+              title="Delete review"
               onClick={() => setReviewToDelete(row)}
             >
               <Trash2 size={16} />
@@ -270,7 +296,7 @@ export function ReviewsListPage({
         ),
       },
     ],
-    [statusLabel, statusTone, statusFilter]
+    [statusLabel, statusTone, fromHint, allowDeactivate]
   )
 
   const handlePerPageChange = (newPerPage: number) => {
@@ -386,15 +412,30 @@ export function ReviewsListPage({
       />
 
       <ConfirmDialog
-        open={reviewToDelete !== null}
+        open={reviewToDeactivate !== null}
         onOpenChange={(next) => {
-          if (!next) setReviewToDelete(null)
+          if (!next) setReviewToDeactivate(null)
         }}
-        title="Delete ?"
-        description="Are you sure you want to delete this review ?"
-        confirmLabel="Yes"
+        title="Set review inactive?"
+        description={
+          <>
+            {reviewToDeactivate?.title
+              ? `"${reviewToDeactivate.title}" `
+              : "This review "}
+            will be hidden from the site and excluded from ratings. It stays
+            here in admin and can be reactivated from the Inactive list.
+          </>
+        }
+        tone="warning"
+        confirmLabel="Set inactive"
         cancelLabel="Cancel"
-        onConfirm={confirmDelete}
+        onConfirm={confirmDeactivate}
+      />
+
+      <DeleteReviewDialog
+        review={reviewToDelete}
+        onClose={() => setReviewToDelete(null)}
+        onDeleted={fetchReviews}
       />
     </div>
   )
